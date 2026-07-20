@@ -1,0 +1,54 @@
+name: Auto-setup Semester Folders
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'upload_academic_files/*-semister/.gitkeep'
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create default category folders
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          CHANGED=false
+
+          for sem_dir in upload_academic_files/*-semister; do
+            [ -d "$sem_dir" ] || continue
+            sem_name=$(basename "$sem_dir")
+            num="${sem_name%-semister}"
+
+            folders=(
+              "sheet"
+              "Previous Questions (${num} Semester)"
+              "Notes"
+              "Syllabus"
+            )
+
+            for folder in "${folders[@]}"; do
+              target="$sem_dir/$folder/.gitkeep"
+              if [ ! -d "$sem_dir/$folder" ]; then
+                mkdir -p "$sem_dir/$folder"
+                touch "$target"
+                git add "$target"
+                CHANGED=true
+                echo "Created: $target"
+              fi
+            done
+          done
+
+          if [ "$CHANGED" = true ]; then
+            git commit -m "Auto-setup: create default category folders [skip ci]"
+            git push
+          else
+            echo "All folders already exist. Nothing to do."
+          fi

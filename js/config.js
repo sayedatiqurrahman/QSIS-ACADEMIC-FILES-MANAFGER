@@ -2,6 +2,7 @@ const CONFIG = {
   appName: 'QSIS Academic Files Manager',
   repoUrl: 'https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER',
   uploadPath: 'upload_academic_files',
+  adobeClientId: 'd57fdbe801014db1a20bfb74914b5033',
   supportedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'webp'],
   academicExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'xls', 'xlsx', 'ppt', 'pptx'],
   ignoredFiles: ['.gitkeep', 'README.md', '.github', 'LICENSE'],

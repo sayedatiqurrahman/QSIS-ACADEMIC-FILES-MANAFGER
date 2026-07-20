@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /.github/
+
+Sitemap: https://sayedatiqurrahman.github.io/QSIS-ACADEMIC-FILES-MANAFGER/sitemap.xml

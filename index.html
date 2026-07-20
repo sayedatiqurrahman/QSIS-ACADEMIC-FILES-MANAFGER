@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <meta name="msvalidate.01" content="DD448DBC883F1B6109FDB70D65A3BB56" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -46,12 +47,12 @@
           <p>Academic Resource Management System</p>
           <p>Sheets, notes, previous questions & more</p>
           <div class="hero-credit">
+            <span class="credit-text">Presented by</span>
             <a rel="noopener" target="_blank" href="https://programming-light.eu.cc/"><img src="assets/pl-logo.png" alt="Programming Light" class="credit-logo" /></a>
-            <span class="credit-text">A gift from</span>
             <a rel="noopener" target="_blank" href="https://programming-light.eu.cc/"><span class="credit-name">Programming Light</span></a>
-            <span class="credit-text">to</span>
+            <span class="credit-text">to the</span>
             <img src="assets/qsis-logo.jpg" alt="QSIS" class="credit-logo" />
-            <span class="credit-name">QSIS Club</span>
+            <span class="credit-name">Qur'anic Sciences Club</span>
           </div>
         </div>
       </section>
@@ -85,10 +86,6 @@
           <div class="search-filters">
             <select id="searchSemester" class="search-filter-select" onchange="searchFiles()">
               <option value="">All Semesters</option>
-              <option value="3rd-semister">3rd Semester</option>
-              <option value="4th-semister">4th Semester</option>
-              <option value="5th-semister">5th Semester</option>
-              <option value="6th-semister">6th Semester</option>
             </select>
             <select id="searchType" class="search-filter-select" onchange="searchFiles()">
               <option value="">All Types</option>
@@ -273,16 +270,28 @@
           <span class="footer-logo-plus"><i class="fas fa-plus"></i></span>
           <img src="assets/qsis-logo.jpg" alt="QSIS" class="footer-logo" />
         </div>
-        <p>A gift from <a href="https://programming-light.eu.cc" target="_blank">Programming Light</a> to <strong>QSIS Club</strong></p>
+        <p>Presented by <a href="https://programming-light.eu.cc" target="_blank">Programming Light</a> to the <strong>Qur'anic Sciences Club</strong></p>
         <p>QSIS - IIUC &middot; Faculty of Shariah & Islamic Studies</p>
       </div>
     </footer>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://acrobatservices.adobe.com/view-sdk/viewer.js"></script>
   <script src="js/config.js"></script>
   <script src="js/db.js"></script>
   <script src="js/github.js"></script>
   <script src="js/app.js"></script>
+  <!-- Cloudflare Web Analytics -->
+  <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "11869d2b319c4c469c6d30c774151412"}'></script>
+  <!-- End Cloudflare Web Analytics -->
+  <!-- Microsoft Clarity -->
+  <script>
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i+"?ref=bwt";
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xpktxwpjbg");
+  </script>
+  <!-- End Microsoft Clarity -->
 </body>
 </html>
