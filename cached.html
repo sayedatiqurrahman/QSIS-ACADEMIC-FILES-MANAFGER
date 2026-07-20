@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Downloads - QSIS</title>
+  <link rel="icon" type="image/jpeg" href="assets/qsis-logo.jpg" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#3b82f6" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-brand">
+          <a href="index.html" style="text-decoration:none;display:flex;align-items:center;gap:12px">
+            <img src="assets/qsis-logo.jpg" alt="QSIS" class="nav-logo" />
+            <div class="nav-title">
+              <h1>QSIS-ARS</h1>
+              <span class="nav-subtitle">Downloads & Cached Files</span>
+            </div>
+          </a>
+        </div>
+        <div class="nav-actions">
+          <button class="btn-icon theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+          <a href="index.html" class="btn btn-sm"><i class="fas fa-home"></i> Home</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="main-content" style="max-width:800px;margin:0 auto;padding:20px">
+      <div class="page-header">
+        <h2><i class="fas fa-download"></i> Downloads</h2>
+        <div class="page-actions">
+          <span id="cacheSize" style="font-size:.75rem;color:var(--text2);align-self:center"></span>
+          <button class="btn btn-sm" onclick="clearAllCache()" style="border-color:var(--danger);color:var(--danger)">
+            <i class="fas fa-trash"></i> Clear All
+          </button>
+        </div>
+      </div>
+      <div id="cachedList" style="display:flex;flex-direction:column;gap:8px">
+        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>
+      </div>
+    </main>
+
+    <div id="pdfEditorModal" class="modal">
+      <div class="modal-content" style="max-width:900px;height:90vh;display:flex;flex-direction:column">
+        <div class="modal-header">
+          <h2><i class="fas fa-edit"></i> <span id="editorTitle">PDF Editor</span></h2>
+          <button class="btn-icon" onclick="closePdfEditor()"><i class="fas fa-times"></i></button>
+        </div>
+        <div style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+          <div class="pdf-toolbar" id="editorToolbar">
+            <button class="btn btn-sm" onclick="editorPrev()"><i class="fas fa-chevron-left"></i></button>
+            <span id="editorPageInfo">1 / 1</span>
+            <button class="btn btn-sm" onclick="editorNext()"><i class="fas fa-chevron-right"></i></button>
+            <span class="pdf-sep"></span>
+            <button class="btn btn-sm" onclick="editorZoomOut()"><i class="fas fa-minus"></i></button>
+            <span id="editorZoomInfo">100%</span>
+            <button class="btn btn-sm" onclick="editorZoomIn()"><i class="fas fa-plus"></i></button>
+            <span class="pdf-sep"></span>
+            <button class="btn btn-sm btn-accent" onclick="savePdfEdit()" id="savePdfBtn"><i class="fas fa-save"></i> Save</button>
+          </div>
+          <div class="pdf-scroll-area" id="editorScrollArea">
+            <canvas id="editorCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/github.js"></script>
+  <script>
+    let editingItem = null;
+    let editPdfDoc = null, editPage = 1, editScale = 1.5, editTotal = 0;
+    let autoSaveTimer = null;
+
+    document.addEventListener('DOMContentLoaded', () => { loadTheme(); waitForDB().then(loadCached); });
+
+    function waitForDB() { return new Promise(r => { const c = setInterval(() => { if (DB && DB.db) { clearInterval(c); r(); } }, 100); }); }
+    function loadTheme() { const s = localStorage.getItem('qsis-theme') || 'dark'; document.documentElement.setAttribute('data-theme', s); const i = document.querySelector('.theme-toggle i'); if (i) i.className = s === 'dark' ? 'fas fa-moon' : 'fas fa-sun'; }
+    function toggleTheme() { const c = document.documentElement.getAttribute('data-theme'); const n = c === 'light' ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', n); localStorage.setItem('qsis-theme', n); const i = document.querySelector('.theme-toggle i'); if (i) i.className = n === 'dark' ? 'fas fa-moon' : 'fas fa-sun'; }
+    function showToast(msg, type) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast ' + type + ' show'; clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3500); }
+    function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
+
+    function getFileIcon(mime) {
+      if (mime === 'image') return '<i class="fas fa-file-image" style="color:#34d399"></i>';
+      if (mime === 'pdf') return '<i class="fas fa-file-pdf" style="color:#ef4444"></i>';
+      if (mime === 'doc') return '<i class="fas fa-file-word" style="color:#3b82f6"></i>';
+      return '<i class="fas fa-file" style="color:var(--text2)"></i>';
+    }
+
+    function formatSize(bytes) {
+      if (!bytes) return '';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    function timeAgo(ts) { const d = Date.now() - ts; if (d < 60000) return 'Just now'; if (d < 3600000) return Math.floor(d / 60000) + 'm ago'; if (d < 86400000) return Math.floor(d / 3600000) + 'h ago'; return Math.floor(d / 86400000) + 'd ago'; }
+
+    async function loadCached() {
+      const list = document.getElementById('cachedList');
+      try {
+        const items = await DB.cacheGetAll();
+        if (!items || items.length === 0) {
+          list.innerHTML = '<div class="empty-state"><i class="fas fa-download"></i><p>No downloaded files yet.<br>Open a file and tap Download to cache it offline.</p><a href="index.html" class="btn btn-glow btn-sm" style="margin-top:12px"><i class="fas fa-home"></i> Browse Files</a></div>';
+          return;
+        }
+
+        let totalSize = 0;
+        items.forEach(i => totalSize += i.size || 0);
+        document.getElementById('cacheSize').textContent = items.length + ' files \u00B7 ' + formatSize(totalSize);
+
+        list.innerHTML = items.map(item => {
+          const id = DB.makeId(item.path);
+          return `<div class="list-item" id="cache-${id}">
+            <div class="list-item-icon">${getFileIcon(item.mimeType)}</div>
+            <div class="list-item-info">
+              <div class="list-item-name">${esc(item.name)}</div>
+              <div class="list-item-meta">${formatSize(item.size)} &middot; ${item.editedAt ? 'Edited ' + timeAgo(item.editedAt) : 'Cached ' + timeAgo(item.cachedAt)}</div>
+            </div>
+            <div class="list-item-actions">
+              ${item.mimeType === 'pdf' ? `<button class="btn-action" title="Edit PDF" onclick="openPdfEditor('${id}')"><i class="fas fa-edit"></i></button>` : ''}
+              <button class="btn-action btn-saveas" title="Save to device" onclick="saveToDevice('${id}','${esc(item.name)}')"><i class="fas fa-share-alt"></i></button>
+              <button class="btn-action" title="Remove" onclick="removeCache('${id}')" style="border-color:var(--danger);color:var(--danger)"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>`;
+        }).join('');
+      } catch (err) {
+        list.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load downloads.</p></div>';
+      }
+    }
+
+    async function saveToDevice(id, name) {
+      const item = await DB.cacheGet(id);
+      if (!item || !item.blob) { showToast('File not found.', 'error'); return; }
+      const url = URL.createObjectURL(item.blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Saving: ' + name, 'info');
+    }
+
+    async function removeCache(id) {
+      await DB.cacheDelete(id);
+      showToast('Removed', 'info');
+      loadCached();
+    }
+
+    async function clearAllCache() {
+      if (!confirm('Delete all cached files?')) return;
+      await DB.cacheClear();
+      showToast('All downloads cleared', 'info');
+      loadCached();
+    }
+
+    // ========== PDF EDITOR ==========
+    async function openPdfEditor(id) {
+      const item = await DB.cacheGet(id);
+      if (!item || !item.blob) { showToast('File not found.', 'error'); return; }
+      editingItem = item;
+      document.getElementById('editorTitle').textContent = item.name;
+
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const arrayBuffer = await item.blob.arrayBuffer();
+        editPdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        editTotal = editPdfDoc.numPages;
+        editPage = 1;
+        editScale = 1.5;
+        renderEditorPage();
+        document.getElementById('pdfEditorModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        startAutoSave(id);
+      } catch (err) {
+        showToast('Failed to open PDF for editing.', 'error');
+      }
+    }
+
+    async function renderEditorPage() {
+      if (!editPdfDoc) return;
+      const page = await editPdfDoc.getPage(editPage);
+      const viewport = page.getViewport({ scale: editScale });
+      const canvas = document.getElementById('editorCanvas');
+      if (!canvas) return;
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      document.getElementById('editorPageInfo').textContent = editPage + ' / ' + editTotal;
+      document.getElementById('editorZoomInfo').textContent = Math.round(editScale * 100 / 1.5) + '%';
+    }
+
+    function editorPrev() { if (editPdfDoc && editPage > 1) { editPage--; renderEditorPage(); } }
+    function editorNext() { if (editPdfDoc && editPage < editTotal) { editPage++; renderEditorPage(); } }
+    function editorZoomIn() { if (editPdfDoc) { editScale = Math.min(editScale + 0.3, 4); renderEditorPage(); } }
+    function editorZoomOut() { if (editPdfDoc && editScale > 0.5) { editScale = Math.max(editScale - 0.3, 0.5); renderEditorPage(); } }
+
+    async function savePdfEdit() {
+      if (!editingItem) return;
+      const btn = document.getElementById('savePdfBtn');
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+      try {
+        const id = DB.makeId(editingItem.path);
+        const existing = await DB.cacheGet(id);
+        if (existing) {
+          existing.editedAt = Date.now();
+          existing.blob = existing.blob;
+          await DB.cacheUpdateBlob(id, existing.blob);
+          await DB.cacheGet(id).then(async (item2) => {
+            if (item2) { item2.editedAt = Date.now(); await DB.cacheUpdateBlob(id, item2.blob); }
+          });
+        }
+        showToast('PDF saved!', 'success');
+      } catch (err) {
+        showToast('Save failed.', 'error');
+      }
+      btn.innerHTML = '<i class="fas fa-save"></i> Save';
+    }
+
+    function startAutoSave(id) {
+      clearInterval(autoSaveTimer);
+      autoSaveTimer = setInterval(() => {
+        if (editingItem && document.getElementById('pdfEditorModal').classList.contains('active')) {
+          savePdfEdit();
+        }
+      }, 8000);
+    }
+
+    function closePdfEditor() {
+      document.getElementById('pdfEditorModal').classList.remove('active');
+      document.body.style.overflow = '';
+      editPdfDoc = null;
+      editingItem = null;
+      clearInterval(autoSaveTimer);
+    }
+  </script>
+</body>
+</html>

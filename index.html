@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QSIS-ARS | QSIS Academic Resource System</title>
+  <link rel="icon" type="image/jpeg" href="assets/qsis-logo.jpg" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#3b82f6" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-brand">
+          <img src="assets/qsis-logo.jpg" alt="QSIS" class="nav-logo" />
+          <div class="nav-title">
+            <h1>QSIS-ARS</h1>
+            <span class="nav-subtitle">Qur'anic Sciences & Islamic Studies</span>
+          </div>
+        </div>
+        <div class="nav-actions">
+          <button class="btn-icon theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+            <i class="fas fa-moon"></i>
+          </button>
+          <a href="cached.html" class="btn-icon" title="Downloads"><i class="fas fa-download"></i></a>
+          <a href="history.html" class="btn-icon" title="History"><i class="fas fa-clock"></i></a>
+          <button class="btn btn-glow btn-sm" onclick="showUploadModal()">
+            <i class="fas fa-upload"></i> Upload
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <section class="hero">
+        <div class="hero-content">
+          <div class="hero-logos">
+            <img src="assets/qsis-logo.jpg" alt="QSIS" class="hero-logo" />
+            <span class="hero-logo-divider"><i class="fas fa-plus"></i></span>
+            <img src="assets/pl-logo.png" alt="PL" class="hero-logo pl-logo" />
+          </div>
+          <h2>ACADEMIC RESOURCE HUB</h2>
+          <p>Sheets, notes, previous questions & more</p>
+        </div>
+      </section>
+
+      <section class="stats-bar">
+        <div class="stat-item"><span class="stat-number" id="statsSemesters">4</span><span class="stat-label">Semesters</span></div>
+        <div class="stat-item"><span class="stat-number" id="statsCourses">-</span><span class="stat-label">Courses</span></div>
+        <div class="stat-item"><span class="stat-number" id="statsFiles">-</span><span class="stat-label">Files</span></div>
+        <div class="stat-item"><span class="stat-number" id="statsYears">-</span><span class="stat-label">Years</span></div>
+      </section>
+
+      <section class="recent-section">
+        <div class="section-container">
+          <div class="section-header">
+            <h3><i class="fas fa-clock"></i> Recent Reads</h3>
+            <a href="history.html" class="btn btn-sm btn-outline" id="recentMore" style="display:none">Show More <i class="fas fa-arrow-right"></i></a>
+          </div>
+          <div class="recent-grid" id="recentReads">
+            <div class="recent-empty"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="search-section">
+        <div class="search-container">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search files..." onkeydown="if(event.key==='Enter')searchFiles()" />
+            <button class="btn-clear" onclick="document.getElementById('searchInput').value='';goHome()"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="file-browser" id="semesterSection">
+        <div class="browser-header">
+          <h3 id="sectionTitle"><i class="fas fa-book"></i> Select Semester</h3>
+          <div class="browser-actions">
+            <button class="btn btn-sm" onclick="loadSemesters()"><i class="fas fa-sync"></i></button>
+          </div>
+        </div>
+        <div class="semester-grid" id="semesterGrid">
+          <div class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+        </div>
+      </section>
+
+      <section class="file-browser" id="fileSection" style="display:none">
+        <div class="browser-header">
+          <h3 id="sectionTitle2"><i class="fas fa-folder-open"></i> Browse</h3>
+          <div class="browser-actions">
+            <button class="btn btn-sm" onclick="refreshFiles()"><i class="fas fa-sync"></i></button>
+          </div>
+        </div>
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <div class="browser-grid" id="fileGrid"></div>
+      </section>
+    </main>
+
+    <div id="fileViewer" class="viewer-overlay">
+      <div class="viewer-container">
+        <div class="viewer-header">
+          <div class="viewer-header-left">
+            <i class="fas fa-file"></i>
+            <span id="viewerTitle">File Viewer</span>
+          </div>
+          <div class="viewer-header-right">
+            <button class="btn btn-sm" id="viewerDownloadBtn" title="Download to cache"><i class="fas fa-download"></i> Download</button>
+            <button class="btn btn-sm btn-accent" id="viewerSaveAsBtn" title="Save to device" style="display:none"><i class="fas fa-share-alt"></i> Save as</button>
+            <button class="btn-icon-close" onclick="closeViewer()" title="Close"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+        <div class="viewer-body" id="viewerBody"></div>
+      </div>
+    </div>
+
+    <div id="uploadModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2><i class="fas fa-upload"></i> Upload File</h2>
+          <button class="btn-icon" onclick="closeModal('uploadModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="upload-info">
+            <i class="fas fa-info-circle"></i>
+            <span>Files are uploaded via GitHub PR for admin review.</span>
+          </div>
+          <form id="uploadForm" onsubmit="return false;">
+            <div class="form-group"><label>Files</label><input type="file" id="fileInput" multiple required /></div>
+            <div class="form-row">
+              <div class="form-group"><label>Semester</label>
+                <select id="uploadSemester" required>
+                  <option value="">Select</option>
+                  <option value="3rd-semister">3rd Semester</option>
+                  <option value="4th-semister">4th Semester</option>
+                  <option value="5th-semister">5th Semester</option>
+                  <option value="6th-semister">6th Semester</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Category</label>
+                <select id="uploadCategory" required>
+                  <option value="">Select</option>
+                  <option value="sheet">Sheet</option>
+                  <option value="question">Previous Question</option>
+                  <option value="note">Note</option>
+                  <option value="syllabus">Syllabus</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Year</label>
+                <select id="uploadYear" required><option value="">Select</option></select>
+              </div>
+              <div class="form-group"><label>Exam Type</label>
+                <select id="uploadExamType"><option value="">N/A</option><option value="Mid">Mid</option><option value="Final">Final</option></select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Course Code</label><input type="text" id="uploadCourseCode" placeholder="e.g. QSM-3601" /></div>
+              <div class="form-group"><label>Your Name</label><input type="text" id="uploadUserName" placeholder="For credit" /></div>
+            </div>
+            <button type="submit" class="btn btn-glow btn-full" onclick="uploadFiles()" id="uploadBtn">
+              <i class="fas fa-cloud-upload-alt"></i> Submit for Review
+            </button>
+          </form>
+          <div id="uploadProgress" style="display:none">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <p id="progressText">Uploading...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tutorialModal" class="modal">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2><i class="fas fa-graduation-cap"></i> How to Upload</h2>
+          <button class="btn-icon" onclick="closeModal('tutorialModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="tutorial-steps">
+            <div class="tutorial-step"><div class="step-number">1</div><div class="step-content"><h4>Click Upload</h4><p>Use the upload button in the navbar.</p></div></div>
+            <div class="tutorial-step"><div class="step-number">2</div><div class="step-content"><h4>Select Files</h4><p>Choose PDF, DOC, or image files.</p></div></div>
+            <div class="tutorial-step"><div class="step-number">3</div><div class="step-content"><h4>Fill Details</h4><p>Select semester, category, year.</p></div></div>
+            <div class="tutorial-step"><div class="step-number">4</div><div class="step-content"><h4>Submit</h4><p>Admin reviews and approves files.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <p>QSIS - IIUC &middot; Faculty of Shariah & Islamic Studies</p>
+        <p>Sponsored by <a href="https://programming-light-project.eu.cc" target="_blank">Programming Light</a></p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/github.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
