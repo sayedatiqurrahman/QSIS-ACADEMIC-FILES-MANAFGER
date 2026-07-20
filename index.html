@@ -120,58 +120,99 @@
     </div>
 
     <div id="uploadModal" class="modal">
-      <div class="modal-content">
+      <div class="modal-content modal-lg">
         <div class="modal-header">
-          <h2><i class="fas fa-upload"></i> Upload File</h2>
+          <h2><i class="fas fa-upload"></i> Contribute Files</h2>
           <button class="btn-icon" onclick="closeModal('uploadModal')"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
-          <div class="upload-info">
-            <i class="fas fa-info-circle"></i>
-            <span>Files are uploaded via GitHub PR for admin review.</span>
+          <div class="upload-method-tabs">
+            <button class="tab-btn active" onclick="showUploadTab('guide')"><i class="fas fa-book"></i> Step-by-Step Guide</button>
+            <button class="tab-btn" onclick="showUploadTab('quick')"><i class="fas fa-bolt"></i> Quick Links</button>
           </div>
-          <form id="uploadForm" onsubmit="return false;">
-            <div class="form-group"><label>Files</label><input type="file" id="fileInput" multiple required /></div>
-            <div class="form-row">
-              <div class="form-group"><label>Semester</label>
-                <select id="uploadSemester" required>
-                  <option value="">Select</option>
-                  <option value="3rd-semister">3rd Semester</option>
-                  <option value="4th-semister">4th Semester</option>
-                  <option value="5th-semister">5th Semester</option>
-                  <option value="6th-semister">6th Semester</option>
-                </select>
+
+          <div id="uploadTabGuide" class="upload-tab active">
+            <div class="tutorial-steps">
+              <div class="tutorial-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                  <h4>Create GitHub Account</h4>
+                  <p>Go to <a href="https://github.com/signup" target="_blank">github.com/signup</a> and create a free account with your Google account.</p>
+                </div>
               </div>
-              <div class="form-group"><label>Category</label>
-                <select id="uploadCategory" required>
-                  <option value="">Select</option>
-                  <option value="sheet">Sheet</option>
-                  <option value="question">Previous Question</option>
-                  <option value="note">Note</option>
-                  <option value="syllabus">Syllabus</option>
-                  <option value="other">Other</option>
-                </select>
+              <div class="tutorial-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                  <h4>Fork This Repository</h4>
+                  <p>Click the button below to fork (copy) this repo to your own GitHub account.</p>
+                  <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/fork" target="_blank" class="btn btn-glow btn-sm" style="margin-top:8px">
+                    <i class="fas fa-code-branch"></i> Fork Repository
+                  </a>
+                </div>
+              </div>
+              <div class="tutorial-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                  <h4>Upload Your Files</h4>
+                  <p>In your forked repo, navigate to the correct folder:</p>
+                  <div class="path-guide">
+                    <code>upload_academic_files/</code><br>
+                    <code>&nbsp;&nbsp;{semester}/</code> (e.g. 6th-semister)<br>
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;sheet/{course-code}/</code> &mdash; For study sheets<br>
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;Previous Question ({semester})/2026/Mid/</code><br>
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;NOTES/</code> &mdash; For lecture notes<br>
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;Syllabus/</code> &mdash; For course syllabi
+                  </div>
+                  <p style="margin-top:8px">Use the <strong>"Add file &gt; Upload files"</strong> button on GitHub to upload your PDFs, images, or documents.</p>
+                </div>
+              </div>
+              <div class="tutorial-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                  <h4>Create Pull Request</h4>
+                  <p>After uploading, click <strong>"Contribute &gt; Open pull request"</strong> to submit your files for review. Admin will approve and merge.</p>
+                  <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/pulls" target="_blank" class="btn btn-sm btn-outline" style="margin-top:8px">
+                    <i class="fas fa-eye"></i> View Existing PRs
+                  </a>
+                </div>
+              </div>
+              <div class="tutorial-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                  <h4>Get Credit!</h4>
+                  <p>Your name will appear in the <strong>Contributors</strong> section of this page. Thank you for sharing knowledge!</p>
+                </div>
               </div>
             </div>
-            <div class="form-row">
-              <div class="form-group"><label>Year</label>
-                <select id="uploadYear" required><option value="">Select</option></select>
-              </div>
-              <div class="form-group"><label>Exam Type</label>
-                <select id="uploadExamType"><option value="">N/A</option><option value="Mid">Mid</option><option value="Final">Final</option></select>
-              </div>
+          </div>
+
+          <div id="uploadTabQuick" class="upload-tab" style="display:none">
+            <div class="quick-links">
+              <a href="https://github.com/signup" target="_blank" class="quick-link">
+                <i class="fas fa-user-plus"></i>
+                <span>Create GitHub Account</span>
+                <small>Free with Google</small>
+              </a>
+              <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/fork" target="_blank" class="quick-link">
+                <i class="fas fa-code-branch"></i>
+                <span>Fork Repository</span>
+                <small>Copy to your account</small>
+              </a>
+              <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/new/main" target="_blank" class="quick-link">
+                <i class="fas fa-file-upload"></i>
+                <span>Upload Files</span>
+                <small>Add files directly</small>
+              </a>
+              <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/pulls" target="_blank" class="quick-link">
+                <i class="fas fa-code-pull-request"></i>
+                <span>Open Pull Request</span>
+                <small>Submit for review</small>
+              </a>
             </div>
-            <div class="form-row">
-              <div class="form-group"><label>Course Code</label><input type="text" id="uploadCourseCode" placeholder="e.g. QSM-3601" /></div>
-              <div class="form-group"><label>Your Name</label><input type="text" id="uploadUserName" placeholder="For credit" /></div>
+            <div class="upload-info" style="margin-top:16px">
+              <i class="fas fa-info-circle"></i>
+              <span>All files go through admin review before being published. This ensures quality and proper organization.</span>
             </div>
-            <button type="submit" class="btn btn-glow btn-full" onclick="uploadFiles()" id="uploadBtn">
-              <i class="fas fa-cloud-upload-alt"></i> Submit for Review
-            </button>
-          </form>
-          <div id="uploadProgress" style="display:none">
-            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-            <p id="progressText">Uploading...</p>
           </div>
         </div>
       </div>
@@ -180,15 +221,19 @@
     <div id="tutorialModal" class="modal">
       <div class="modal-content modal-lg">
         <div class="modal-header">
-          <h2><i class="fas fa-graduation-cap"></i> How to Upload</h2>
+          <h2><i class="fas fa-graduation-cap"></i> How to Contribute</h2>
           <button class="btn-icon" onclick="closeModal('tutorialModal')"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
+          <div class="contribute-info">
+            <i class="fas fa-heart"></i>
+            <p>Share your notes, sheets & previous questions with fellow students. It takes just 3 minutes!</p>
+          </div>
           <div class="tutorial-steps">
-            <div class="tutorial-step"><div class="step-number">1</div><div class="step-content"><h4>Click Upload</h4><p>Use the upload button in the navbar.</p></div></div>
-            <div class="tutorial-step"><div class="step-number">2</div><div class="step-content"><h4>Select Files</h4><p>Choose PDF, DOC, or image files.</p></div></div>
-            <div class="tutorial-step"><div class="step-number">3</div><div class="step-content"><h4>Fill Details</h4><p>Select semester, category, year.</p></div></div>
-            <div class="tutorial-step"><div class="step-number">4</div><div class="step-content"><h4>Submit</h4><p>Admin reviews and approves files.</p></div></div>
+            <div class="tutorial-step"><div class="step-number">1</div><div class="step-content"><h4>Create GitHub Account</h4><p>Go to <a href="https://github.com/signup" target="_blank">github.com</a> and sign up with Google &mdash; it's free.</p></div></div>
+            <div class="tutorial-step"><div class="step-number">2</div><div class="step-content"><h4>Fork This Repo</h4><p>Click <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/fork" target="_blank">Fork</a> to get your own copy of this repository.</p></div></div>
+            <div class="tutorial-step"><div class="step-number">3</div><div class="step-content"><h4>Upload Your Files</h4><p>In your fork, go to <code>upload_academic_files/{semester}/</code> and click <strong>Add file &gt; Upload files</strong>. Place them in the right category folder.</p></div></div>
+            <div class="tutorial-step"><div class="step-number">4</div><div class="step-content"><h4>Submit Pull Request</h4><p>Click <strong>Contribute &gt; Open pull request</strong>. Admin reviews and your files go live!</p></div></div>
           </div>
         </div>
       </div>

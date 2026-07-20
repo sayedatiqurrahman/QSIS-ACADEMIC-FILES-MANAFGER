@@ -4,11 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'index.html'
-      - 'css/**'
-      - 'js/**'
-      - 'assets/**'
 
 jobs:
   deploy:
@@ -25,13 +20,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Build deployment folder
+        run: |
+          mkdir -p _site
+          cp index.html cached.html history.html _site/
+          cp -r css js assets _site/
+          cp manifest.json sw.js _site/
+          cp *.md _site/ 2>/dev/null || true
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment

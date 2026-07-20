@@ -70,16 +70,12 @@ function showTutorialModal() { document.getElementById('tutorialModal').classLis
 function closeModal(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow = ''; }
 document.querySelectorAll('.modal').forEach(m => { m.addEventListener('click', (e) => { if (e.target === m) { m.classList.remove('active'); document.body.style.overflow = ''; } }); });
 
-// ========== YEAR SELECT ==========
-function populateYearSelect() {
-  const sel = document.getElementById('uploadYear');
-  if (!sel) return;
-  const cy = new Date().getFullYear();
-  for (let y = cy; y >= 2018; y--) {
-    const o = document.createElement('option');
-    o.value = y; o.textContent = y;
-    sel.appendChild(o);
-  }
+// ========== UPLOAD TABS ==========
+function showUploadTab(tab) {
+  document.querySelectorAll('.upload-tab').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('uploadTab' + tab.charAt(0).toUpperCase() + tab.slice(1)).style.display = '';
+  event.currentTarget.classList.add('active');
 }
 
 // ========== RECENT READS ==========
@@ -610,30 +606,124 @@ function closeViewer() {
   if (viewer) viewer.classList.remove('active');
   document.body.style.overflow = '';
   pdfDoc = null;
+  pdfHighlights = [];
+  pdfMode = 'scroll';
+  pdfTool = 'hand';
+  if (document.fullscreenElement) document.exitFullscreen();
   const body = document.getElementById('viewerBody');
   if (body) body.innerHTML = '';
 }
 
 // ========== PDF VIEWER ==========
 let pdfDoc = null, pdfPage = 1, pdfScale = 1.5, pdfTotal = 0;
+let pdfMode = 'scroll', pdfTool = 'hand', pdfDragging = false, pdfDragStart = { x: 0, y: 0 };
+let pdfHighlights = [], pdfHighlightDrawing = false, pdfHighlightStart = null;
 
 function openPdfViewer(url, container) {
   container.innerHTML = `<div class="pdf-viewer-container">
     <div class="pdf-toolbar">
-      <button class="btn btn-sm" onclick="pdfPrev()"><i class="fas fa-chevron-left"></i></button>
-      <span id="pdfPageInfo">Loading...</span>
-      <button class="btn btn-sm" onclick="pdfNext()"><i class="fas fa-chevron-right"></i></button>
+      <div class="pdf-toolbar-group">
+        <button class="btn btn-sm pdf-mode-btn active" id="pdfModeScroll" onclick="pdfSetMode('scroll')" title="Scroll mode"><i class="fas fa-arrows-alt-v"></i> Scroll</button>
+        <button class="btn btn-sm pdf-mode-btn" id="pdfModePage" onclick="pdfSetMode('page')" title="Single page"><i class="fas fa-file"></i> Page</button>
+      </div>
       <span class="pdf-sep"></span>
-      <button class="btn btn-sm" onclick="pdfZoomOut()"><i class="fas fa-minus"></i></button>
-      <span id="pdfZoomInfo">100%</span>
-      <button class="btn btn-sm" onclick="pdfZoomIn()"><i class="fas fa-plus"></i></button>
-      <button class="btn btn-sm" onclick="pdfFitWidth()"><i class="fas fa-arrows-alt-h"></i></button>
+      <div class="pdf-toolbar-group">
+        <button class="btn btn-sm" onclick="pdfPrev()" title="Previous page"><i class="fas fa-chevron-left"></i></button>
+        <span id="pdfPageInfo">Loading...</span>
+        <button class="btn btn-sm" onclick="pdfNext()" title="Next page"><i class="fas fa-chevron-right"></i></button>
+      </div>
+      <span class="pdf-sep"></span>
+      <div class="pdf-toolbar-group">
+        <button class="btn btn-sm" onclick="pdfZoomOut()" title="Zoom out"><i class="fas fa-minus"></i></button>
+        <span id="pdfZoomInfo">100%</span>
+        <button class="btn btn-sm" onclick="pdfZoomIn()" title="Zoom in"><i class="fas fa-plus"></i></button>
+        <button class="btn btn-sm" onclick="pdfFitWidth()" title="Fit width"><i class="fas fa-arrows-alt-h"></i></button>
+        <button class="btn btn-sm" onclick="pdfFitPage()" title="Fit page"><i class="fas fa-expand-arrows-alt"></i></button>
+      </div>
+      <span class="pdf-sep"></span>
+      <div class="pdf-toolbar-group">
+        <button class="btn btn-sm pdf-tool-btn active" id="pdfToolHand" onclick="pdfSetTool('hand')" title="Hand tool - drag to pan"><i class="fas fa-hand-paper"></i></button>
+        <button class="btn btn-sm pdf-tool-btn" id="pdfToolHighlight" onclick="pdfSetTool('highlight')" title="Highlight tool - drag to highlight"><i class="fas fa-highlighter"></i></button>
+        <button class="btn btn-sm pdf-tool-btn" id="pdfToolDraw" onclick="pdfSetTool('draw')" title="Pen tool - draw on PDF"><i class="fas fa-pen"></i></button>
+        <button class="btn btn-sm" id="pdfClearHighlights" onclick="pdfClearAnnotations()" title="Clear all annotations"><i class="fas fa-eraser"></i></button>
+      </div>
+      <span class="pdf-sep"></span>
+      <div class="pdf-toolbar-group">
+        <button class="btn btn-sm" onclick="pdfFullscreen()" title="Fullscreen"><i class="fas fa-expand"></i></button>
+      </div>
     </div>
     <div class="pdf-scroll-area" id="pdfScrollArea">
-      <canvas id="pdfCanvas"></canvas>
+      <div class="pdf-pages-container" id="pdfPagesContainer"></div>
     </div>
+    <canvas id="pdfAnnotationCanvas" class="pdf-annotation-canvas"></canvas>
   </div>`;
+  pdfHighlights = [];
   loadPdf(url);
+  setupPdfInteractions();
+}
+
+function setupPdfInteractions() {
+  const area = document.getElementById('pdfScrollArea');
+  if (!area) return;
+  area.addEventListener('wheel', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      if (e.deltaY < 0) pdfZoomIn(); else pdfZoomOut();
+    }
+  }, { passive: false });
+  area.addEventListener('mousedown', (e) => {
+    if (pdfTool === 'hand' || pdfTool === 'highlight' || pdfTool === 'draw') {
+      pdfDragging = true;
+      pdfDragStart = { x: e.clientX, y: e.clientY, scrollLeft: area.scrollLeft, scrollTop: area.scrollTop };
+      if (pdfTool === 'highlight') pdfHighlightStart = { x: e.clientX, y: e.clientY };
+      if (pdfTool === 'draw') pdfDrawStart(e);
+    }
+  });
+  area.addEventListener('mousemove', (e) => {
+    if (!pdfDragging) return;
+    if (pdfTool === 'hand') {
+      const dx = e.clientX - pdfDragStart.x;
+      const dy = e.clientY - pdfDragStart.y;
+      area.scrollLeft = pdfDragStart.scrollLeft - dx;
+      area.scrollTop = pdfDragStart.scrollTop - dy;
+    } else if (pdfTool === 'draw') {
+      pdfDrawMove(e);
+    }
+  });
+  area.addEventListener('mouseup', (e) => {
+    if (pdfDragging && pdfTool === 'highlight' && pdfHighlightStart) {
+      pdfAddHighlight(pdfHighlightStart, { x: e.clientX, y: e.clientY });
+      pdfHighlightStart = null;
+    }
+    pdfDragging = false;
+    if (pdfTool === 'draw') pdfDrawEnd();
+  });
+  area.addEventListener('mouseleave', () => { pdfDragging = false; pdfHighlightStart = null; });
+  const viewer = document.getElementById('fileViewer');
+  if (viewer) viewer.addEventListener('mousemove', (e) => {
+    if (pdfTool === 'hand') area.style.cursor = pdfDragging ? 'grabbing' : 'grab';
+    else if (pdfTool === 'highlight') area.style.cursor = 'crosshair';
+    else if (pdfTool === 'draw') area.style.cursor = 'crosshair';
+    else area.style.cursor = 'default';
+  });
+}
+
+function pdfSetMode(mode) {
+  pdfMode = mode;
+  document.querySelectorAll('.pdf-mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pdfMode' + (mode === 'scroll' ? 'Scroll' : 'Page')).classList.add('active');
+  if (mode === 'page') {
+    pdfFitPage();
+  } else {
+    pdfFitWidth();
+  }
+  renderPdfPages();
+}
+
+function pdfSetTool(tool) {
+  pdfTool = tool;
+  document.querySelectorAll('.pdf-tool-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pdfTool' + tool.charAt(0).toUpperCase() + tool.slice(1)).classList.add('active');
 }
 
 async function loadPdf(url) {
@@ -642,35 +732,169 @@ async function loadPdf(url) {
     pdfDoc = await pdfjsLib.getDocument(url).promise;
     pdfTotal = pdfDoc.numPages;
     pdfPage = 1;
-    pdfScale = 1.5;
-    renderPdfPage();
+    const page0 = await pdfDoc.getPage(1);
+    const vp0 = page0.getViewport({ scale: 1 });
+    const area = document.getElementById('pdfScrollArea');
+    if (area) pdfScale = (area.clientWidth - 40) / vp0.width;
+    renderPdfPages();
   } catch (err) {
-    document.getElementById('pdfScrollArea').innerHTML = `<div class="viewer-fallback">
+    document.getElementById('pdfPagesContainer').innerHTML = `<div class="viewer-fallback">
       <i class="fas fa-exclamation-triangle" style="font-size:2rem;color:var(--warning);margin-bottom:12px"></i>
       <p>Could not load PDF.</p><p style="font-size:0.85rem;color:var(--text2)">${err.message}</p>
     </div>`;
   }
 }
 
-async function renderPdfPage() {
+async function renderPdfPages() {
   if (!pdfDoc) return;
-  const page = await pdfDoc.getPage(pdfPage);
-  const viewport = page.getViewport({ scale: pdfScale });
-  const canvas = document.getElementById('pdfCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
-  await page.render({ canvasContext: ctx, viewport }).promise;
-  document.getElementById('pdfPageInfo').textContent = `${pdfPage} / ${pdfTotal}`;
+  const container = document.getElementById('pdfPagesContainer');
+  if (!container) return;
+
+  if (pdfMode === 'scroll') {
+    container.innerHTML = '';
+    container.className = 'pdf-pages-container pdf-scroll-mode';
+    for (let i = 1; i <= pdfTotal; i++) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'pdf-page-wrapper';
+      wrapper.id = 'pdf-page-' + i;
+      const canvas = document.createElement('canvas');
+      wrapper.appendChild(canvas);
+      container.appendChild(wrapper);
+      await renderSinglePage(i, canvas);
+    }
+    if (pdfPage > 0 && pdfPage <= pdfTotal) {
+      const target = document.getElementById('pdf-page-' + pdfPage);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  } else {
+    container.innerHTML = '';
+    container.className = 'pdf-pages-container pdf-page-mode';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'pdf-page-wrapper pdf-page-single';
+    const canvas = document.createElement('canvas');
+    wrapper.appendChild(canvas);
+    container.appendChild(wrapper);
+    await renderSinglePage(pdfPage, canvas);
+  }
+  document.getElementById('pdfPageInfo').textContent = pdfMode === 'page' ? `${pdfPage} / ${pdfTotal}` : `1 - ${pdfTotal}`;
   document.getElementById('pdfZoomInfo').textContent = Math.round(pdfScale * 100 / 1.5) + '%';
+  updateAnnotationCanvas();
 }
 
-function pdfPrev() { if (pdfDoc && pdfPage > 1) { pdfPage--; renderPdfPage(); } }
-function pdfNext() { if (pdfDoc && pdfPage < pdfTotal) { pdfPage++; renderPdfPage(); } }
-function pdfZoomIn() { if (pdfDoc) { pdfScale = Math.min(pdfScale + 0.3, 4); renderPdfPage(); } }
-function pdfZoomOut() { if (pdfDoc && pdfScale > 0.5) { pdfScale = Math.max(pdfScale - 0.3, 0.5); renderPdfPage(); } }
-function pdfFitWidth() { pdfScale = 1.5; renderPdfPage(); }
+async function renderSinglePage(num, canvas) {
+  const page = await pdfDoc.getPage(num);
+  const viewport = page.getViewport({ scale: pdfScale });
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  canvas.style.width = viewport.width + 'px';
+  canvas.style.height = viewport.height + 'px';
+  const ctx = canvas.getContext('2d');
+  await page.render({ canvasContext: ctx, viewport }).promise;
+}
+
+function pdfPrev() { if (pdfDoc && pdfPage > 1) { pdfPage--; renderPdfPages(); } }
+function pdfNext() { if (pdfDoc && pdfPage < pdfTotal) { pdfPage++; renderPdfPages(); } }
+function pdfZoomIn() { if (pdfDoc) { pdfScale = Math.min(pdfScale * 1.25, 5); renderPdfPages(); } }
+function pdfZoomOut() { if (pdfDoc && pdfScale > 0.3) { pdfScale = Math.max(pdfScale / 1.25, 0.3); renderPdfPages(); } }
+
+async function pdfFitWidth() {
+  if (!pdfDoc) return;
+  const area = document.getElementById('pdfScrollArea');
+  if (!area) return;
+  const page0 = await pdfDoc.getPage(1);
+  const vp0 = page0.getViewport({ scale: 1 });
+  pdfScale = (area.clientWidth - 40) / vp0.width;
+  renderPdfPages();
+}
+
+async function pdfFitPage() {
+  if (!pdfDoc) return;
+  const area = document.getElementById('pdfScrollArea');
+  if (!area) return;
+  const page0 = await pdfDoc.getPage(1);
+  const vp0 = page0.getViewport({ scale: 1 });
+  const sw = (area.clientWidth - 40) / vp0.width;
+  const sh = (area.clientHeight - 20) / vp0.height;
+  pdfScale = Math.min(sw, sh);
+  renderPdfPages();
+}
+
+function pdfFullscreen() {
+  const el = document.getElementById('fileViewer');
+  if (!el) return;
+  if (document.fullscreenElement) { document.exitFullscreen(); }
+  else if (el.requestFullscreen) { el.requestFullscreen(); }
+  else if (el.webkitRequestFullscreen) { el.webkitRequestFullscreen(); }
+}
+
+function pdfAddHighlight(start, end) {
+  const area = document.getElementById('pdfScrollArea');
+  const rect = area.getBoundingClientRect();
+  const x = Math.min(start.x, end.x) - rect.left + area.scrollLeft;
+  const y = Math.min(start.y, end.y) - rect.top + area.scrollTop;
+  const w = Math.abs(end.x - start.x);
+  const h = Math.abs(end.y - start.y);
+  if (w < 5 && h < 5) return;
+  pdfHighlights.push({ x, y, w, h, color: 'rgba(255,230,0,0.35)' });
+  renderHighlights();
+}
+
+function renderHighlights() {
+  const container = document.getElementById('pdfPagesContainer');
+  container.querySelectorAll('.pdf-highlight-box').forEach(el => el.remove());
+  pdfHighlights.forEach((hl, i) => {
+    const box = document.createElement('div');
+    box.className = 'pdf-highlight-box';
+    box.style.left = hl.x + 'px';
+    box.style.top = hl.y + 'px';
+    box.style.width = hl.w + 'px';
+    box.style.height = hl.h + 'px';
+    box.style.background = hl.color;
+    box.title = 'Double-click to remove';
+    box.addEventListener('dblclick', () => { pdfHighlights.splice(i, 1); renderHighlights(); });
+    container.appendChild(box);
+  });
+}
+
+function pdfClearAnnotations() {
+  pdfHighlights = [];
+  const container = document.getElementById('pdfPagesContainer');
+  if (container) container.querySelectorAll('.pdf-highlight-box, .pdf-draw-stroke').forEach(el => el.remove());
+}
+
+function updateAnnotationCanvas() {
+  const canvas = document.getElementById('pdfAnnotationCanvas');
+  const area = document.getElementById('pdfScrollArea');
+  const container = document.getElementById('pdfPagesContainer');
+  if (!canvas || !area || !container) return;
+  canvas.width = container.scrollWidth;
+  canvas.height = container.scrollHeight;
+  canvas.style.width = container.scrollWidth + 'px';
+  canvas.style.height = container.scrollHeight + 'px';
+}
+
+let pdfDrawPoints = [];
+function pdfDrawStart(e) {
+  pdfDrawPoints = [{ x: e.offsetX, y: e.offsetY }];
+}
+function pdfDrawMove(e) {
+  const canvas = document.getElementById('pdfAnnotationCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const prev = pdfDrawPoints[pdfDrawPoints.length - 1];
+  const cur = { x: e.offsetX, y: e.offsetY };
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(239,68,68,0.7)';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.moveTo(prev.x, prev.y);
+  ctx.lineTo(cur.x, cur.y);
+  ctx.stroke();
+  pdfDrawPoints.push(cur);
+}
+function pdfDrawEnd() {
+  pdfDrawPoints = [];
+}
 
 // ========== IMAGE VIEWER ==========
 let imgZoom = 100, imgRotation = 0;
@@ -715,60 +939,6 @@ function openDocViewer(url, container) {
 }
 
 // ========== UPLOAD ==========
-async function uploadFiles() {
-  const fileInput = document.getElementById('fileInput');
-  const semester = document.getElementById('uploadSemester').value;
-  const category = document.getElementById('uploadCategory').value;
-  const year = document.getElementById('uploadYear').value;
-  const examType = document.getElementById('uploadExamType')?.value || '';
-  const courseCode = document.getElementById('uploadCourseCode')?.value.trim() || '';
-  const userName = document.getElementById('uploadUserName')?.value.trim() || '';
-
-  if (!fileInput.files.length || !semester || !category || !year) {
-    showToast('Please fill all required fields.', 'error'); return;
-  }
-
-  const btn = document.getElementById('uploadBtn');
-  const progress = document.getElementById('uploadProgress');
-  const fill = document.getElementById('progressFill');
-  const text = document.getElementById('progressText');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-  progress.style.display = 'block';
-
-  const files = Array.from(fileInput.files);
-  let ok = 0, fail = 0;
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    fill.style.width = Math.round((i / files.length) * 100) + '%';
-    text.textContent = `${i + 1}/${files.length}: ${file.name}`;
-
-    let dir = [semester];
-    if (category === 'sheet') dir.push('sheet');
-    else if (category === 'question') { dir.push('Previous Question', year); if (examType) dir.push(examType); }
-    else if (category === 'note') dir.push('NOTES');
-    else if (category === 'syllabus') dir.push('Syllabus');
-    else dir.push('Other');
-    if (courseCode) dir.push(courseCode);
-
-    try {
-      const reader = new FileReader();
-      const content = await new Promise((res, rej) => { reader.onload = () => res(reader.result); reader.onerror = rej; reader.readAsBinaryString(file); });
-      await GITHUB.uploadFileAsPR(dir.join('/') + '/' + file.name, content, `[Submission] ${file.name} - ${semester}${userName ? ` by ${userName}` : ''}`);
-      ok++;
-    } catch (err) { fail++; }
-  }
-
-  fill.style.width = '100%';
-  text.textContent = ok > 0 ? `${ok} file(s) submitted!${fail ? ` (${fail} failed)` : ''}` : 'Upload failed.';
-  if (ok > 0) {
-    showToast(`${ok} file(s) submitted for review!`, 'success');
-    setTimeout(() => { closeModal('uploadModal'); document.getElementById('uploadForm').reset(); progress.style.display = 'none'; }, 2000);
-  }
-  btn.disabled = false;
-  btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Submit for Review';
-}
 
 // ========== SEARCH ==========
 function searchFiles() {
