@@ -150,6 +150,25 @@ const DB = {
     });
   },
 
+  async editsSave(path, data) {
+    const id = this.makeId(path);
+    const entry = { id, path, ...data, savedAt: Date.now() };
+    return new Promise((resolve, reject) => {
+      const req = DB._tx('edits', 'readwrite').put(entry);
+      req.onsuccess = () => resolve();
+      req.onerror = (e) => reject(e.target.error);
+    });
+  },
+
+  async editsGet(path) {
+    const id = this.makeId(path);
+    return new Promise((resolve, reject) => {
+      const req = DB._tx('edits', 'readonly').get(id);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = (e) => reject(e.target.error);
+    });
+  },
+
   makeId(path) {
     return btoa(unescape(encodeURIComponent(path))).replace(/[=+/]/g, '');
   }

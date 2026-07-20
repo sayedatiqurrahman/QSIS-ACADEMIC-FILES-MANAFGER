@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QSIS-ARS | QSIS Academic Resource System</title>
+  <title>QSIS-ARMS | QSIS Academic Resource System</title>
   <link rel="icon" type="image/jpeg" href="assets/qsis-logo.jpg" />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#3b82f6" />
@@ -19,7 +19,7 @@
         <div class="nav-brand">
           <img src="assets/qsis-logo.jpg" alt="QSIS" class="nav-logo" />
           <div class="nav-title">
-            <h1>QSIS-ARS</h1>
+            <h1>QSIS-ARMS</h1>
             <span class="nav-subtitle">Qur'anic Sciences & Islamic Studies</span>
           </div>
         </div>
@@ -42,7 +42,7 @@
           <div class="hero-logos">
             <img src="assets/qsis-logo.jpg" alt="QSIS" class="hero-logo" />
             <span class="hero-logo-divider"><i class="fas fa-plus"></i></span>
-            <img src="assets/pl-logo.png" alt="PL" class="hero-logo pl-logo" />
+            <a rel="noopener" target="_blank" href="https://programming-light.eu.cc/"><img src="assets/pl-logo.png" alt="Programming Light" class="hero-logo pl-logo" /></a>
           </div>
           <h2>ACADEMIC RESOURCE HUB</h2>
           <p>Sheets, notes, previous questions & more</p>
@@ -72,8 +72,26 @@
         <div class="search-container">
           <div class="search-box">
             <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Search files..." onkeydown="if(event.key==='Enter')searchFiles()" />
+            <input type="text" id="searchInput" placeholder="Search files by name or path..." onkeydown="if(event.key==='Enter')searchFiles()" />
             <button class="btn-clear" onclick="document.getElementById('searchInput').value='';goHome()"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="search-filters">
+            <select id="searchSemester" class="search-filter-select" onchange="searchFiles()">
+              <option value="">All Semesters</option>
+              <option value="3rd-semister">3rd Semester</option>
+              <option value="4th-semister">4th Semester</option>
+              <option value="5th-semister">5th Semester</option>
+              <option value="6th-semister">6th Semester</option>
+            </select>
+            <select id="searchType" class="search-filter-select" onchange="searchFiles()">
+              <option value="">All Types</option>
+              <option value="pdf">PDF</option>
+              <option value="image">Images</option>
+              <option value="doc">Word Docs</option>
+            </select>
+            <select id="searchYear" class="search-filter-select" onchange="searchFiles()">
+              <option value="">All Years</option>
+            </select>
           </div>
         </div>
       </section>
@@ -198,7 +216,7 @@
                 <span>Fork Repository</span>
                 <small>Copy to your account</small>
               </a>
-              <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/new/main" target="_blank" class="quick-link">
+              <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/tree/main/upload_academic_files" target="_blank" class="quick-link">
                 <i class="fas fa-file-upload"></i>
                 <span>Upload Files</span>
                 <small>Add files directly</small>
@@ -244,7 +262,7 @@
     <footer class="footer">
       <div class="footer-content">
         <p>QSIS - IIUC &middot; Faculty of Shariah & Islamic Studies</p>
-        <p>Sponsored by <a href="https://programming-light-project.eu.cc" target="_blank">Programming Light</a></p>
+        <p>Sponsored by <a href="https://programming-light.eu.cc" target="_blank">Programming Light</a></p>
       </div>
     </footer>
   </div>

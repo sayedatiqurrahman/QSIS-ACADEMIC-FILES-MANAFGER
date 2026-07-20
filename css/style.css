@@ -72,6 +72,9 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 .search-box i { color:var(--text2); }
 .search-box input { flex:1; background:none; border:none; color:var(--text); padding:10px 0; font-size:.9rem; outline:none; }
 .search-box input::placeholder { color:var(--text2); }
+.search-filters { display:flex; gap:8px; padding:8px 4px 4px; flex-wrap:wrap; }
+.search-filter-select { background:var(--bg); border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:6px; font-size:.78rem; outline:none; cursor:pointer; }
+.search-filter-select:focus { border-color:var(--primary); }
 
 /* RECENT READS */
 .recent-section { max-width:1200px; margin:0 auto 20px; padding:0 20px; }
@@ -159,9 +162,10 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 .pdf-page-wrapper { position:relative; flex-shrink:0; }
 .pdf-page-wrapper canvas { display:block; box-shadow:0 2px 12px rgba(0,0,0,.3); border-radius:4px; }
 .pdf-page-single canvas { max-width:100%; max-height:calc(100vh - 160px); object-fit:contain; }
-.pdf-annotation-canvas { position:absolute; top:0; left:0; pointer-events:none; z-index:5; }
 .pdf-highlight-box { position:absolute; cursor:pointer; border-radius:3px; z-index:4; transition:opacity .2s; }
 .pdf-highlight-box:hover { opacity:.6; }
+.pdf-draw-layer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10; }
+.pdf-draw-stroke { pointer-events:none; }
 
 /* IMAGE */
 .image-viewer-container { display:flex; flex-direction:column; height:100%; }
