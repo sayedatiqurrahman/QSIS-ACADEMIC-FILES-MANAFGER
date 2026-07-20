@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QSIS Academic Files Manager</title>
+  <link rel="icon" type="image/jpeg" href="assets/qsis-logo.jpg" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-brand">
+          <img src="assets/qsis-logo.jpg" alt="QSIS Logo" class="nav-logo" />
+          <div class="nav-title">
+            <h1>QSIS Academic Files</h1>
+            <span class="nav-subtitle">Qur'anic Sciences & Islamic Studies</span>
+          </div>
+        </div>
+        <div class="nav-actions">
+          <button class="btn-icon" onclick="toggleTheme()" title="Toggle Theme">
+            <i class="fas fa-moon"></i>
+          </button>
+          <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="btn-icon" title="GitHub Repo">
+            <i class="fab fa-github"></i>
+          </a>
+          <button class="btn btn-glow" onclick="showUploadModal()">
+            <i class="fas fa-upload"></i> Upload File
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Hero Section -->
+      <section class="hero">
+        <div class="hero-content">
+          <div class="hero-logos">
+            <img src="assets/qsis-logo.jpg" alt="QSIS" class="hero-logo" />
+            <span class="hero-logo-divider"><i class="fas fa-plus"></i></span>
+            <img src="assets/pl-logo.png" alt="Programming Light" class="hero-logo pl-logo" />
+          </div>
+          <h2>Academic Resource Hub</h2>
+          <p>Upload, organize, and access academic files — sheets, notes, previous questions & more</p>
+          <div class="hero-badges">
+            <span class="badge"><i class="fas fa-book-open"></i> IIUC</span>
+            <span class="badge"><i class="fas fa-mosque"></i> Faculty of Shariah</span>
+            <span class="badge"><i class="fas fa-users"></i> Quranic Sciences Club</span>
+            <a href="https://www.facebook.com/DQSIS" target="_blank" class="badge" style="text-decoration:none;cursor:pointer">
+              <i class="fab fa-facebook"></i> Follow on Facebook
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats Bar -->
+      <section class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-number" id="totalSemesters">0</span>
+          <span class="stat-label">Semesters</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="totalCourses">0</span>
+          <span class="stat-label">Courses</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="totalFiles">0</span>
+          <span class="stat-label">Files</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="totalYears">0</span>
+          <span class="stat-label">Years</span>
+        </div>
+      </section>
+
+      <!-- Search & Filter Section -->
+      <section class="search-section">
+        <div class="search-container">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search by file name, course code, or keyword..." oninput="filterFiles()" />
+            <button class="btn btn-clear" onclick="document.getElementById('searchInput').value='';filterFiles()" id="clearBtn" style="display:none">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="filter-group">
+            <select id="yearFilter" onchange="filterFiles()">
+              <option value="">All Years</option>
+            </select>
+            <select id="typeFilter" onchange="filterFiles()">
+              <option value="">All Types</option>
+              <option value="sheet">Sheet</option>
+              <option value="question">Question</option>
+              <option value="note">Note</option>
+              <option value="syllabus">Syllabus</option>
+              <option value="other">Other</option>
+            </select>
+            <select id="semesterFilter" onchange="filterFiles()">
+              <option value="">All Semesters</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- File Browser -->
+      <section class="file-browser">
+        <div class="browser-header">
+          <h3><i class="fas fa-folder-tree"></i> Browse Files</h3>
+          <div class="browser-actions">
+            <button class="btn btn-sm" onclick="refreshFiles()"><i class="fas fa-sync"></i> Refresh</button>
+            <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/tree/main" target="_blank" class="btn btn-sm btn-outline">
+              <i class="fab fa-github"></i> View on GitHub
+            </a>
+          </div>
+        </div>
+        <div class="browser-grid" id="fileGrid">
+          <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i> Loading files...
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2><i class="fas fa-upload"></i> Upload Academic File</h2>
+          <button class="btn-icon" onclick="closeModal('uploadModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="upload-info">
+            <i class="fas fa-info-circle"></i>
+            <span>Files are uploaded to GitHub. They will be reviewed and approved by admins.</span>
+          </div>
+          <form id="uploadForm" onsubmit="return false;">
+            <input type="file" id="fileInput" multiple required />
+            <div class="form-row">
+              <div class="form-group">
+                <label>Semester</label>
+                <select id="uploadSemester" required>
+                  <option value="">Select Semester</option>
+                  <option value="2nd-semister">2nd Semester</option>
+                  <option value="3rd-semister">3rd Semester</option>
+                  <option value="4th-semister">4th Semester</option>
+                  <option value="5th-semister">5th Semester</option>
+                  <option value="6th-semister">6th Semester</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Category</label>
+                <select id="uploadCategory" required>
+                  <option value="">Select Category</option>
+                  <option value="sheet">Sheet</option>
+                  <option value="question">Previous Question</option>
+                  <option value="note">Note</option>
+                  <option value="syllabus">Syllabus</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Year</label>
+                <select id="uploadYear" required>
+                  <option value="">Select Year</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Exam Type <small>(if question)</small></label>
+                <select id="uploadExamType">
+                  <option value="">N/A</option>
+                  <option value="Mid">Mid</option>
+                  <option value="Final">Final</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Course Code (optional)</label>
+              <input type="text" id="uploadCourseCode" placeholder="e.g. QSM-3601" />
+            </div>
+            <div class="form-group">
+              <label>Your Name (optional)</label>
+              <input type="text" id="uploadUserName" placeholder="Your name for credit" />
+            </div>
+            <button type="submit" class="btn btn-glow btn-full" onclick="uploadFiles()" id="uploadBtn">
+              <i class="fas fa-cloud-upload-alt"></i> Submit for Review
+            </button>
+          </form>
+          <div id="uploadProgress" style="display:none">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p id="progressText">Uploading...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tutorial Modal -->
+    <div id="tutorialModal" class="modal">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2><i class="fas fa-graduation-cap"></i> How to Upload Files</h2>
+          <button class="btn-icon" onclick="closeModal('tutorialModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="tutorial-steps">
+            <div class="tutorial-step">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h4>Click "Upload File"</h4>
+                <p>Click the upload button in the top-right corner of the page.</p>
+              </div>
+            </div>
+            <div class="tutorial-step">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h4>Select Your File(s)</h4>
+                <p>Choose PDF, DOC, DOCX, or image files from your computer.</p>
+              </div>
+            </div>
+            <div class="tutorial-step">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h4>Fill in Details</h4>
+                <p>Select semester, category (sheet/question/note), year, and optional course code.</p>
+              </div>
+            </div>
+            <div class="tutorial-step">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <h4>Submit for Review</h4>
+                <p>Our team reviews and approves files. Approved files appear in the browser.</p>
+              </div>
+            </div>
+          </div>
+          <hr />
+          <h4>📁 Folder Structure Guide</h4>
+          <div class="structure-guide">
+            <pre><code>📦 QSIS-ACADEMIC-FILES-MANAFGER
+ ┣ 📂 2nd-semister
+ ┣ 📂 3rd-semister
+ ┃  ┣ 📂 BSE/
+ ┃  ┣ 📂 QUESTIONS/
+ ┃  ┗ 📂 NOTES/
+ ┣ 📂 4th-semister
+ ┃  ┣ 📂 NOTES/
+ ┃  ┣ 📂 Previous Question/
+ ┃  ┗ 📂 Main Sheet/
+ ┣ 📂 5th-semister
+ ┃  ┣ 📂 CSE-3503/
+ ┃  ┣ 📂 mid questions/
+ ┃  ┗ 📂 sheets/
+ ┣ 📂 6th-semister
+ ┃  ┣ 📂 NOTES/
+ ┃  ┣ 📂 sheet/
+ ┃  ┗ 📂 Previous Question/
+ ┃     ┣ 📂 2020-2025/
+ ┃     ┗ 📂 2026/
+ ┗ 📂 satwatut tafasir/</code></pre>
+          </div>
+          <div class="tutorial-video-placeholder">
+            <i class="fas fa-video"></i>
+            <p>Video tutorial coming soon. Stay tuned!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal">
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2><i class="fas fa-file"></i> <span id="previewTitle">File Preview</span></h2>
+          <button class="btn-icon" onclick="closeModal('previewModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="previewBody">
+          <iframe id="previewFrame" src="" style="width:100%;height:70vh;border:none;"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-logos">
+          <img src="assets/qsis-logo.jpg" alt="QSIS" class="footer-logo" />
+          <img src="assets/pl-logo.png" alt="Programming Light" class="footer-logo" />
+        </div>
+        <div class="footer-text">
+          <p>Qur'anic Sciences and Islamic Studies — International Islamic University Chittagong</p>
+          <p>Faculty of Shariah and Islamic Studies | Sponsored by <a href="https://programming-light-project.eu.cc" target="_blank">Programming Light</a></p>
+          <p class="footer-club">
+            <i class="fab fa-facebook"></i>
+            <a href="https://www.facebook.com/DQSIS" target="_blank" style="color:var(--text);text-decoration:none">Quranic Sciences Club on Facebook</a>
+            &copy; 2026
+          </p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+  <script src="js/github.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

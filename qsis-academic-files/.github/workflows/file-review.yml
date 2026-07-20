@@ -1,0 +1,112 @@
+name: File Review & Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '**/*.pdf'
+      - '**/*.doc'
+      - '**/*.docx'
+      - '**/*.jpg'
+      - '**/*.jpeg'
+      - '**/*.png'
+      - '**/*.gif'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Validate File Structure
+        id: validate
+        run: |
+          echo "## 📋 File Validation Report" > report.md
+          echo "" >> report.md
+
+          # Get changed files
+          FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
+          HAS_ERROR=false
+
+          echo "### Files Changed:" >> report.md
+          echo '```' >> report.md
+
+          for file in $FILES; do
+            echo "- $file" >> report.md
+
+            # Check year in path (files should be in a year directory)
+            if echo "$file" | grep -qP '20\d{2}'; then
+              YEAR=$(echo "$file" | grep -oP '20\d{2}')
+              echo "  ✅ Year detected: $YEAR" >> report.md
+            else
+              echo "  ⚠️ No year folder detected. Consider organizing under a year directory." >> report.md
+            fi
+
+            # Validate file extension
+            EXT="${file##*.}"
+            case "$EXT" in
+              pdf|doc|docx|jpg|jpeg|png|gif)
+                echo "  ✅ Valid format: .$EXT" >> report.md
+                ;;
+              *)
+                echo "  ⚠️ Unusual extension: .$EXT" >> report.md
+                ;;
+            esac
+
+            # Check file size (GitHub shows it)
+            SIZE=$(stat -c%s "$file" 2>/dev/null || echo 0)
+            if [ "$SIZE" -gt 10485760 ]; then
+              echo "  ⚠️ Large file (>10MB): $(($SIZE/1048576))MB" >> report.md
+            fi
+          done
+
+          echo '```' >> report.md
+
+          # Category suggestions
+          echo "" >> report.md
+          echo "### 📂 Suggested Organization:" >> report.md
+          echo "- **Sheets** → \`<semester>/sheet/\`" >> report.md
+          echo "- **Previous Questions** → \`<semester>/Previous Question/<year>/\`" >> report.md
+          echo "- **Notes** → \`<semester>/NOTES/\`" >> report.md
+          echo "- **Syllabus** → \`<semester>/Syllabus/\`" >> report.md
+
+          cat report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('report.md', 'utf8');
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            const botComment = comments.find(c => c.user.type === 'Bot' && c.body.includes('File Validation Report'));
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: report
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: report
+              });
+            }
+
+      - name: Auto-Approve (if passes checks)
+        if: success()
+        run: |
+          echo "✅ Validation passed. Ready for review."
