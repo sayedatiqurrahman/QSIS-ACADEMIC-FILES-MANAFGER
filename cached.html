@@ -6,7 +6,7 @@
   <title>Downloads - QSIS</title>
   <link rel="icon" type="image/png" href="assets/arms-logo.png" />
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#3b82f6" />
+  <meta name="theme-color" content="#22c55e" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -207,6 +207,7 @@
     let pdfDoc = null, pdfPage = 1, pdfScale = 1.5, pdfTotal = 0;
     let pdfMode = 'scroll', pdfTool = 'hand', pdfDragging = false, pdfDragStart = { x: 0, y: 0 };
     let pdfAnnotations = [], pdfHighlightDrawing = false, pdfHighlightStart = null;
+    let pdfPenSize = 3, pdfHighlightThickness = 18;
     let pdfFilePath = '';
 
     async function openPdfViewer(url, container, filePath) {
@@ -240,6 +241,12 @@
             <button class="btn btn-sm pdf-tool-btn" id="pdfToolDraw" onclick="pdfSetTool('draw')" title="Pen"><i class="fas fa-pen"></i></button>
             <button class="btn btn-sm pdf-tool-btn" id="pdfToolEraser" onclick="pdfSetTool('eraser')" title="Eraser - click annotation to remove"><i class="fas fa-eraser"></i></button>
             <button class="btn btn-sm" onclick="pdfClearAll()" title="Clear all"><i class="fas fa-trash"></i></button>
+          </div>
+          <span class="pdf-sep" id="pdfSizeSep" style="display:none"></span>
+          <div class="pdf-toolbar-group pdf-size-controls" id="pdfSizeControls" style="display:none">
+            <i class="fas fa-circle pdf-size-icon" id="pdfSizeIcon"></i>
+            <input type="range" id="pdfSizeSlider" min="1" max="20" value="3" class="pdf-size-slider" oninput="pdfSetSize(this.value)">
+            <span id="pdfSizeValue" class="pdf-size-val">3</span>
           </div>
           <span class="pdf-sep"></span>
           <div class="pdf-toolbar-group">
@@ -324,7 +331,47 @@
       if (area) {
         area.classList.remove('pdf-eraser-mode');
         if (tool === 'eraser') area.classList.add('pdf-eraser-mode');
+        if (tool === 'hand') area.style.cursor = 'grab';
+        else if (tool === 'highlight' || tool === 'draw') area.style.cursor = 'crosshair';
+        else if (tool === 'eraser') area.style.cursor = 'default';
+        else area.style.cursor = 'default';
       }
+      const sizeCtrl = document.getElementById('pdfSizeControls');
+      const sizeSep = document.getElementById('pdfSizeSep');
+      const slider = document.getElementById('pdfSizeSlider');
+      const icon = document.getElementById('pdfSizeIcon');
+      if (tool === 'draw') {
+        sizeCtrl.style.display = 'flex';
+        sizeSep.style.display = 'block';
+        slider.min = 1; slider.max = 12; slider.value = pdfPenSize;
+        icon.style.fontSize = Math.max(6, pdfPenSize * 2) + 'px';
+        icon.style.color = '';
+        document.getElementById('pdfSizeValue').textContent = pdfPenSize;
+      } else if (tool === 'highlight') {
+        sizeCtrl.style.display = 'flex';
+        sizeSep.style.display = 'block';
+        slider.min = 8; slider.max = 40; slider.value = pdfHighlightThickness;
+        icon.style.fontSize = Math.max(6, pdfHighlightThickness) + 'px';
+        icon.style.color = 'rgba(255,230,0,0.8)';
+        document.getElementById('pdfSizeValue').textContent = pdfHighlightThickness;
+      } else {
+        sizeCtrl.style.display = 'none';
+        sizeSep.style.display = 'none';
+        if (icon) icon.style.color = '';
+      }
+    }
+
+    function pdfSetSize(val) {
+      val = parseInt(val);
+      if (pdfTool === 'draw') pdfPenSize = val;
+      else if (pdfTool === 'highlight') pdfHighlightThickness = val;
+      const icon = document.getElementById('pdfSizeIcon');
+      const display = document.getElementById('pdfSizeValue');
+      if (icon) {
+        if (pdfTool === 'highlight') icon.style.fontSize = Math.max(6, val) + 'px';
+        else icon.style.fontSize = Math.max(6, val * 2) + 'px';
+      }
+      if (display) display.textContent = val;
     }
 
     async function loadPdf(url) {
@@ -442,11 +489,11 @@
       if (!area) return;
       const rect = area.getBoundingClientRect();
 
-      const absX = Math.min(start.x, end.x) - rect.left + area.scrollLeft;
-      const absY = Math.min(start.y, end.y) - rect.top + area.scrollTop;
-      const absW = Math.abs(end.x - start.x);
-      const absH = Math.abs(end.y - start.y);
-      if (absW < 5 && absH < 5) return;
+      const absX1 = Math.min(start.x, end.x) - rect.left + area.scrollLeft;
+      const absX2 = Math.max(start.x, end.x) - rect.left + area.scrollLeft;
+      const absY = (start.y + end.y) / 2 - rect.top + area.scrollTop;
+      const absW = absX2 - absX1;
+      if (absW < 5) return;
 
       const container = document.getElementById('pdfPagesContainer');
       if (!container) return;
@@ -458,24 +505,22 @@
       const pageCanvasRect = canvas.getBoundingClientRect();
       const pageAbsX = pageCanvasRect.left - rect.left + area.scrollLeft;
       const pageAbsY = pageCanvasRect.top - rect.top + area.scrollTop;
-      const pageW = canvas.width;
-      const pageH = canvas.height;
-
       const displayW = pageCanvasRect.width;
       const displayH = pageCanvasRect.height;
 
-      const normX = (absX - pageAbsX) / displayW;
-      const normY = (absY - pageAbsY) / displayH;
-      const normW = absW / displayW;
-      const normH = absH / displayH;
+      const normX = Math.max(0, (absX1 - pageAbsX) / displayW);
+      const normW = Math.min(1 - normX, absW / displayW);
+      const lineH = pdfHighlightThickness / displayH;
+      const normY = Math.max(0, Math.min(1 - lineH, ((absY - pageAbsY) / displayH) - lineH / 2));
 
       const targetPage = pdfMode === 'page' ? pdfPage : getPageFromY(absY);
 
       pdfAnnotations.push({
         type: 'highlight',
         page: targetPage,
-        x: normX, y: normY, w: normW, h: normH,
-        color: 'rgba(255,230,0,0.35)'
+        x: normX, y: normY, w: normW, h: lineH,
+        color: 'rgba(255,230,0,0.35)',
+        thickness: pdfHighlightThickness
       });
 
       renderAnnotationsOnPage();
@@ -576,18 +621,26 @@
         svg.setAttribute('height', displayH);
         svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;';
 
-        for (let i = 1; i < drawing.points.length; i++) {
-          const prev = drawing.points[i - 1];
-          const cur = drawing.points[i];
-          const line = document.createElementNS(svgNS, 'line');
-          line.setAttribute('x1', prev.x * displayW);
-          line.setAttribute('y1', prev.y * displayH);
-          line.setAttribute('x2', cur.x * displayW);
-          line.setAttribute('y2', cur.y * displayH);
-          line.setAttribute('stroke', drawing.color || 'rgba(239,68,68,0.7)');
-          line.setAttribute('stroke-width', '3');
-          line.setAttribute('stroke-linecap', 'round');
-          svg.appendChild(line);
+        const pts = drawing.points;
+        if (pts.length >= 2) {
+          let d = 'M' + (pts[0].x * displayW) + ',' + (pts[0].y * displayH);
+          for (let i = 1; i < pts.length; i++) {
+            const prev = pts[i - 1];
+            const cur = pts[i];
+            const mx = (prev.x + cur.x) / 2 * displayW;
+            const my = (prev.y + cur.y) / 2 * displayH;
+            d += ' Q' + (prev.x * displayW) + ',' + (prev.y * displayH) + ' ' + mx + ',' + my;
+          }
+          const last = pts[pts.length - 1];
+          d += ' L' + (last.x * displayW) + ',' + (last.y * displayH);
+          const path = document.createElementNS(svgNS, 'path');
+          path.setAttribute('d', d);
+          path.setAttribute('stroke', drawing.color || 'rgba(239,68,68,0.7)');
+          path.setAttribute('stroke-width', drawing.strokeWidth || 3);
+          path.setAttribute('stroke-linecap', 'round');
+          path.setAttribute('stroke-linejoin', 'round');
+          path.setAttribute('fill', 'none');
+          svg.appendChild(path);
         }
 
         svg.addEventListener('click', () => {
@@ -645,19 +698,29 @@
       if (!svg) return;
       const displayW = wrapper.clientWidth;
       const displayH = wrapper.clientHeight;
-      const prev = pdfDrawPoints[pdfDrawPoints.length - 2];
-      const cur = pdfDrawPoints[pdfDrawPoints.length - 1];
 
+      svg.innerHTML = '';
       const svgNS = 'http://www.w3.org/2000/svg';
-      const line = document.createElementNS(svgNS, 'line');
-      line.setAttribute('x1', prev.x * displayW);
-      line.setAttribute('y1', prev.y * displayH);
-      line.setAttribute('x2', cur.x * displayW);
-      line.setAttribute('y2', cur.y * displayH);
-      line.setAttribute('stroke', 'rgba(239,68,68,0.7)');
-      line.setAttribute('stroke-width', '3');
-      line.setAttribute('stroke-linecap', 'round');
-      svg.appendChild(line);
+      const path = document.createElementNS(svgNS, 'path');
+      const pts = pdfDrawPoints;
+      if (pts.length < 2) return;
+      let d = 'M' + (pts[0].x * displayW) + ',' + (pts[0].y * displayH);
+      for (let i = 1; i < pts.length; i++) {
+        const prev = pts[i - 1];
+        const cur = pts[i];
+        const mx = (prev.x + cur.x) / 2 * displayW;
+        const my = (prev.y + cur.y) / 2 * displayH;
+        d += ' Q' + (prev.x * displayW) + ',' + (prev.y * displayH) + ' ' + mx + ',' + my;
+      }
+      const last = pts[pts.length - 1];
+      d += ' L' + (last.x * displayW) + ',' + (last.y * displayH);
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', 'rgba(239,68,68,0.7)');
+      path.setAttribute('stroke-width', pdfPenSize);
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('stroke-linejoin', 'round');
+      path.setAttribute('fill', 'none');
+      svg.appendChild(path);
     }
 
     function pdfDrawEnd() {
@@ -667,7 +730,8 @@
           type: 'drawing',
           page: targetPage,
           points: [...pdfDrawPoints],
-          color: 'rgba(239,68,68,0.7)'
+          color: 'rgba(239,68,68,0.7)',
+          strokeWidth: pdfPenSize
         });
         saveAnnotations();
       }
@@ -692,8 +756,63 @@
       if (!pdfFilePath) return;
       try {
         await DB.editsSave(pdfFilePath, { annotations: pdfAnnotations });
+        pdfShowSavePopup();
       } catch (err) {
         console.error('Failed to save annotations:', err);
+      }
+    }
+
+    let pdfSavePopupTimer = null;
+    function pdfShowSavePopup() {
+      const existing = document.getElementById('pdfSavePopup');
+      if (existing) existing.remove();
+      clearTimeout(pdfSavePopupTimer);
+
+      const area = document.getElementById('pdfScrollArea');
+      if (!area) return;
+      const popup = document.createElement('div');
+      popup.id = 'pdfSavePopup';
+      popup.className = 'pdf-save-popup';
+      popup.innerHTML = `
+        <i class="fas fa-check-circle" style="color:var(--success)"></i>
+        <span>Saved to offline</span>
+        <button class="btn btn-sm pdf-save-btn-download" onclick="pdfSaveToDevice()"><i class="fas fa-download"></i> Save as</button>
+      `;
+      area.parentElement.appendChild(popup);
+
+      pdfSavePopupTimer = setTimeout(() => {
+        popup.classList.add('pdf-save-popup-fade');
+        setTimeout(() => popup.remove(), 400);
+      }, 3500);
+    }
+
+    async function pdfSaveToDevice() {
+      if (!pdfFilePath) return;
+      try {
+        const parts = pdfFilePath.split('/');
+        const fileName = parts[parts.length - 1];
+        const cached = await DB.cacheGet(pdfFilePath);
+        let blob;
+        if (cached && cached.blob) {
+          blob = cached.blob;
+        } else {
+          const resp = await fetch(`https://raw.githubusercontent.com/${CONFIG.repoUrl.replace('https://github.com/', '')}/main/${pdfFilePath}`);
+          blob = await resp.blob();
+        }
+        if (window.showSaveFilePicker) {
+          const handle = await window.showSaveFilePicker({ suggestedName: fileName });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+        } else {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = fileName;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') console.error('Save failed:', err);
       }
     }
 

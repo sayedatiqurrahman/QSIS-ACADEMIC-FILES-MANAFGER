@@ -5,11 +5,11 @@
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0f1e",
-  "theme_color": "#3b82f6",
+  "theme_color": "#22c55e",
   "orientation": "any",
   "icons": [
-    { "src": "assets/qsis-logo.jpg", "sizes": "192x192", "type": "image/jpeg" },
-    { "src": "assets/qsis-logo.jpg", "sizes": "512x512", "type": "image/jpeg" }
+    { "src": "assets/app-icon.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any" },
+    { "src": "assets/app-icon.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any maskable" }
   ],
   "categories": ["education"]
 }
