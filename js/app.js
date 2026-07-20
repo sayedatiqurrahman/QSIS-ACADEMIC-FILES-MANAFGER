@@ -683,7 +683,8 @@ function openPdfViewer(url, container, filePath) {
         <button class="btn btn-sm pdf-tool-btn active" id="pdfToolHand" onclick="pdfSetTool('hand')" title="Hand tool"><i class="fas fa-hand-paper"></i></button>
         <button class="btn btn-sm pdf-tool-btn" id="pdfToolHighlight" onclick="pdfSetTool('highlight')" title="Highlight"><i class="fas fa-highlighter"></i></button>
         <button class="btn btn-sm pdf-tool-btn" id="pdfToolDraw" onclick="pdfSetTool('draw')" title="Pen"><i class="fas fa-pen"></i></button>
-        <button class="btn btn-sm" id="pdfClearAnnotations" onclick="pdfClearAnnotations()" title="Clear annotations"><i class="fas fa-eraser"></i></button>
+        <button class="btn btn-sm pdf-tool-btn" id="pdfToolEraser" onclick="pdfSetTool('eraser')" title="Eraser - click annotation to remove"><i class="fas fa-eraser"></i></button>
+        <button class="btn btn-sm" onclick="pdfClearAll()" title="Clear all"><i class="fas fa-trash"></i></button>
       </div>
       <span class="pdf-sep"></span>
       <div class="pdf-toolbar-group">
@@ -756,7 +757,13 @@ function pdfSetMode(mode) {
 function pdfSetTool(tool) {
   pdfTool = tool;
   document.querySelectorAll('.pdf-tool-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('pdfTool' + tool.charAt(0).toUpperCase() + tool.slice(1)).classList.add('active');
+  const btn = document.getElementById('pdfTool' + tool.charAt(0).toUpperCase() + tool.slice(1));
+  if (btn) btn.classList.add('active');
+  const area = document.getElementById('pdfScrollArea');
+  if (area) {
+    area.classList.remove('pdf-eraser-mode');
+    if (tool === 'eraser') area.classList.add('pdf-eraser-mode');
+  }
 }
 
 async function loadPdf(url) {
@@ -965,6 +972,14 @@ function renderAnnotationsOnPage() {
       renderAnnotationsOnPage();
       pdfSaveAnnotations();
     });
+    box.addEventListener('click', () => {
+      if (pdfTool === 'eraser') {
+        const idx = pdfAnnotations.indexOf(hl);
+        if (idx >= 0) pdfAnnotations.splice(idx, 1);
+        renderAnnotationsOnPage();
+        pdfSaveAnnotations();
+      }
+    });
     if (canvas.parentElement) canvas.parentElement.appendChild(box);
   });
 
@@ -996,7 +1011,7 @@ function renderAnnotationsOnPage() {
     const svg = document.createElementNS(svgNS, 'svg');
     svg.setAttribute('width', displayW);
     svg.setAttribute('height', displayH);
-    svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;';
+    svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;';
 
     for (let i = 1; i < drawing.points.length; i++) {
       const prev = drawing.points[i - 1];
@@ -1012,12 +1027,23 @@ function renderAnnotationsOnPage() {
       svg.appendChild(line);
     }
 
+    svg.addEventListener('click', () => {
+      if (pdfTool === 'eraser') {
+        const idx = pdfAnnotations.indexOf(drawing);
+        if (idx >= 0) pdfAnnotations.splice(idx, 1);
+        renderAnnotationsOnPage();
+        pdfSaveAnnotations();
+      }
+    });
+
     drawLayer.appendChild(svg);
     pageWrapper.appendChild(drawLayer);
   });
 }
 
-function pdfClearAnnotations() {
+function pdfClearAll() {
+  if (!pdfAnnotations.length) return;
+  if (!confirm('Remove all annotations?')) return;
   pdfAnnotations = [];
   const container = document.getElementById('pdfPagesContainer');
   if (container) {

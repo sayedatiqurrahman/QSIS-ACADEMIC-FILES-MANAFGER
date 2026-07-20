@@ -166,6 +166,10 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 .pdf-highlight-box:hover { opacity:.6; }
 .pdf-draw-layer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10; }
 .pdf-draw-stroke { pointer-events:none; }
+.pdf-eraser-mode .pdf-draw-layer { pointer-events:auto; cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="red" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="red" stroke-width="2"/><line x1="18" y1="6" x2="6" y2="18" stroke="red" stroke-width="2"/></svg>') 12 12, pointer; }
+.pdf-eraser-mode .pdf-draw-layer svg { pointer-events:auto; }
+.pdf-eraser-mode .pdf-draw-layer svg:hover { filter: drop-shadow(0 0 4px red); }
+.pdf-eraser-mode .pdf-highlight-box { cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="red" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="red" stroke-width="2"/><line x1="18" y1="6" x2="6" y2="18" stroke="red" stroke-width="2"/></svg>') 12 12, pointer; }
 
 /* IMAGE */
 .image-viewer-container { display:flex; flex-direction:column; height:100%; }
