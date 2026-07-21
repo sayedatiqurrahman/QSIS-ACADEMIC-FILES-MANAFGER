@@ -15,10 +15,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
 
       - name: Fetch PR head commit for diff
         run: |
-          git fetch origin +refs/pull/${{ github.event.pull_request.number }}/head:pr-head --depth=50
+          git fetch origin +refs/pull/${{ github.event.pull_request.number }}/head:pr-head --force
 
       - name: Verify Changes are in upload_academic_files only
         id: check_paths
@@ -26,9 +28,8 @@ jobs:
         with:
           script: |
             const { execSync } = require('child_process');
-            const head = context.payload.pull_request.head.sha;
             const base = context.payload.pull_request.base.sha;
-            const files = execSync(`git diff --name-only ${base} ${head}`).toString().trim().split('\n').filter(Boolean);
+            const files = execSync(`git diff --name-only ${base} pr-head`).toString().trim().split('\n').filter(Boolean);
             const badFiles = files.filter(f => !f.startsWith('upload_academic_files/'));
             if (badFiles.length > 0) {
               core.setFailed(`Changes outside upload_academic_files/ detected: ${badFiles.join(', ')}`);
@@ -40,9 +41,8 @@ jobs:
         with:
           script: |
             const { execSync } = require('child_process');
-            const head = context.payload.pull_request.head.sha;
             const base = context.payload.pull_request.base.sha;
-            const files = execSync(`git diff --name-only ${base} ${head}`).toString().trim().split('\n').filter(Boolean);
+            const files = execSync(`git diff --name-only ${base} pr-head`).toString().trim().split('\n').filter(Boolean);
 
             const semPattern = /^upload_academic_files\/([^/]+?)(?:-semister|\d)/;
             const allowed = [
@@ -164,12 +164,11 @@ jobs:
       - name: Validate File Structure
         id: validate
         run: |
-          echo "## 📋 File Validation Report" > report.md
+          echo "## File Validation Report" > report.md
           echo "" >> report.md
 
-          head='${{ github.event.pull_request.head.sha }}'
           base='${{ github.event.pull_request.base.sha }}'
-          git diff --name-only "$base" "$head" > /tmp/changed_files.txt
+          git diff --name-only "$base" pr-head > /tmp/changed_files.txt 2>/dev/null || true
 
           echo "### Files Changed:" >> report.md
           echo '```' >> report.md

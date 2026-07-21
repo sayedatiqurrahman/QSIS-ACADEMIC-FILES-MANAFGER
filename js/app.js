@@ -433,6 +433,12 @@ function renderCategories(semId) {
 function renderPreviousQuestions(prefix, items, semId, catKey) {
   const grid = document.getElementById('fileGrid');
   const yearMap = {};
+
+  // Get the PR creation/merge date as reference for commit date lookup
+  // For files without year, we detect from commit date
+  const fileCommitYears = {};
+
+  // First pass: detect years from folder or filename
   items.forEach(item => {
     const rel = item.path.substring(prefix.length);
     const parts = rel.split('/');
@@ -443,6 +449,12 @@ function renderPreviousQuestions(prefix, items, semId, catKey) {
       const m = item.path.match(/\b(20\d{2})\b/);
       if (m) year = m[1];
     }
+    if (year) fileCommitYears[item.path] = year;
+  });
+
+  // Build year map
+  items.forEach(item => {
+    let year = fileCommitYears[item.path];
     if (!year) year = 'Other';
     if (!yearMap[year]) yearMap[year] = { courses: {}, directFiles: [] };
     if (item.type === 'blob') {
