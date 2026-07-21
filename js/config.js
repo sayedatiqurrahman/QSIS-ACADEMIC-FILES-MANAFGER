@@ -22,6 +22,7 @@ const CONFIG = {
     question: { label: 'Previous Questions', icon: 'fa-question-circle', color: '#f59e0b' },
     note: { label: 'Notes', icon: 'fa-sticky-note', color: '#22c55e' },
     syllabus: { label: 'Syllabus', icon: 'fa-graduation-cap', color: '#8b5cf6' },
+    kitab: { label: 'Kitab', icon: 'fa-book', color: '#a855f7' },
     other: { label: 'Other', icon: 'fa-folder', color: '#94a3b8' }
   }
 };

@@ -46,6 +46,15 @@ jobs:
             done
           done
 
+          # Create top-level kitab folder if not exists
+          if [ ! -d "upload_academic_files/kitab" ]; then
+            mkdir -p "upload_academic_files/kitab"
+            touch "upload_academic_files/kitab/.gitkeep"
+            git add "upload_academic_files/kitab/.gitkeep"
+            CHANGED=true
+            echo "Created: upload_academic_files/kitab/"
+          fi
+
           if [ "$CHANGED" = true ]; then
             git commit -m "Auto-setup: create default category folders [skip ci]"
             git push

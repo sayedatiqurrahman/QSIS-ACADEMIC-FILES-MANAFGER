@@ -128,6 +128,17 @@
         </div>
       </section>
 
+      <section class="file-browser" id="kitabSection" style="display:none">
+        <div class="browser-header">
+          <h3><i class="fas fa-book" style="color:#a855f7"></i> Kitab</h3>
+          <div class="browser-actions">
+            <button class="btn btn-sm" onclick="openKitab()"><i class="fas fa-sync"></i></button>
+          </div>
+        </div>
+        <div class="breadcrumb" id="kitabBreadcrumb" style="display:none"></div>
+        <div class="browser-grid" id="kitabGrid"></div>
+      </section>
+
       <section class="file-browser" id="fileSection" style="display:none">
         <div class="browser-header">
           <h3 id="sectionTitle2"><i class="fas fa-folder-open"></i> Browse</h3>
@@ -144,6 +155,10 @@
       <div class="viewer-container">
         <div class="viewer-header">
           <div class="viewer-header-left">
+
+<script>
+(function(){if(typeof loadSemesters==='function')loadSemesters();})();
+</script>
             <i class="fas fa-file"></i>
             <span id="viewerTitle">File Viewer</span>
           </div>
@@ -198,7 +213,8 @@
                     <code>&nbsp;&nbsp;&nbsp;&nbsp;sheet/{course-code}/</code> &mdash; Study sheets<br>
                     <code>&nbsp;&nbsp;&nbsp;&nbsp;Previous Question ({semester})/2026/Mid/</code><br>
                     <code>&nbsp;&nbsp;&nbsp;&nbsp;NOTES/</code> &mdash; Lecture notes<br>
-                    <code>&nbsp;&nbsp;&nbsp;&nbsp;Syllabus/</code> &mdash; Course syllabi
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;Syllabus/</code> &mdash; Course syllabi<br>
+                    <code>&nbsp;&nbsp;kitab/{book-name}/</code> &mdash; General books & references
                   </div>
                 </div>
               </div>
@@ -206,7 +222,7 @@
                 <div class="step-number">4</div>
                 <div class="step-content">
                   <h4>Create Pull Request</h4>
-                  <p>After uploading, click <strong>Contribute &gt; Open pull request</strong> to submit.</p>
+                  <p>Click <strong>Contribute &gt; Open pull request</strong>. The template will auto-fill &mdash; just replace with your <strong>Name, QSIS ID & WhatsApp</strong>.</p>
                   <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/pulls" target="_blank" class="btn btn-sm btn-outline" style="margin-top:8px">
                     <i class="fas fa-eye"></i> View Existing PRs
                   </a>
@@ -216,7 +232,7 @@
                 <div class="step-number">5</div>
                 <div class="step-content">
                   <h4>Get Credit!</h4>
-                  <p>Type your <strong>Name, QSIS ID & WhatsApp</strong> in the PR description. Your name will appear in the Contributors section.</p>
+                  <p>Fill in your <strong>Name, QSIS ID & WhatsApp</strong> in the PR description (already templated). Your name will appear in the Contributors section.</p>
                 </div>
               </div>
             </div>
@@ -264,7 +280,7 @@
             <div class="tutorial-step"><div class="step-number">1</div><div class="step-content"><h4>Create GitHub Account</h4><p>Go to <a href="https://github.com/signup" target="_blank">github.com</a> and sign up &mdash; it's free.</p></div></div>
             <div class="tutorial-step"><div class="step-number">2</div><div class="step-content"><h4>Fork This Repo</h4><p>Click <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/fork" target="_blank">Fork</a> to get your own copy.</p></div></div>
             <div class="tutorial-step"><div class="step-number">3</div><div class="step-content"><h4>Upload Your Files</h4><p>Go to <code>upload_academic_files/{semester}/</code> and click <strong>Add file &gt; Upload files</strong>.</p></div></div>
-            <div class="tutorial-step"><div class="step-number">4</div><div class="step-content"><h4>Submit Pull Request</h4><p>Click <strong>Contribute &gt; Open pull request</strong>. Enter your <strong>Name, QSIS ID & WhatsApp</strong>.</p></div></div>
+            <div class="tutorial-step"><div class="step-number">4</div><div class="step-content"><h4>Submit Pull Request</h4><p>Click <strong>Contribute &gt; Open pull request</strong>. Replace the template with your <strong>Name, QSIS ID & WhatsApp</strong>.</p></div></div>
           </div>
         </div>
       </div>

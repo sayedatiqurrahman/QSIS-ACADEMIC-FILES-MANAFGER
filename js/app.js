@@ -168,7 +168,7 @@ async function loadSemesters() {
       return true;
     });
 
-    const detectedSemIds = [...new Set(allTreeItems.map(i => i.path.split('/')[0]).filter(Boolean))];
+    const detectedSemIds = [...new Set(allTreeItems.map(i => i.path.split('/')[0]).filter(Boolean))].filter(id => id !== 'kitab');
     detectedSemIds.sort();
     const semFolders = detectedSemIds.map(semId => {
       const numMatch = semId.match(/^(\d+)/);
@@ -220,6 +220,29 @@ async function loadSemesters() {
     document.getElementById('statsCourses').textContent = semFolders.reduce((sum, s) => sum + s.courseCount, 0);
     document.getElementById('statsFiles').textContent = allTreeItems.filter(i => i.type === 'blob').length;
     document.getElementById('statsYears').textContent = semFolders.reduce((sum, s) => sum + s.yearCount, 0);
+
+    const hasKitab = allTreeItems.some(i => i.path.startsWith('kitab/'));
+    const kitabSection = document.getElementById('kitabSection');
+    const semSection = document.getElementById('semesterSection');
+    if (hasKitab && kitabSection) {
+      kitabSection.style.display = '';
+      semSection.style.marginBottom = '0';
+      const kGrid = document.getElementById('kitabGrid');
+      if (kGrid && !kGrid.querySelector('.kitab-hero')) {
+        const kCount = allTreeItems.filter(i => i.path.startsWith('kitab/') && i.type === 'blob').length;
+        kGrid.innerHTML = `<div class="kitab-hero" onclick="openKitab()">
+          <div class="kitab-hero-icon"><i class="fas fa-book" style="color:#a855f7"></i></div>
+          <div class="kitab-hero-info">
+            <div class="kitab-hero-title">Kitab</div>
+            <div class="kitab-hero-sub">General books & references for all semesters</div>
+          </div>
+          <div class="kitab-hero-count">${kCount} files</div>
+          <i class="fas fa-chevron-right kitab-hero-arrow"></i>
+        </div>`;
+      }
+    } else if (kitabSection) {
+      kitabSection.style.display = 'none';
+    }
   } catch (err) {
     console.error(err);
     grid.innerHTML = `<div class="loading-cell" style="grid-column:1/-1">
@@ -265,6 +288,19 @@ function openCourse(semId, catKey, coursePath) {
   currentCourse = coursePath;
   currentPath = coursePath;
 
+  if (!semId && !catKey && coursePath.startsWith('kitab')) {
+    breadcrumb = [
+      { label: 'Home', action: 'goHome()' },
+      { label: 'Kitab', action: `openKitab()` },
+      { label: coursePath.split('/').pop() }
+    ];
+    renderBreadcrumb();
+    renderFilesInPath(coursePath);
+    const lastPart = coursePath.split('/').pop();
+    document.getElementById('sectionTitle2').innerHTML = `<i class="fas fa-folder-open"></i> ${esc(lastPart)}`;
+    return;
+  }
+
   const actualFolder = semesterFolders[semId]?.[catKey] || catKey;
   const prefix = semId + '/' + actualFolder + '/';
   const relPath = coursePath.startsWith(prefix) ? coursePath.substring(prefix.length) : coursePath.split('/').pop();
@@ -294,6 +330,23 @@ function openCourse(semId, catKey, coursePath) {
   document.getElementById('sectionTitle2').innerHTML = `<i class="fas fa-folder-open"></i> ${esc(lastPart)}`;
 }
 
+function openKitab() {
+  currentSemester = '';
+  currentCategory = '';
+  currentCourse = '';
+  currentPath = 'kitab';
+  breadcrumb = [
+    { label: 'Home', action: 'goHome()' },
+    { label: 'Kitab', action: `openKitab()` }
+  ];
+  renderBreadcrumb();
+  document.getElementById('semesterSection').style.display = 'none';
+  document.getElementById('fileSection').style.display = '';
+  document.getElementById('kitabSection').style.display = '';
+  document.getElementById('sectionTitle2').innerHTML = `<i class="fas fa-book" style="color:#a855f7"></i> Kitab`;
+  renderFilesInPath('kitab');
+}
+
 function goHome() {
   currentSemester = '';
   currentCategory = '';
@@ -303,6 +356,7 @@ function goHome() {
   renderBreadcrumb();
   document.getElementById('fileSection').style.display = 'none';
   document.getElementById('semesterSection').style.display = '';
+  document.getElementById('kitabSection').style.display = '';
   document.getElementById('sectionTitle').innerHTML = `<i class="fas fa-book"></i> Select Semester`;
   loadRecentReads();
 }
@@ -322,6 +376,7 @@ function detectCatFromFolder(folderName) {
   if (lower.includes('previous question') || lower.includes('question')) return 'question';
   if (lower === 'notes' || lower.toLowerCase() === 'note') return 'note';
   if (lower.includes('syllabus')) return 'syllabus';
+  if (lower === 'kitab') return 'kitab';
   return 'other';
 }
 
@@ -945,6 +1000,7 @@ function searchFiles() {
 
 // ========== REFRESH ==========
 function refreshFiles() {
+  if (currentPath.startsWith('kitab')) { openKitab(); return; }
   if (currentSemester) openSemester(currentSemester);
   else loadSemesters();
 }

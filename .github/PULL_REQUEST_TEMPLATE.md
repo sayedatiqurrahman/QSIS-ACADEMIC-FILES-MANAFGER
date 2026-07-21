@@ -1,11 +1,8 @@
-<!-- Leave the line above as-is. Replace text below with your info. -->
-
 ### Your Name
+<!-- replace with your name -->
 
 ### QSIS ID Number
+<!-- replace with your QSIS ID -->
 
 ### WhatsApp Number
-
----
-
-Remove this instruction once you fill it. Upload files to `upload_academic_files/{semester}/`.
+<!-- replace with your WhatsApp number -->

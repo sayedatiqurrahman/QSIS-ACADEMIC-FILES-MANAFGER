@@ -16,9 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch PR head ref for diff
+      - name: Fetch PR head commit for diff
         run: |
-          git fetch origin ${{ github.event.pull_request.head.ref }} --depth=10
+          git fetch origin +refs/pull/${{ github.event.pull_request.number }}/head:pr-head --depth=50
 
       - name: Verify Changes are in upload_academic_files only
         id: check_paths
@@ -28,7 +28,7 @@ jobs:
             const { execSync } = require('child_process');
             const head = '${{ github.event.pull_request.head.sha }}';
             const base = '${{ github.event.pull_request.base.sha }}';
-            const files = execSync(`git diff --name-only ${base}...${head}`).toString().trim().split('\n').filter(Boolean);
+            const files = execSync(`git diff --name-only ${base} ${head}`).toString().trim().split('\n').filter(Boolean);
             const badFiles = files.filter(f => !f.startsWith('upload_academic_files/'));
             if (badFiles.length > 0) {
               core.setFailed(`Changes outside upload_academic_files/ detected: ${badFiles.join(', ')}`);
@@ -42,7 +42,7 @@ jobs:
             const { execSync } = require('child_process');
             const head = '${{ github.event.pull_request.head.sha }}';
             const base = '${{ github.event.pull_request.base.sha }}';
-            const files = execSync(`git diff --name-only ${base}...${head}`).toString().trim().split('\n').filter(Boolean);
+            const files = execSync(`git diff --name-only ${base} ${head}`).toString().trim().split('\n').filter(Boolean);
 
             const semPattern = /^upload_academic_files\/([^/]+?)(?:-semister|\d)/;
             const allowed = [
@@ -54,6 +54,8 @@ jobs:
               /^upload_academic_files\/[^/]+-semister\/NOTES\/.+$/,
               // Syllabus/any-file
               /^upload_academic_files\/[^/]+-semister\/Syllabus\/.+$/,
+              // kitab/{book-name}/any-file (top-level, any semester)
+              /^upload_academic_files\/kitab\/[^/]+\/.+$/,
             ];
 
             const bad = files.filter(f => !allowed.some(p => p.test(f)));
@@ -70,13 +72,52 @@ jobs:
         with:
           script: |
             const body = context.payload.pull_request.body || '';
-            const nameMatch = body.match(/### Your Name\s*\n\s*<!--[^>]*-->\s*\n\s*([^\n]+)/i);
-            const qsMatch = body.match(/### QSIS ID Number\s*\n\s*<!--[^>]*-->\s*\n\s*([^\n]+)/i);
-            const whatsappMatch = body.match(/### WhatsApp Number\s*\n\s*<!--[^>]*-->\s*\n\s*([^\n]+)/i);
 
-            const name = nameMatch ? nameMatch[1].trim() : '';
-            const qsId = qsMatch ? qsMatch[1].trim() : '';
-            const whatsapp = whatsappMatch ? whatsappMatch[1].trim() : '';
+            // Try multiple formats in order of preference
+            let name = '', qsId = '', whatsapp = '';
+
+            // 1) Strict template format: ### Header \n <!-- --> \n value
+            const strictName = body.match(/### Your Name\s*\n\s*<!--[\s\S]*?-->\s*\n\s*([^\n\r]+)/i);
+            const strictQs   = body.match(/### QSIS ID Number\s*\n\s*<!--[\s\S]*?-->\s*\n\s*([^\n\r]+)/i);
+            const strictWa   = body.match(/### WhatsApp Number\s*\n\s*<!--[\s\S]*?-->\s*\n\s*([^\n\r]+)/i);
+            if (strictName) name = strictName[1].trim();
+            if (strictQs)   qsId = strictQs[1].trim();
+            if (strictWa)   whatsapp = strictWa[1].trim();
+
+            // 2) Loose label formats: "Name: value", "QSIS: value", "WhatsApp: value"
+            if (!name) {
+              const n = body.match(/(?:Your )?Name\s*[:：]\s*([^\n\r]+)/i);
+              if (n) name = n[1].trim();
+            }
+            if (!qsId) {
+              const q = body.match(/(?:QSIS|ID)\s*(?:Number|ID|No)?\s*[:：]\s*([^\n\r]+)/i);
+              if (q) qsId = q[1].trim();
+            }
+            if (!whatsapp) {
+              const w = body.match(/(?:WhatsApp|Phone|Mobile|Contact)\s*(?:Number|No)?\s*[:：]\s*([^\n\r]+)/i);
+              if (w) whatsapp = w[1].trim();
+            }
+
+            // 3) Fallback: pattern-detect from raw body
+            // QSIS ID format: Q followed by 6 digits, or just 6 digits starting with 25
+            if (!qsId) {
+              const qFallback = body.match(/\b(Q\d{6}|\d{6})\b/);
+              if (qFallback) qsId = qFallback[1];
+            }
+            // WhatsApp/BD phone: +8801 followed by 9 digits, or 01 followed by 9 digits
+            if (!whatsapp) {
+              const wFallback = body.match(/(\+?8801\d{9}|01\d{9})/);
+              if (wFallback) whatsapp = wFallback[1];
+            }
+            // If QSID and phone found but no name, take text before QSIS ID
+            if (!name && qsId) {
+              const idx = body.indexOf(qsId);
+              let before = body.substring(0, idx).trim();
+              if (before && before.length < 100 && !before.includes('###') && !before.match(/[:：]/)) {
+                const lines = before.split('\n').filter(l => l.trim());
+                name = lines.length > 0 ? lines[lines.length - 1].trim() : '';
+              }
+            }
 
             const missing = [];
             if (!qsId || qsId === '') missing.push('QSIS ID Number');
@@ -128,40 +169,17 @@ jobs:
 
           head='${{ github.event.pull_request.head.sha }}'
           base='${{ github.event.pull_request.base.sha }}'
-          FILES=$(git diff --name-only "$base"..."$head")
+          git diff --name-only "$base" "$head" > /tmp/changed_files.txt
 
           echo "### Files Changed:" >> report.md
           echo '```' >> report.md
 
-          for file in $FILES; do
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
             echo "- $file" >> report.md
-
-            if echo "$file" | grep -qP '20\d{2}'; then
-              YEAR=$(echo "$file" | grep -oP '20\d{2}')
-              echo "  ✅ Year detected: $YEAR" >> report.md
-            else
-              echo "  ⚠️ No year folder detected. Consider organizing under a year directory." >> report.md
-            fi
-
-            EXT="${file##*.}"
-            case "$EXT" in
-              pdf|doc|docx|jpg|jpeg|png|gif)
-                echo "  ✅ Valid format: .$EXT" >> report.md
-                ;;
-              *)
-                echo "  ⚠️ Unusual extension: .$EXT" >> report.md
-                ;;
-            esac
-          done
+          done < /tmp/changed_files.txt
 
           echo '```' >> report.md
-
-          echo "" >> report.md
-          echo "### 📂 Suggested Organization:" >> report.md
-          echo "- **Sheets** → \`<semester>/sheet/\`" >> report.md
-          echo "- **Previous Questions** → \`<semester>/Previous Question/<year>/\`" >> report.md
-          echo "- **Notes** → \`<semester>/NOTES/\`" >> report.md
-          echo "- **Syllabus** → \`<semester>/Syllabus/\`" >> report.md
 
           cat report.md >> $GITHUB_STEP_SUMMARY
 

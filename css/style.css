@@ -153,6 +153,16 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 .semester-label { font-size:1.05rem; font-weight:700; }
 .semester-meta { font-size:.8rem; color:var(--text2); margin-top:2px; }
 
+/* KITAB HERO */
+.kitab-hero { display:flex; align-items:center; gap:14px; padding:18px 20px; background:linear-gradient(135deg,var(--bg2),#f3e8ff); border:1px solid #a855f7; border-radius:var(--radius); cursor:pointer; transition:all .25s; }
+.kitab-hero:hover { box-shadow:0 0 20px rgba(168,85,247,.25); transform:translateX(4px); }
+.kitab-hero-icon { width:48px; height:48px; border-radius:12px; background:linear-gradient(135deg,#a855f7,#7c3aed); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.3rem; flex-shrink:0; }
+.kitab-hero-info { flex:1; min-width:0; }
+.kitab-hero-title { font-size:1.05rem; font-weight:700; }
+.kitab-hero-sub { font-size:.8rem; color:var(--text2); margin-top:2px; }
+.kitab-hero-count { font-size:.8rem; color:#a855f7; font-weight:600; white-space:nowrap; }
+.kitab-hero-arrow { color:#a855f7; font-size:.9rem; }
+
 /* CATEGORY CARDS */
 .category-card { display:flex; align-items:center; gap:14px; padding:14px 18px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); cursor:pointer; transition:all .25s; }
 .category-card:hover { border-color:var(--accent); box-shadow:0 0 16px rgba(16,185,129,.2); transform:translateX(4px); }
