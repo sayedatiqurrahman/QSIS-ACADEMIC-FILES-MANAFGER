@@ -24,11 +24,27 @@
             </div>
           </a>
         </div>
-        <div class="nav-actions">
-          <button title="theme" class="btn-icon theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
-          <a href="index.html" class="btn btn-sm"><i class="fas fa-home"></i> Home</a>
+        <button class="nav-hamburger" onclick="toggleNav()" aria-label="Menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="nav-actions" id="navActions">
+          <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="nav-star-badge" title="Star us on GitHub">
+            <i class="fas fa-star"></i> <span id="navStars">-</span>
+          </a>
+          <a href="contributors.html" class="nav-link"><i class="fas fa-users"></i> <span>Contributors</span></a>
+          <div class="nav-mobile-row">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+              <i class="fas fa-moon"></i> <span class="nav-label">Theme</span>
+            </button>
+            <a href="history.html" title="History"><i class="fas fa-clock"></i> <span class="nav-label">History</span></a>
+            <a href="index.html" title="Home"><i class="fas fa-home"></i> <span class="nav-label">Home</span></a>
+          </div>
         </div>
       </div>
+
+      <script>
+        function toggleNav() { document.getElementById('navActions').classList.toggle('nav-open'); }
+      </script>
     </nav>
 
     <main class="main-content" style="max-width:800px;margin:0 auto;padding:20px">
@@ -65,7 +81,7 @@
     <div id="toast" class="toast"></div>
   </div>
 
-  <script src="https://acrobatservices.adobe.com/view-sdk/viewer.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/db.js"></script>
   <script src="js/github.js"></script>

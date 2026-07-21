@@ -24,12 +24,21 @@
             <span class="nav-subtitle">Qur'anic Sciences & Islamic Studies</span>
           </div>
         </div>
-        <div class="nav-actions">
-          <button class="btn-icon theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
-            <i class="fas fa-moon"></i>
-          </button>
-          <a href="cached.html" class="btn-icon" title="Downloads"><i class="fas fa-download"></i></a>
-          <a href="history.html" class="btn-icon" title="History"><i class="fas fa-clock"></i></a>
+        <button class="nav-hamburger" onclick="toggleNav()" aria-label="Menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="nav-actions" id="navActions">
+          <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="nav-star-badge" title="Star us on GitHub">
+            <i class="fas fa-star"></i> <span id="navStars">-</span>
+          </a>
+          <a href="contributors.html" class="nav-link"><i class="fas fa-users"></i> <span>Contributors</span></a>
+          <div class="nav-mobile-row">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+              <i class="fas fa-moon"></i> <span class="nav-label">Theme</span>
+            </button>
+            <a href="cached.html" title="Downloads"><i class="fas fa-download"></i> <span class="nav-label">Downloads</span></a>
+            <a href="history.html" title="History"><i class="fas fa-clock"></i> <span class="nav-label">History</span></a>
+          </div>
           <button class="btn btn-glow btn-sm" onclick="showUploadModal()">
             <i class="fas fa-upload"></i> Upload
           </button>
@@ -192,7 +201,7 @@
                 <div class="step-number">4</div>
                 <div class="step-content">
                   <h4>Create Pull Request</h4>
-                  <p>After uploading, click <strong>"Contribute &gt; Open pull request"</strong> to submit your files for review. Admin will approve and merge.</p>
+                  <p>After uploading, click <strong>"Contribute &gt; Open pull request"</strong> to submit your files for review. Fill in your <strong>QSIS ID, Name & WhatsApp</strong> in the PR description. Admin will approve and merge.</p>
                   <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/pulls" target="_blank" class="btn btn-sm btn-outline" style="margin-top:8px">
                     <i class="fas fa-eye"></i> View Existing PRs
                   </a>
@@ -202,7 +211,7 @@
                 <div class="step-number">5</div>
                 <div class="step-content">
                   <h4>Get Credit!</h4>
-                  <p>Your name will appear in the <strong>Contributors</strong> section of this page. Thank you for sharing knowledge!</p>
+                  <p>Fill in your <strong>QSIS ID, Full Name & WhatsApp</strong> in the PR description. Your name will appear in the <strong>Contributors</strong> section on this page. Thank you for sharing knowledge!</p>
                 </div>
               </div>
             </div>
@@ -255,7 +264,7 @@
             <div class="tutorial-step"><div class="step-number">1</div><div class="step-content"><h4>Create GitHub Account</h4><p>Go to <a href="https://github.com/signup" target="_blank">github.com</a> and sign up with Google &mdash; it's free.</p></div></div>
             <div class="tutorial-step"><div class="step-number">2</div><div class="step-content"><h4>Fork This Repo</h4><p>Click <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/fork" target="_blank">Fork</a> to get your own copy of this repository.</p></div></div>
             <div class="tutorial-step"><div class="step-number">3</div><div class="step-content"><h4>Upload Your Files</h4><p>In your fork, go to <code>upload_academic_files/{semester}/</code> and click <strong>Add file &gt; Upload files</strong>. Place them in the right category folder.</p></div></div>
-            <div class="tutorial-step"><div class="step-number">4</div><div class="step-content"><h4>Submit Pull Request</h4><p>Click <strong>Contribute &gt; Open pull request</strong>. Admin reviews and your files go live!</p></div></div>
+            <div class="tutorial-step"><div class="step-number">4</div><div class="step-content"><h4>Submit Pull Request</h4><p>Click <strong>Contribute &gt; Open pull request</strong>. Fill in your <strong>QSIS ID, Full Name & WhatsApp</strong> in the PR description. Admin reviews and your files go live!</p></div></div>
           </div>
         </div>
       </div>
@@ -276,11 +285,20 @@
     </footer>
   </div>
 
-  <script src="https://acrobatservices.adobe.com/view-sdk/viewer.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/db.js"></script>
   <script src="js/github.js"></script>
+  <script src="js/contributors.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    function toggleNav() {
+      document.getElementById('navActions').classList.toggle('nav-open');
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      Contributors.renderStarBadge();
+    });
+  </script>
   <!-- Cloudflare Web Analytics -->
   <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "11869d2b319c4c469c6d30c774151412"}'></script>
   <!-- End Cloudflare Web Analytics -->

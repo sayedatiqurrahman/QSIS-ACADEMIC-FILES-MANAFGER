@@ -4,13 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - '**/*.pdf'
-      - '**/*.doc'
-      - '**/*.docx'
-      - '**/*.jpg'
-      - '**/*.jpeg'
-      - '**/*.png'
-      - '**/*.gif'
+      - 'upload_academic_files/**'
 
 jobs:
   validate:
@@ -24,13 +18,80 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
+      - name: Verify Changes are in upload_academic_files only
+        id: check_paths
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            const files = execSync(`git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD`).toString().trim().split('\n').filter(Boolean);
+            const badFiles = files.filter(f => !f.startsWith('upload_academic_files/'));
+            if (badFiles.length > 0) {
+              core.setFailed(`Changes outside upload_academic_files/ detected: ${badFiles.join(', ')}`);
+            }
+
+      - name: Verify Contributor Info (QSIS ID, Full Name, WhatsApp Required)
+        id: contributor
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || '';
+            const qsMatch = body.match(/\*\*QSIS ID Number\*\*\s*\|\s*(.+)/i);
+            const nameMatch = body.match(/\*\*Full Name\*\*\s*\|\s*(.+)/i);
+            const whatsappMatch = body.match(/\*\*WhatsApp Number\*\*\s*\|\s*(.+)/i);
+
+            const qsId = qsMatch ? qsMatch[1].trim().replace(/<!--.*-->/, '').trim() : '';
+            const name = nameMatch ? nameMatch[1].trim().replace(/<!--.*-->/, '').trim() : '';
+            const whatsapp = whatsappMatch ? whatsappMatch[1].trim().replace(/<!--.*-->/, '').trim() : '';
+
+            const missing = [];
+            if (!qsId || qsId === '') missing.push('QSIS ID Number');
+            if (!name || name === '') missing.push('Full Name');
+            if (!whatsapp || whatsapp === '') missing.push('WhatsApp Number');
+
+            core.setOutput('qs_id', qsId);
+            core.setOutput('name', name);
+            core.setOutput('whatsapp', whatsapp);
+            core.setOutput('missing', missing.length > 0 ? 'true' : 'false');
+            core.setOutput('missing_fields', missing.join(', '));
+
+            if (missing.length > 0) {
+              core.setFailed(`Missing required contributor fields: ${missing.join(', ')}`);
+            }
+
+      - name: Comment - Missing Info
+        if: steps.contributor.outputs.missing == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const missing = '${{ steps.contributor.outputs.missing_fields }}';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## ❌ Contributor Information Required\n\nYour pull request is missing required fields: **${missing}**\n\nPlease update your PR description using the template. Fill in all fields:\n\n| Field | Value |\n|-------|-------|\n| **Full Name** | Your full name |\n| **QSIS ID Number** | e.g. QSIS-2024-001 |\n| **WhatsApp Number** | e.g. +8801XXXXXXXXX |\n| **Semester** | e.g. 6th Semester |\n\n> ⚠️ Submissions without QSIS ID will not be approved.\n\n---\n*This is an automated check by QSIS-ARMS Bot.*`
+            });
+
+      - name: Comment - Info Verified
+        if: steps.contributor.outputs.missing == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const name = `${{ steps.contributor.outputs.name }}`;
+            const qsId = `${{ steps.contributor.outputs.qs_id }}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## ✅ Contributor Information Verified\n\n| Field | Value |\n|-------|-------|\n| **Contributor** | ${name} |\n| **QSIS ID** | ${qsId} |\n\n> Your contribution credit will appear on the [QSIS-ARMS website](https://qsis-arms.eu.cc/) contributors section.\n\n---\n*This is an automated check by QSIS-ARMS Bot.*`
+            });
+
       - name: Validate File Structure
         id: validate
         run: |
           echo "## 📋 File Validation Report" > report.md
           echo "" >> report.md
 
-          # Get changed files
           FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
           HAS_ERROR=false
 
@@ -40,7 +101,6 @@ jobs:
           for file in $FILES; do
             echo "- $file" >> report.md
 
-            # Check year in path (files should be in a year directory)
             if echo "$file" | grep -qP '20\d{2}'; then
               YEAR=$(echo "$file" | grep -oP '20\d{2}')
               echo "  ✅ Year detected: $YEAR" >> report.md
@@ -48,7 +108,6 @@ jobs:
               echo "  ⚠️ No year folder detected. Consider organizing under a year directory." >> report.md
             fi
 
-            # Validate file extension
             EXT="${file##*.}"
             case "$EXT" in
               pdf|doc|docx|jpg|jpeg|png|gif)
@@ -59,7 +118,6 @@ jobs:
                 ;;
             esac
 
-            # Check file size (GitHub shows it)
             SIZE=$(stat -c%s "$file" 2>/dev/null || echo 0)
             if [ "$SIZE" -gt 10485760 ]; then
               echo "  ⚠️ Large file (>10MB): $(($SIZE/1048576))MB" >> report.md
@@ -68,7 +126,6 @@ jobs:
 
           echo '```' >> report.md
 
-          # Category suggestions
           echo "" >> report.md
           echo "### 📂 Suggested Organization:" >> report.md
           echo "- **Sheets** → \`<semester>/sheet/\`" >> report.md
@@ -78,7 +135,7 @@ jobs:
 
           cat report.md >> $GITHUB_STEP_SUMMARY
 
-      - name: Comment on PR
+      - name: Comment Validation Report on PR
         uses: actions/github-script@v7
         with:
           script: |
@@ -90,23 +147,27 @@ jobs:
               issue_number: context.issue.number
             });
             const botComment = comments.find(c => c.user.type === 'Bot' && c.body.includes('File Validation Report'));
+            const msg = report + '\n\n---\n> **Note:** The "Setup Pages" build failure you may see in the Actions tab is expected. Only the main repository deploys to GitHub Pages. Your PR only needs to pass this review — an admin will merge it and the deploy happens automatically.';
             if (botComment) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 comment_id: botComment.id,
-                body: report
+                body: msg
               });
             } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: report
+                body: msg
               });
             }
 
-      - name: Auto-Approve (if passes checks)
+      - name: Auto-Merge (if all checks pass)
         if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "✅ Validation passed. Ready for review."
+          echo "✅ All checks passed. Merging PR..."
+          gh pr merge ${{ github.event.pull_request.number }} --merge --subject "Auto-merged: ${{ github.event.pull_request.title }}"

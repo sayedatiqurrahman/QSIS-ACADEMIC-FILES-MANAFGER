@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contributors - QSIS-ARMS</title>
+  <link rel="icon" type="image/png" href="assets/arms-logo.png" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#22c55e" />
+  <meta name="msvalidate.01" content="DD448DBC883F1B6109FDB70D65A3BB56" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-brand">
+          <a href="index.html" style="text-decoration:none;display:flex;align-items:center;gap:12px">
+            <img src="assets/arms-logo.png" alt="QSIS-ARMS" class="nav-logo" />
+            <div class="nav-title">
+              <h1>QSIS-ARMS</h1>
+              <span class="nav-subtitle">Contributors</span>
+            </div>
+          </a>
+        </div>
+        <button class="nav-hamburger" onclick="toggleNav()" aria-label="Menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="nav-actions" id="navActions">
+          <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="nav-star-badge" title="Star us on GitHub">
+            <i class="fas fa-star"></i> <span id="navStars">-</span>
+          </a>
+          <a href="contributors.html" class="nav-link" style="color:var(--primary)"><i class="fas fa-users"></i> <span>Contributors</span></a>
+          <div class="nav-mobile-row">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+              <i class="fas fa-moon"></i> <span class="nav-label">Theme</span>
+            </button>
+            <a href="cached.html" title="Downloads"><i class="fas fa-download"></i> <span class="nav-label">Downloads</span></a>
+            <a href="history.html" title="History"><i class="fas fa-clock"></i> <span class="nav-label">History</span></a>
+          </div>
+          <a href="index.html" class="btn btn-sm"><i class="fas fa-home"></i> Home</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="main-content" style="max-width:900px;margin:0 auto;padding:20px">
+      <div class="star-cta-container" style="margin-bottom:20px">
+        <div class="star-cta-content">
+          <i class="fas fa-star star-cta-icon"></i>
+          <div>
+            <h3>Like QSIS-ARMS?</h3>
+            <p>Star our repository on GitHub to support the project and help other students find it!</p>
+          </div>
+        </div>
+        <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="btn btn-glow btn-sm star-cta-btn">
+          <i class="fas fa-star"></i> <span id="githubStars">-</span> Stars on GitHub
+        </a>
+      </div>
+
+      <section class="contributors-section" id="contributorsSection" style="padding:0">
+        <div class="contributors-container">
+          <div class="contributors-header">
+            <h3><i class="fas fa-users"></i> Our Contributors</h3>
+            <p>People who have contributed academic files to this project. <span id="contributorsCount">0</span> contributors and counting!</p>
+          </div>
+          <div class="contributors-grid" id="contributorsGrid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
+            <div class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Loading contributors...</div>
+          </div>
+          <div class="contributors-cta">
+            <p>Want to see your name here? Share your academic files with fellow students!</p>
+            <button class="btn btn-glow btn-sm" onclick="showContributeModal()">
+              <i class="fas fa-upload"></i> Contribute Now
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div id="contributeModal" class="modal">
+        <div class="modal-content modal-lg">
+          <div class="modal-header">
+            <h2><i class="fas fa-graduation-cap"></i> How to Contribute</h2>
+            <button class="btn-icon" onclick="closeModal('contributeModal')"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="modal-body">
+            <div class="contribute-info">
+              <i class="fas fa-heart"></i>
+              <p>Share your notes, sheets, previous questions & class materials with fellow students. It takes just 3 minutes!</p>
+            </div>
+            <div class="tutorial-steps">
+              <div class="tutorial-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                  <h4>Create GitHub Account</h4>
+                  <p>Go to <a href="https://github.com/signup" target="_blank">github.com/signup</a> and create a free account.</p>
+                </div>
+              </div>
+              <div class="tutorial-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                  <h4>Fork the Repository</h4>
+                  <p>Click <strong>Fork</strong> on the <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank">QSIS-ARMS repo</a> to copy it to your account.</p>
+                </div>
+              </div>
+              <div class="tutorial-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                  <h4>Upload Your Academic Files</h4>
+                  <p>In your fork, go to <code>upload_academic_files/{semester}/</code> and add your files. Place them in the correct category:</p>
+                  <div class="path-guide" style="margin-top:8px">
+                    <code>upload_academic_files/</code><br>
+                    <code>&nbsp;&nbsp;{semester}/</code> (e.g. 6th-semister)<br>
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;sheet/{course-code}/</code> &mdash; Study sheets<br>
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;Previous Question ({semester})/2026/Mid/</code><br>
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;NOTES/</code> &mdash; Lecture notes<br>
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;Syllabus/</code> &mdash; Course syllabi
+                  </div>
+                </div>
+              </div>
+              <div class="tutorial-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                  <h4>Submit Pull Request</h4>
+                  <p>Open a Pull Request from your fork. Fill in your <strong>Full Name, QSIS ID, and WhatsApp</strong>. The bot will verify and auto-merge!</p>
+                  <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/pulls" target="_blank" class="btn btn-sm btn-outline" style="margin-top:8px">
+                    <i class="fas fa-eye"></i> View Existing PRs
+                  </a>
+                </div>
+              </div>
+              <div class="tutorial-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                  <h4>Get Credit!</h4>
+                  <p>Once merged, your name and avatar appear in this <strong>Contributors</strong> list automatically. You also help hundreds of QSIS students!</p>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+              <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/fork" target="_blank" class="btn btn-glow btn-sm">
+                <i class="fas fa-code-branch"></i> Fork Repository
+              </a>
+              <a href="index.html" class="btn btn-sm btn-outline">
+                <i class="fas fa-home"></i> Browse Files
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-logos">
+          <a href="https://programming-light.eu.cc" target="_blank" rel="noopener"><img src="assets/pl-logo.png" alt="Programming Light" class="footer-logo footer-logo-pl" /></a>
+          <span class="footer-logo-plus"><i class="fas fa-plus"></i></span>
+          <img src="assets/qsis-logo.jpg" alt="QSIS" class="footer-logo" />
+        </div>
+        <p>Presented by <a href="https://programming-light.eu.cc" target="_blank">Programming Light</a> to the <strong>Qur'anic Sciences Club</strong></p>
+        <p>QSIS - IIUC &middot; Faculty of Shariah & Islamic Studies</p>
+        <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="footer-star">
+          <i class="fas fa-star"></i> <span id="footerStars">-</span> Stars on GitHub
+        </a>
+      </div>
+    </footer>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/contributors.js"></script>
+  <script>
+    function toggleNav() { document.getElementById('navActions').classList.toggle('nav-open'); }
+    function toggleTheme() {
+      const c = document.documentElement.getAttribute('data-theme');
+      const n = c === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', n);
+      localStorage.setItem('qsis-theme', n);
+      const i = document.querySelector('.theme-toggle i');
+      if (i) i.className = n === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+    }
+    function loadTheme() {
+      const s = localStorage.getItem('qsis-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', s);
+      const i = document.querySelector('.theme-toggle i');
+      if (i) i.className = s === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+    }
+    function showContributeModal() { document.getElementById('contributeModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow = ''; }
+    document.querySelectorAll('.modal').forEach(m => { m.addEventListener('click', (e) => { if (e.target === m) { m.classList.remove('active'); document.body.style.overflow = ''; } }); });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadTheme();
+      Contributors.renderStarBadge().then(() => {
+        const el = document.getElementById('footerStars');
+        const nav = document.getElementById('navStars');
+        const fs = document.getElementById('githubStars');
+        if (el && nav) el.textContent = nav.textContent;
+        if (fs && nav) fs.textContent = nav.textContent;
+      });
+      Contributors.renderSection();
+    });
+  </script>
+  <!-- Cloudflare Web Analytics -->
+  <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "11869d2b319c4c469c6d30c774151412"}'></script>
+  <!-- End Cloudflare Web Analytics -->
+  <!-- Microsoft Clarity -->
+  <script>
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i+"?ref=bwt";
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xpktxwpjbg");
+  </script>
+  <!-- End Microsoft Clarity -->
+</body>
+</html>

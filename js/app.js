@@ -678,74 +678,173 @@ function closeViewer() {
   if (body) body.innerHTML = '';
 }
 
-// ========== PDF VIEWER (Adobe PDF Embed API — Edge-like) ==========
+// ========== PDF VIEWER (PDF.js — Edge-like) ==========
 let pdfFilePath = '';
-let adobeViewer = null;
+let pdfDoc = null;
+let pdfPageNum = 1;
+let pdfPageRendering = false;
+let pdfPageNumPending = null;
+let pdfScale = 1.0;
+let pdfRotation = 0;
+let pdfCanvas = null;
+let pdfCtx = null;
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 function openPdfViewer(url, container, filePath) {
   pdfFilePath = filePath || '';
   const fileName = filePath ? filePath.split('/').pop() : 'document.pdf';
-  const pdfId = filePath || fileName;
+  pdfPageNum = 1;
+  pdfScale = 1.0;
+  pdfRotation = 0;
 
-  container.innerHTML = '<div class="adobe-pdf-wrapper"><div id="adobe-dc-view"></div></div>';
+  const theme = localStorage.getItem('qsis-theme') || 'dark';
+  const bg = theme === 'dark' ? '#1a1a2e' : '#f5f5f5';
+  const toolbarBg = theme === 'dark' ? '#0f0f23' : '#e8e8e8';
+  const textColor = theme === 'dark' ? '#e0e0e0' : '#222';
 
-  function initAdobe() {
-    adobeViewer = new AdobeDC.View({
-      clientId: CONFIG.adobeClientId,
-      divId: 'adobe-dc-view'
-    });
+  container.innerHTML = `
+    <div class="pdf-viewer-root" style="display:flex;flex-direction:column;height:100%;background:${bg};color:${textColor}">
+      <div class="pdf-toolbar" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:${toolbarBg};border-bottom:1px solid ${theme === 'dark' ? '#2a2a4a' : '#ccc'};flex-shrink:0;gap:6px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="pdf-btn" onclick="pdfPrevPage()" title="Previous"><i class="fas fa-chevron-left"></i></button>
+          <span id="pdfPageInfo" style="font-size:.78rem;font-weight:600;white-space:nowrap">1 / 1</span>
+          <button class="pdf-btn" onclick="pdfNextPage()" title="Next"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="pdf-btn" onclick="pdfZoomOut()" title="Zoom Out"><i class="fas fa-minus"></i></button>
+          <span id="pdfZoomInfo" style="font-size:.75rem;font-weight:600;min-width:40px;text-align:center">100%</span>
+          <button class="pdf-btn" onclick="pdfZoomIn()" title="Zoom In"><i class="fas fa-plus"></i></button>
+          <button class="pdf-btn" onclick="pdfFitPage()" title="Fit Page"><i class="fas fa-expand"></i></button>
+          <button class="pdf-btn" onclick="pdfRotate()" title="Rotate"><i class="fas fa-redo"></i></button>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <button class="pdf-btn" id="pdfDownloadBtn" title="Download"><i class="fas fa-download"></i></button>
+          <button class="pdf-btn" id="pdfSaveAsBtn" title="Save as" style="display:none"><i class="fas fa-share-alt"></i></button>
+          <button class="pdf-btn" onclick="pdfFullscreen()" title="Fullscreen"><i class="fas fa-expand-arrows-alt"></i></button>
+        </div>
+      </div>
+      <div id="pdfViewerArea" style="flex:1;overflow:auto;display:flex;justify-content:center;background:${bg};position:relative">
+        <canvas id="pdfCanvas" style="margin:12px auto;box-shadow:0 2px 12px rgba(0,0,0,0.3);display:block"></canvas>
+      </div>
+    </div>`;
 
-    const previewConfig = {
-      embedMode: 'FULL_WINDOW',
-      defaultViewMode: 'FIT_WIDTH',
-      showDownloadPDF: true,
-      showPrintPDF: true,
-      showAnnotationTools: true,
-      enableAnnotationAPIs: true,
-      includeAnnotationAPIs: true,
-      showLeftHandPanel: true,
-      showPageControls: true,
-      showFullScreenViewButton: true,
-      enableFormFilling: true,
-      showToolbarPDF: true
-    };
+  pdfCanvas = document.getElementById('pdfCanvas');
+  pdfCtx = pdfCanvas.getContext('2d');
 
-    let contentConfig;
-    if (filePath) {
-      const cached = DB.cacheGet(filePath);
-      if (cached && cached.blob) {
-        contentConfig = {
-          promise: () => cached.blob.arrayBuffer().then(buf => ({ arrayBuffer: buf }))
-        };
+  document.getElementById('pdfDownloadBtn').onclick = () => {
+    downloadToCache(filePath, fileName, 'pdf');
+    document.getElementById('pdfDownloadBtn').style.display = 'none';
+    document.getElementById('pdfSaveAsBtn').style.display = '';
+  };
+  document.getElementById('pdfSaveAsBtn').onclick = () => saveAsFile(filePath, fileName);
+
+  const id = DB.makeId(filePath);
+  DB.cacheGet(id).then(cached => {
+    if (cached && cached.blob) {
+      document.getElementById('pdfDownloadBtn').style.display = 'none';
+      document.getElementById('pdfSaveAsBtn').style.display = '';
+    }
+  });
+
+  const loadingTask = pdfjsLib.getDocument(url);
+  loadingTask.promise.then(doc => {
+    pdfDoc = doc;
+    document.getElementById('pdfPageInfo').textContent = `1 / ${doc.numPages}`;
+    pdfRenderPage(1);
+  }).catch(err => {
+    console.error('PDF.js error:', err);
+    container.innerHTML = `<div class="viewer-fallback">
+      <i class="fas fa-exclamation-triangle" style="font-size:2rem;color:var(--warning);margin-bottom:12px"></i>
+      <p>Could not load PDF.</p>
+      <a href="${url}" target="_blank" class="btn btn-sm" style="margin-top:12px"><i class="fas fa-external-link-alt"></i> Open in new tab</a>
+    </div>`;
+  });
+}
+
+function pdfRenderPage(num) {
+  pdfPageRendering = true;
+  pdfPageNum = num;
+
+  pdfDoc.getPage(num).then(page => {
+    const viewport = page.getViewport({ scale: pdfScale, rotation: pdfRotation });
+    const canvas = pdfCanvas;
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    const ctx = pdfCtx;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Fill background white for readability
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const renderContext = { canvasContext: ctx, viewport: viewport };
+    const renderTask = page.render(renderContext);
+
+    renderTask.promise.then(() => {
+      pdfPageRendering = false;
+      document.getElementById('pdfPageInfo').textContent = `${pdfPageNum} / ${pdfDoc.numPages}`;
+      if (pdfPageNumPending !== null) {
+        const next = pdfPageNumPending;
+        pdfPageNumPending = null;
+        pdfRenderPage(next);
       }
-    }
-    if (!contentConfig) {
-      contentConfig = { location: { url: url } };
-    }
-
-    adobeViewer.previewFile(
-      {
-        content: contentConfig,
-        metaData: { fileName: fileName, id: pdfId }
-      },
-      previewConfig
-    ).then(adobeDCView => {
-      try { adobeDCView.getAnnotationManager(); } catch(e) {}
-    }).catch(err => {
-      console.error('Adobe PDF viewer error:', err);
-      container.innerHTML = `<div class="viewer-fallback">
-        <i class="fas fa-exclamation-triangle" style="font-size:2rem;color:var(--warning);margin-bottom:12px"></i>
-        <p>Could not load PDF viewer.</p>
-        <p style="font-size:0.85rem;color:var(--text2)">${err.message || 'Unknown error'}</p>
-        <a href="${url}" target="_blank" class="btn btn-sm" style="margin-top:12px"><i class="fas fa-external-link-alt"></i> Open in new tab</a>
-      </div>`;
     });
-  }
+  });
+}
 
-  if (window.AdobeDC) {
-    initAdobe();
+function pdfQueueRender(num) {
+  if (pdfPageRendering) {
+    pdfPageNumPending = num;
   } else {
-    document.addEventListener('adobe_dc_view_sdk.ready', initAdobe, { once: true });
+    pdfRenderPage(num);
+  }
+}
+
+function pdfPrevPage() {
+  if (pdfPageNum <= 1) return;
+  pdfQueueRender(pdfPageNum - 1);
+}
+
+function pdfNextPage() {
+  if (!pdfDoc || pdfPageNum >= pdfDoc.numPages) return;
+  pdfQueueRender(pdfPageNum + 1);
+}
+
+function pdfZoomIn() {
+  pdfScale = Math.min(pdfScale + 0.25, 3.0);
+  document.getElementById('pdfZoomInfo').textContent = Math.round(pdfScale * 100) + '%';
+  if (pdfDoc) pdfRenderPage(pdfPageNum);
+}
+
+function pdfZoomOut() {
+  pdfScale = Math.max(pdfScale - 0.25, 0.5);
+  document.getElementById('pdfZoomInfo').textContent = Math.round(pdfScale * 100) + '%';
+  if (pdfDoc) pdfRenderPage(pdfPageNum);
+}
+
+function pdfFitPage() {
+  const area = document.getElementById('pdfViewerArea');
+  if (!area || !pdfDoc) return;
+  const w = area.clientWidth - 40;
+  pdfDoc.getPage(pdfPageNum).then(page => {
+    const vp = page.getViewport({ scale: 1, rotation: pdfRotation });
+    pdfScale = w / vp.width;
+    document.getElementById('pdfZoomInfo').textContent = Math.round(pdfScale * 100) + '%';
+    pdfRenderPage(pdfPageNum);
+  });
+}
+
+function pdfRotate() {
+  pdfRotation = (pdfRotation + 90) % 360;
+  if (pdfDoc) pdfRenderPage(pdfPageNum);
+}
+
+function pdfFullscreen() {
+  const el = document.querySelector('.pdf-viewer-root') || document.getElementById('viewerBody');
+  if (el && el.requestFullscreen) {
+    el.requestFullscreen();
   }
 }
 

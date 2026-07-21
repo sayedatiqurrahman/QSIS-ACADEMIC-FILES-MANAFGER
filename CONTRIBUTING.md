@@ -1,38 +1,77 @@
-# How to Contribute
+# Contributing to QSIS-ARMS
 
-We welcome academic file contributions from students and faculty of Qur'anic Sciences & Islamic Studies, IIUC.
+We welcome academic file contributions from students and faculty of Qur'anic Sciences & Islamic Studies, IIUC. Every contribution helps build a valuable resource for the entire department.
 
-## 1. Upload via Web UI
-- Click **Upload File** button
-- Select files (PDF, DOC, images)
-- Fill semester, category, year details
-- Submit — creates a Pull Request automatically
+> **Only upload inside:** `upload_academic_files/{semester}/`
 
-## 2. Upload via GitHub Directly
-1. Fork this repository
-2. Add files to the correct folder structure:
-   ```
-   <semester>/<category>/<year>/<course_code>/<filename>
-   ```
-3. Create a Pull Request
+---
 
-## 3. Folder Convention
+## How to Contribute via GitHub
+
+### 1. Fork the Repository
+Click **Fork** at the top-right of this repo to copy it to your GitHub account.
+
+### 2. Upload Files
+In your forked copy, navigate to `upload_academic_files/{semester}/` and add your files.
+
+### 3. Create a Pull Request (PR)
+Open a Pull Request from your fork to this repo. The PR **must** include:
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| **Full Name** | Your full name | Sayeed Atiqur Rahman |
+| **QSIS ID Number** | Your QSIS student ID | QSIS-2024-001 |
+| **WhatsApp Number** | Your WhatsApp with country code | +8801XXXXXXXXX |
+| **Semester** | The semester you are contributing to | 6th Semester |
+
+**⚠️ Your PR will be auto-rejected if these fields are missing.**
+
+### 4. PR Auto-Approval Process
+Our bot will automatically:
+1. Extract your **Full Name, QSIS ID, and WhatsApp** from the PR description
+2. Validate the file structure matches our convention (see below)
+3. Check files are only inside `upload_academic_files/`
+4. Verify file types (PDF, DOC, DOCX, JPG, PNG, GIF)
+5. **Auto-approve and merge** if everything passes
+
+---
+
+## Required Folder Structure
+
+All files **must** be inside `upload_academic_files/`. Example:
+
+```
+upload_academic_files/
+  6th-semister/
+    sheet/{course-code}/           ← Study sheets
+    Previous Question (6th Semester)/2026/Mid/
+    Previous Question (6th Semester)/2026/Final/
+    NOTES/                         ← Lecture notes
+    Syllabus/                      ← Course syllabus
+```
 
 | Category | Path |
 |----------|------|
-| Sheet | `<semester>/sheet/<course_code>/` |
-| Question | `<semester>/Previous Question/<year>/Mid or Final/` |
-| Note | `<semester>/NOTES/` |
-| Syllabus | `<semester>/Syllabus/` |
+| Sheet | `{semester}/sheet/{course_code}/` |
+| Previous Question | `{semester}/Previous Question ({semester})/{year}/Mid or Final/` |
+| Notes | `{semester}/NOTES/` |
+| Syllabus | `{semester}/Syllabus/` |
 
-## 4. Naming Guidelines
-- Use descriptive filenames
-- Include course code when possible
+### Naming Guidelines
+- Use descriptive filenames with course codes
 - Avoid special characters
 - Max file size: 25MB
 
-## 5. Review Process
-All submissions are reviewed by admins before merging to main branch.
+---
+
+## Why Contribute?
+
+- Your **name and profile** appear on the [QSIS-ARMS website](https://qsis-arms.eu.cc/) contributors section
+- Help your fellow students access study materials
+- Build a lasting academic legacy for QSIS, IIUC
+
+> **Star** this repository to show your support!
 
 ---
+
 **Sponsored by Programming Light** | **Quranic Sciences Club**
