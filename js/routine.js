@@ -823,8 +823,8 @@ RManager.collectEntries = function(form, isClass) {
       const slot = row.querySelector('[name^="exSlot"]')?.value
       const code = row.querySelector('[name^="exCode"]')?.value
       const subject = row.querySelector('[name^="exSubject"]')?.value
-      const time = row.querySelector('[name^="exRoom"]')?.value
-      const room = row.querySelector('[name^="exTime"]')?.value
+      const time = row.querySelector('[name^="exTime"]')?.value
+      const room = row.querySelector('[name^="exRoom"]')?.value
       if (code && day && date) {
         entries.push({
           date, day, slot, code, subject, time: time || '', room: room || '', empty: code === 'X'
@@ -967,7 +967,8 @@ RManager.exportPdf = function() {
     alert('Nothing to export. Preview a routine first.')
     return
   }
-  captureRoutine(body, 'QSIS-Routine.pdf')
+  const isExam = !!body.querySelector('.r-exam-table')
+  captureRoutine(body, 'QSIS-Routine.pdf', false, isExam)
 }
 
 RManager.exportImage = function() {
@@ -976,7 +977,8 @@ RManager.exportImage = function() {
     alert('Nothing to export. Preview a routine first.')
     return
   }
-  captureRoutine(body, 'QSIS-Routine.png', true)
+  const isExam = !!body.querySelector('.r-exam-table')
+  captureRoutine(body, 'QSIS-Routine.png', true, isExam)
 }
 
 function inlineImages(el) {
@@ -994,13 +996,15 @@ function inlineImages(el) {
   }))
 }
 
-function captureRoutine(el, filename, isImage) {
+function captureRoutine(el, filename, isImage, isExam) {
   const header = el.querySelector('.r-print-header')
   if (header) header.style.display = 'flex'
 
   inlineImages(el).then(() => {
+    if (isExam) el.style.maxWidth = '700px'
     html2canvas(el, { scale: 2, backgroundColor: '#ffffff', logging: false })
       .then(canvas => {
+        if (isExam) el.style.maxWidth = ''
         if (header) header.style.display = 'none'
         if (isImage) {
           const a = document.createElement('a')
@@ -1010,7 +1014,6 @@ function captureRoutine(el, filename, isImage) {
         } else {
           const imgData = canvas.toDataURL('image/png')
           const { jsPDF } = window.jspdf
-          const isExam = !!el.querySelector('.r-exam-table')
           const orientation = isExam ? 'portrait' : 'landscape'
           const w = isExam ? 210 : 297
           const h = w * canvas.height / canvas.width
