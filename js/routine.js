@@ -983,7 +983,7 @@ function captureRoutine(el, filename, isImage) {
   const header = el.querySelector('.r-print-header')
   if (header) header.style.display = 'flex'
 
-  html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false })
+  html2canvas(el, { scale: 2, backgroundColor: '#ffffff', logging: false })
     .then(canvas => {
       if (header) header.style.display = 'none'
       if (isImage) {
