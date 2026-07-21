@@ -107,6 +107,10 @@ function semLabelFromId(id) {
 function renderRoutine(semId) {
   const container = document.getElementById('routineGrid')
   if (!container) return
+  const printLabel = document.getElementById('printSemLabel')
+  if (printLabel) printLabel.textContent = semId ? semLabelFromId(semId) : '-'
+  const sel = document.getElementById('routineSemester')
+  if (sel) document.getElementById('currentSemesterLabel').textContent = sel.options[sel.selectedIndex]?.text || ''
   const routines = ROUTINE.getRoutines(semId)
   const days = ROUTINE.days
   const slots = routines.slots
@@ -155,6 +159,8 @@ function removeClass(semId, id) {
 function renderExamSchedule(semId) {
   const container = document.getElementById('examSchedule')
   if (!container) return
+  const printLabel = document.getElementById('printExamSemLabel')
+  if (printLabel) printLabel.textContent = semId ? semLabelFromId(semId) : '-'
   const exams = ROUTINE.getExams(semId)
 
   if (!exams.length) {

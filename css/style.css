@@ -410,6 +410,23 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 .empty-state i { font-size:2rem; margin-bottom:12px; display:block; }
 .empty-state p { font-size:.85rem; }
 
+/* Routine print header */
+.routine-print-area { background:#fff; color:#111; }
+.routine-print-header { display:none; }
+.routine-print-header .print-header-row { display:flex; align-items:center; justify-content:space-between; gap:20px; }
+.routine-print-header .print-info h2 { font-size:1.2rem; color:#111; margin:0 0 4px; }
+.routine-print-header .print-info h3 { font-size:.95rem; color:#333; margin:0 0 6px; font-weight:600; }
+.routine-print-header .print-info p { font-size:.85rem; color:#555; margin:0; }
+.routine-print-header .print-dept-logo { flex-shrink:0; }
+#routineContainer .timetable th { background:#f0f0f0; color:#333; }
+#routineContainer .timetable .time-col { background:#f0f0f0; color:#333; }
+#routineContainer .timetable td { color:#333; }
+#routineContainer .class-subject { color:#111; }
+#routineContainer .class-meta { color:#555; }
+#routineContainer .class-entry { background:#f8f8f8; border-color:#ddd; }
+.download-actions { display:flex; gap:6px; margin-left:auto; }
+.download-actions .btn { font-size:.75rem; padding:6px 12px; }
+
 @media (max-width:768px) {
   .timetable { font-size:.68rem; }
   .timetable th, .timetable td { padding:4px; min-width:90px; }

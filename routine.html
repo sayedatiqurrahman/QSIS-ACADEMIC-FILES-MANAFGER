@@ -45,7 +45,7 @@
     <main class="main-content" style="max-width:1100px;margin:0 auto;padding:20px">
       <div class="page-header">
         <h2><i class="fas fa-calendar-alt"></i> Routine Manager</h2>
-        <p class="page-subtitle">Class timetable & exam schedule management</p>
+        <p class="page-subtitle">Islamic University of Science &amp; Technology · Qur'anic Sciences &amp; Islamic Studies</p>
       </div>
 
       <div class="routine-controls">
@@ -53,6 +53,10 @@
           <option value="">Select Semester</option>
         </select>
         <span id="currentSemesterLabel" class="current-sem-label"></span>
+        <div class="download-actions">
+          <button class="btn btn-sm" onclick="downloadPDF()" title="Download as PDF"><i class="fas fa-file-pdf"></i> PDF</button>
+          <button class="btn btn-sm" onclick="downloadImage()" title="Download as Image"><i class="fas fa-image"></i> Image</button>
+        </div>
       </div>
 
       <!-- Tabs -->
@@ -76,8 +80,22 @@
             </div>
           </div>
 
-          <div id="routineGrid">
-            <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>
+          <div id="routineContainer" class="routine-print-area">
+            <div id="routineHeader" class="routine-print-header">
+              <div class="print-header-row">
+                <div class="print-info">
+                  <h2>Islamic University of Science &amp; Technology</h2>
+                  <h3>Department of Qur'anic Sciences &amp; Islamic Studies</h3>
+                  <p>Class Routine · <span id="printSemLabel">-</span></p>
+                </div>
+                <div class="print-dept-logo">
+                  <img src="assets/arms-logo.png" alt="QSIS" height="60" />
+                </div>
+              </div>
+            </div>
+            <div id="routineGrid">
+              <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>
+            </div>
           </div>
 
           <details class="routine-details">
@@ -113,8 +131,22 @@
         <div class="routine-panel">
           <h3><i class="fas fa-file-alt"></i> Exam & Break Schedule</h3>
 
-          <div id="examSchedule">
-            <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>
+          <div id="examContainer" class="routine-print-area">
+            <div id="examPrintHeader" class="routine-print-header">
+              <div class="print-header-row">
+                <div class="print-info">
+                  <h2>Islamic University of Science &amp; Technology</h2>
+                  <h3>Department of Qur'anic Sciences &amp; Islamic Studies</h3>
+                  <p>Exam Schedule · <span id="printExamSemLabel">-</span></p>
+                </div>
+                <div class="print-dept-logo">
+                  <img src="assets/arms-logo.png" alt="QSIS" height="60" />
+                </div>
+              </div>
+            </div>
+            <div id="examSchedule">
+              <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>
+            </div>
           </div>
 
           <details class="routine-details">
@@ -149,6 +181,8 @@
     </footer>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/github.js"></script>
   <script src="js/routine.js"></script>
@@ -164,6 +198,42 @@
       const saved = localStorage.getItem('theme')
       if (saved) document.documentElement.setAttribute('data-theme', saved)
     })()
+
+    function getActiveRoutineContainer() {
+      if (document.getElementById('tabClass').style.display !== 'none') return 'routineContainer'
+      return 'examContainer'
+    }
+
+    function captureRoutine(containerId) {
+      const header = document.querySelector(`#${containerId} .routine-print-header`)
+      if (header) header.style.display = 'block'
+      const el = document.getElementById(containerId)
+      return html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+        if (header) header.style.display = 'none'
+        return canvas
+      })
+    }
+
+    function downloadImage() {
+      const containerId = getActiveRoutineContainer()
+      captureRoutine(containerId).then(canvas => {
+        const link = document.createElement('a')
+        link.download = `QSIS-Routine-${document.getElementById('routineSemester').value || 'all'}.png`
+        link.href = canvas.toDataURL('image/png')
+        link.click()
+      })
+    }
+
+    function downloadPDF() {
+      const containerId = getActiveRoutineContainer()
+      captureRoutine(containerId).then(canvas => {
+        const imgData = canvas.toDataURL('image/png')
+        const { jsPDF } = window.jspdf
+        const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width / 2, canvas.height / 2] })
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2)
+        pdf.save(`QSIS-Routine-${document.getElementById('routineSemester').value || 'all'}.pdf`)
+      })
+    }
   </script>
 </body>
 </html>
