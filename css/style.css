@@ -45,7 +45,7 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 @media (max-width:768px) {
   .nav-container { flex-wrap:nowrap; }
   .nav-title span { display:none; }
-  .nav-hamburger { display:block; }
+  .nav-hamburger { display:block; margin-left:auto; }
   .nav-actions { display:none; position:absolute; top:100%; left:0; right:0; background:var(--bg2); border-bottom:1px solid var(--border); padding:12px 20px; flex-direction:column; gap:8px; z-index:200; }
   .nav-actions.nav-open { display:flex; }
   .nav-links { flex-direction:column; width:100%; gap:4px; margin:0; }
