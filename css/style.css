@@ -36,8 +36,8 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 .nav-extras { display:flex; align-items:center; gap:4px; margin-left:auto; flex-shrink:0; }
 .nav-extras a, .nav-extras button { background:none; border:none; color:var(--text2); cursor:pointer; min-width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem; transition:all .2s; text-decoration:none; }
 .nav-extras a:hover, .nav-extras button:hover { background:var(--bg3); color:var(--text); }
-.nav-star-badge { gap:3px; padding:0 10px; border-radius:17px; min-width:auto !important; width:auto !important; }
-.nav-star-badge i { font-size:.85rem; }
+.nav-star-badge { gap:6px; padding:3px 12px; border-radius:17px; min-width:auto !important; width:auto !important; border:1px solid var(--border); background:var(--bg3); font-size:.78rem; font-weight:600; color:var(--text2); }
+.nav-star-badge i { font-size:.95rem; color:#fff; }
 .nav-extras .nav-upload-btn { background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; padding:6px 14px; border-radius:17px; font-size:.78rem; font-weight:700; transition:all .2s; white-space:nowrap; flex-shrink:0; box-shadow:0 0 12px var(--primary-glow); height:auto; min-width:0; }
 .nav-extras .nav-upload-btn:hover { transform:translateY(-1px); box-shadow:0 0 20px var(--primary-glow); }
 
@@ -55,8 +55,8 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
   .nav-extras a:hover, .nav-extras .theme-toggle:hover { background:var(--bg-hover); color:var(--primary); border-color:var(--primary); text-decoration:none; }
   .nav-extras .btn { flex:1; justify-content:center; }
   .nav-extras .nav-upload-btn { flex:1; justify-content:center; border-radius:var(--radius); padding:10px 6px; font-size:.75rem; box-shadow:none; }
-  .nav-star-badge { gap:6px; padding:10px 6px; border-radius:var(--radius); min-width:0; }
-  .nav-star-badge i { font-size:.85rem; }
+  .nav-star-badge { gap:6px; padding:10px 6px; border-radius:var(--radius); min-width:0; font-size:.75rem; border:1px solid var(--border); background:var(--bg3); }
+  .nav-star-badge i { font-size:.95rem; }
   .nav-extras i { font-size:.85rem; }
   .nav-actions > .btn { margin-top:4px; }
 }
