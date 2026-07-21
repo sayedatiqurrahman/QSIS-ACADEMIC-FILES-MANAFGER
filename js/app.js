@@ -436,11 +436,12 @@ function renderCourses(semId, catKey) {
   }
 
   if (directFiles.length > 0) {
-    html += directFiles.map(item => {
+    Promise.all(directFiles.map(async item => {
       const name = item.path.split('/').pop();
       const ext = name.split('.').pop().toLowerCase();
       const mime = ['jpg','jpeg','png','gif','webp'].includes(ext) ? 'image' : ext === 'pdf' ? 'pdf' : ['doc','docx'].includes(ext) ? 'doc' : 'other';
       const id = DB.makeId(item.path);
+      const cached = await DB.cacheGet(id);
       return `<div class="file-card" id="file-${id}">
         <div class="file-card-main" onclick="clickFile('${esc(item.path)}','${mime}')">
           <div class="file-icon">${getFileIconByType(mime)}</div>
@@ -451,19 +452,22 @@ function renderCourses(semId, catKey) {
         </div>
         <div class="file-actions">
           <button class="btn-action btn-view" title="View" onclick="event.stopPropagation();clickFile('${esc(item.path)}','${mime}')"><i class="fas fa-eye"></i></button>
-          <button class="btn-action btn-download" id="dl-${id}" title="Download" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')"><i class="fas fa-download"></i></button>
-          <button class="btn-action btn-saveas" id="sv-${id}" title="Save as" style="display:none" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')"><i class="fas fa-share-alt"></i></button>
+          <button class="btn-action btn-download" id="dl-${id}" title="Download" style="${cached ? 'display:none' : ''}" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')"><i class="fas fa-download"></i></button>
+          <button class="btn-action btn-saveas" id="sv-${id}" title="Save as" style="${cached ? '' : 'display:none'}" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')"><i class="fas fa-share-alt"></i></button>
         </div>
       </div>`;
-    }).join('');
-    checkCachedButtons();
+    })).then(cards => {
+      html += cards.join('');
+      grid.innerHTML = html;
+    });
+    return;
   }
 
   grid.innerHTML = html;
 }
 
 // ========== RENDER FILES ==========
-function renderFilesInPath(folderPath) {
+async function renderFilesInPath(folderPath) {
   const grid = document.getElementById('fileGrid');
   const prefix = folderPath.endsWith('/') ? folderPath : folderPath + '/';
   const items = allTreeItems.filter(i => {
@@ -501,12 +505,13 @@ function renderFilesInPath(folderPath) {
     return;
   }
 
-  const fileCards = items.map((item, idx) => {
+  const cards = await Promise.all(items.map(async item => {
     const name = item.path.split('/').pop();
     const ext = name.split('.').pop().toLowerCase();
     const mime = ['jpg','jpeg','png','gif','webp'].includes(ext) ? 'image' : ext === 'pdf' ? 'pdf' : ['doc','docx'].includes(ext) ? 'doc' : 'other';
     const icon = getFileIconByType(mime);
     const id = DB.makeId(item.path);
+    const cached = await DB.cacheGet(id);
     return `<div class="file-card" id="file-${id}">
       <div class="file-card-main" onclick="clickFile('${esc(item.path)}','${mime}')">
         <div class="file-icon">${icon}</div>
@@ -519,18 +524,17 @@ function renderFilesInPath(folderPath) {
         <button class="btn-action btn-view" title="View" onclick="event.stopPropagation();clickFile('${esc(item.path)}','${mime}')">
           <i class="fas fa-eye"></i>
         </button>
-        <button class="btn-action btn-download" id="dl-${id}" title="Download" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')">
+        <button class="btn-action btn-download" id="dl-${id}" title="Download" style="${cached ? 'display:none' : ''}" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')">
           <i class="fas fa-download"></i>
         </button>
-        <button class="btn-action btn-saveas" id="sv-${id}" title="Save as" style="display:none" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')">
+        <button class="btn-action btn-saveas" id="sv-${id}" title="Save as" style="${cached ? '' : 'display:none'}" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')">
           <i class="fas fa-share-alt"></i>
         </button>
       </div>
     </div>`;
-  }).join('');
+  }));
 
-  grid.innerHTML = html + fileCards;
-  checkCachedButtons();
+  grid.innerHTML = html + cards.join('');
 }
 
 async function checkCachedButtons() {
