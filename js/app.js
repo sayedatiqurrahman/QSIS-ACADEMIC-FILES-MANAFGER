@@ -430,11 +430,91 @@ function renderCategories(semId) {
 }
 
 // ========== RENDER COURSES ==========
+function renderPreviousQuestions(prefix, items, semId, catKey) {
+  const grid = document.getElementById('fileGrid');
+  const yearMap = {};
+  items.forEach(item => {
+    const rel = item.path.substring(prefix.length);
+    const parts = rel.split('/');
+    let year = null;
+    if (parts.length >= 2 && /^\d{4}$/.test(parts[0])) {
+      year = parts[0];
+    } else {
+      const m = item.path.match(/\b(20\d{2})\b/);
+      if (m) year = m[1];
+    }
+    if (!year) year = 'Other';
+    if (!yearMap[year]) yearMap[year] = { courses: {}, directFiles: [] };
+    if (item.type === 'blob') {
+      if (parts.length <= 1 || (parts.length === 2 && /^\d{4}$/.test(parts[0]))) {
+        yearMap[year].directFiles.push(item);
+      } else {
+        const courseName = parts[1];
+        if (!yearMap[year].courses[courseName]) yearMap[year].courses[courseName] = [];
+        yearMap[year].courses[courseName].push(item);
+      }
+    }
+  });
+  const years = Object.keys(yearMap).sort((a, b) => b === 'Other' ? -1 : a === 'Other' ? 1 : b.localeCompare(a));
+  let html = years.map(year => {
+    const yData = yearMap[year];
+    const courseEntries = Object.entries(yData.courses).sort((a, b) => a[0].localeCompare(b[0]));
+    let section = `<div class="year-group"><div class="year-header"><i class="fas fa-calendar-alt"></i> ${year} <span class="year-count">${yData.directFiles.length + courseEntries.reduce((s, [, f]) => s + f.length, 0)} files</span></div>`;
+    if (courseEntries.length > 0) {
+      section += `<div class="year-courses">${courseEntries.map(([name, files]) => {
+        const pdfCount = files.filter(f => f.path.toLowerCase().endsWith('.pdf')).length;
+        const docCount = files.filter(f => /\.(doc|docx)$/i.test(f.path)).length;
+        return `<div class="course-card" onclick="openCourse('${semId}','${catKey}','${prefix}${year}/${name}')">
+          <div class="course-icon"><i class="fas fa-book-open"></i></div>
+          <div class="course-info">
+            <div class="course-name">${esc(name)}</div>
+            <div class="course-meta">
+              ${pdfCount ? `<span><i class="fas fa-file-pdf" style="color:#ef4444"></i> ${pdfCount}</span>` : ''}
+              ${docCount ? `<span><i class="fas fa-file-word" style="color:#3b82f6"></i> ${docCount}</span>` : ''}
+              <span><i class="fas fa-file"></i> ${files.length} total</span>
+            </div>
+          </div>
+          <i class="fas fa-chevron-right course-arrow"></i>
+        </div>`;
+      }).join('')}</div>`;
+    }
+    if (yData.directFiles.length > 0) {
+      section += `<div class="year-files">${yData.directFiles.map(item => {
+        const name = item.path.split('/').pop();
+        const ext = name.split('.').pop().toLowerCase();
+        const mime = ['jpg','jpeg','png','gif','webp'].includes(ext) ? 'image' : ext === 'pdf' ? 'pdf' : ['doc','docx'].includes(ext) ? 'doc' : 'other';
+        const id = DB.makeId(item.path);
+        return `<div class="file-card" id="file-${id}">
+          <div class="file-card-main" onclick="clickFile('${esc(item.path)}','${mime}')">
+            <div class="file-icon">${getFileIconByType(mime)}</div>
+            <div class="file-info">
+              <div class="file-name">${esc(name)}</div>
+              <div class="file-path">${esc(item.path)}</div>
+            </div>
+          </div>
+          <div class="file-actions">
+            <button class="btn-action btn-view" title="View" onclick="event.stopPropagation();clickFile('${esc(item.path)}','${mime}')"><i class="fas fa-eye"></i></button>
+            <button class="btn-action btn-download" id="dl-${id}" title="Download" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')"><i class="fas fa-download"></i></button>
+          </div>
+        </div>`;
+      }).join('')}</div>`;
+    }
+    return section + '</div>';
+  }).join('');
+  grid.innerHTML = html || `<div class="loading-cell"><i class="fas fa-folder-open"></i> No files found.</div>`;
+  checkCachedButtons();
+}
+
 function renderCourses(semId, catKey) {
   const grid = document.getElementById('fileGrid');
   const actualFolder = semesterFolders[semId]?.[catKey] || catKey;
   const prefix = semId + '/' + actualFolder + '/';
   const items = allTreeItems.filter(i => i.path.startsWith(prefix) && i.path !== prefix);
+
+  if (catKey === 'question') {
+    renderPreviousQuestions(prefix, items, semId, catKey);
+    return;
+  }
 
   const directFiles = [];
   const courseMap = {};

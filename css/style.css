@@ -163,6 +163,14 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 .kitab-hero-count { font-size:.8rem; color:#a855f7; font-weight:600; white-space:nowrap; }
 .kitab-hero-arrow { color:#a855f7; font-size:.9rem; }
 
+/* YEAR GROUP */
+.year-group { margin-bottom:16px; }
+.year-header { display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--bg3); border-radius:var(--radius); font-size:.85rem; font-weight:700; color:var(--text); margin-bottom:6px; }
+.year-header i { color:var(--primary); }
+.year-count { font-size:.75rem; font-weight:400; color:var(--text2); margin-left:auto; }
+.year-courses { display:flex; flex-direction:column; gap:4px; padding-left:8px; }
+.year-files { display:flex; flex-direction:column; gap:4px; padding-left:8px; }
+
 /* CATEGORY CARDS */
 .category-card { display:flex; align-items:center; gap:14px; padding:14px 18px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); cursor:pointer; transition:all .25s; }
 .category-card:hover { border-color:var(--accent); box-shadow:0 0 16px rgba(16,185,129,.2); transform:translateX(4px); }

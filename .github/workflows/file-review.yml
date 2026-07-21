@@ -48,8 +48,8 @@ jobs:
             const allowed = [
               // sheet/{course-code}/any-file
               /^upload_academic_files\/[^/]+-semister\/sheet\/[^/]+\/.+$/,
-              // Previous Question ({N} Semester)/{year}/{Mid|Final}/any-file
-              /^upload_academic_files\/[^/]+-semister\/Previous Question \(\d+ Semester\)\/20\d{2}\/(Mid|Final)\/.+$/,
+              // Previous Question ({N} Semester)/{year}/{Mid|Final}/any-file  OR  /{year}/any-file  OR  direct files
+              /^upload_academic_files\/[^/]+-semister\/Previous Question \(\d+ Semester\)\/(20\d{2}\/(Mid|Final)\/.+|20\d{2}\/.+|[^/]+)$/,
               // NOTES/any-file
               /^upload_academic_files\/[^/]+-semister\/NOTES\/.+$/,
               // Syllabus/any-file
