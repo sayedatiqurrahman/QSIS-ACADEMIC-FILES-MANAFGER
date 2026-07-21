@@ -979,31 +979,48 @@ RManager.exportImage = function() {
   captureRoutine(body, 'QSIS-Routine.png', true)
 }
 
+function inlineImages(el) {
+  const imgs = Array.from(el.querySelectorAll('img'))
+  return Promise.all(imgs.map(img => {
+    const src = img.getAttribute('src')
+    if (!src || src.startsWith('data:')) return
+    return fetch(src).then(r => r.blob()).then(blob => {
+      return new Promise(resolve => {
+        const reader = new FileReader()
+        reader.onload = () => { img.setAttribute('src', reader.result); resolve() }
+        reader.readAsDataURL(blob)
+      })
+    }).catch(() => {})
+  }))
+}
+
 function captureRoutine(el, filename, isImage) {
   const header = el.querySelector('.r-print-header')
   if (header) header.style.display = 'flex'
 
-  html2canvas(el, { scale: 2, backgroundColor: '#ffffff', logging: false })
-    .then(canvas => {
-      if (header) header.style.display = 'none'
-      if (isImage) {
-        const a = document.createElement('a')
-        a.download = filename
-        a.href = canvas.toDataURL('image/png')
-        a.click()
-      } else {
-        const imgData = canvas.toDataURL('image/png')
-        const { jsPDF } = window.jspdf
-        const isExam = !!el.querySelector('.r-exam-table')
-        const orientation = isExam ? 'portrait' : 'landscape'
-        const w = isExam ? 210 : 297
-        const h = w * canvas.height / canvas.width
-        const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' })
-        pdf.addImage(imgData, 'PNG', 0, 0, w, h)
-        pdf.save(filename)
-      }
-    })
-    .catch(err => { alert('Export failed: ' + err.message) })
+  inlineImages(el).then(() => {
+    html2canvas(el, { scale: 2, backgroundColor: '#ffffff', logging: false })
+      .then(canvas => {
+        if (header) header.style.display = 'none'
+        if (isImage) {
+          const a = document.createElement('a')
+          a.download = filename
+          a.href = canvas.toDataURL('image/png')
+          a.click()
+        } else {
+          const imgData = canvas.toDataURL('image/png')
+          const { jsPDF } = window.jspdf
+          const isExam = !!el.querySelector('.r-exam-table')
+          const orientation = isExam ? 'portrait' : 'landscape'
+          const w = isExam ? 210 : 297
+          const h = w * canvas.height / canvas.width
+          const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' })
+          pdf.addImage(imgData, 'PNG', 0, 0, w, h)
+          pdf.save(filename)
+        }
+      })
+      .catch(err => { alert('Export failed: ' + err.message) })
+  })
 }
 
 /* ── Initialisation ── */
