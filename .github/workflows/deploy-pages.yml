@@ -19,7 +19,6 @@ jobs:
       contents: read
       pages: write
       id-token: write
-      deployments: write
 
     environment:
       name: github-pages
@@ -37,8 +36,6 @@ jobs:
           cp CNAME _site/ 2>/dev/null || true
           mkdir -p _site/_verification
           cp _verification/* _site/_verification/ 2>/dev/null || true
-          # Create a maintenance page for build time
-          sed -i 's|<div id="maintenanceOverlay" style="display:none">|<div id="maintenanceOverlay" style="display:flex">|' _site/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -53,23 +50,6 @@ jobs:
         uses: actions/deploy-pages@v4
         continue-on-error: true
 
-      - name: Restore index.html (remove maintenance overlay)
-        if: success()
-        run: |
-          mkdir -p _site_final
-          cp index.html cached.html history.html contributors.html routine.html _site_final/
-          cp -r css js assets _site_final/
-          cp manifest.json sw.js _site_final/
-          cp CNAME _site_final/ 2>/dev/null || true
-          mkdir -p _site_final/_verification
-          cp _verification/* _site_final/_verification/ 2>/dev/null || true
-
-      - name: Upload final artifact
-        if: success()
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '_site_final'
-
-      - name: Deploy final (no maintenance)
-        if: success()
+      - name: Retry deploy on failure
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4

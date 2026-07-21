@@ -274,6 +274,9 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 .footer-logo-plus { color:var(--text2); font-size:.8rem; }
 .footer-star { display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:6px 14px; border-radius:20px; background:rgba(250,204,21,.1); border:1px solid rgba(250,204,21,.2); color:#facc15; font-size:.75rem; font-weight:700; text-decoration:none; transition:all .2s; }
 .footer-star:hover { background:rgba(250,204,21,.2); border-color:#facc15; }
+.footer-services { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin:6px 0 10px; font-size:.72rem; color:var(--text2); }
+.footer-services span { display:flex; align-items:center; gap:4px; }
+.footer-services span i { color:var(--primary); font-size:.65rem; }
 
 /* RESPONSIVE */
 @media (max-width:768px) {
