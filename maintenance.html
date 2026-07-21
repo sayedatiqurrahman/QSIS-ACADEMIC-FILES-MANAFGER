@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Updating &middot; QSIS-ARMS</title>
+  <link rel="icon" type="image/png" href="assets/arms-logo.png" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body { min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg); margin:0; }
+    .maintenance-card { max-width:420px; }
+    .contributors-mini { margin-top:20px; padding-top:16px; border-top:1px solid var(--border); text-align:left; }
+    .contributors-mini h4 { font-size:.8rem; color:var(--text2); margin-bottom:8px; text-align:center; }
+    .contributor-chips { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+    .contributor-chip { font-size:.72rem; background:var(--bg3); padding:4px 10px; border-radius:20px; color:var(--text2); border:1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <div class="maintenance-card" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center">
+    <div class="maintenance-logo">
+      <img src="assets/arms-logo.png" alt="QSIS-ARMS" style="height:60px" />
+    </div>
+    <div class="maintenance-icon" style="font-size:2.5rem;color:var(--primary);margin-bottom:12px">
+      <i class="fas fa-sync fa-spin"></i>
+    </div>
+    <h2 style="font-size:1.3rem;margin-bottom:6px">Server is <span style="color:var(--primary)">Updating</span></h2>
+    <p style="font-size:.82rem;color:var(--text2);margin-bottom:20px">We're deploying new content. This should take less than a minute.</p>
+    <div class="maintenance-progress" style="height:4px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-bottom:20px">
+      <div class="maintenance-bar" style="height:100%;width:30%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:4px;animation:maintenancePulse 1.5s ease-in-out infinite"></div>
+    </div>
+    <div class="maintenance-pl" style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:.78rem;color:var(--text2);margin-bottom:4px">
+      <img src="assets/pl-logo.png" alt="Programming Light" style="height:28px" />
+      <span>Powered by <strong>Programming Light</strong></span>
+    </div>
+    <div class="contributors-mini">
+      <h4><i class="fas fa-users"></i> Our Contributors</h4>
+      <div class="contributor-chips" id="maintContributors">Loading...</div>
+    </div>
+  </div>
+  <style>@keyframes maintenancePulse{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}</style>
+  <script>
+    fetch('https://raw.githubusercontent.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/main/js/contributors.js')
+      .then(r => r.text())
+      .then(text => {
+        const m = text.match(/contributors\s*=\s*(\[[\s\S]+?\])\s*;/);
+        if (!m) return;
+        const list = JSON.parse(m[1]);
+        const chips = list.filter(c => c.name).slice(0,20).map(c =>
+          '<span class="contributor-chip">' + c.name.split(' ').slice(0,2).join(' ') + '</span>'
+        ).join('');
+        document.getElementById('maintContributors').innerHTML = chips || 'Be the first!';
+      })
+      .catch(() => { document.getElementById('maintContributors').innerHTML = 'Loading contributors...'; });
+  </script>
+</body>
+</html>

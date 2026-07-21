@@ -14,6 +14,21 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+  <div id="maintenanceOverlay" class="maintenance-overlay" style="display:none">
+    <div class="maintenance-card">
+      <div class="maintenance-logo">
+        <img src="assets/arms-logo.png" alt="QSIS-ARMS" style="height:60px" />
+      </div>
+      <div class="maintenance-icon"><i class="fas fa-sync fa-spin"></i></div>
+      <h2>Server is <span>Updating</span></h2>
+      <p>We're deploying new content. This should take less than a minute.</p>
+      <div class="maintenance-progress"><div class="maintenance-bar"></div></div>
+      <div class="maintenance-pl">
+        <img src="assets/pl-logo.png" alt="Programming Light" style="height:28px" />
+        <span>Powered by <strong>Programming Light</strong></span>
+      </div>
+    </div>
+  </div>
   <div id="app">
     <nav class="navbar">
       <div class="nav-container">
@@ -117,6 +132,25 @@
       </section>
 
       <section class="file-browser" id="semesterSection">
+
+      <section class="pl-promo">
+        <div class="pl-promo-inner">
+          <div class="pl-promo-brand">
+            <img src="assets/pl-logo.png" alt="Programming Light" class="pl-promo-logo" />
+            <div>
+              <div class="pl-promo-name">Programming <span>Light</span></div>
+              <div class="pl-promo-tagline">Complete Business & Digital Solutions</div>
+            </div>
+          </div>
+          <div class="pl-promo-services">
+            <span><i class="fas fa-cubes"></i> Full Business Setup</span>
+            <span><i class="fas fa-paint-brush"></i> UI/UX Design</span>
+            <span><i class="fas fa-code"></i> Web & App Development</span>
+            <span><i class="fas fa-chart-line"></i> Digital Marketing</span>
+          </div>
+          <a href="https://programming-light.eu.cc" target="_blank" class="btn btn-sm btn-glow">Visit <i class="fas fa-arrow-right"></i></a>
+        </div>
+      </section>
         <div class="browser-header">
           <h3 id="sectionTitle"><i class="fas fa-book"></i> Select Semester</h3>
           <div class="browser-actions">

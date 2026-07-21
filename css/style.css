@@ -455,3 +455,29 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
   .slot-manager { flex-wrap:wrap; }
   .routine-tabs { flex-direction:column; }
 }
+
+/* MAINTENANCE OVERLAY */
+.maintenance-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(10,15,30,.92); display:flex; align-items:center; justify-content:center; z-index:9999; backdrop-filter:blur(6px); }
+.maintenance-card { background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:40px; text-align:center; max-width:380px; width:90%; }
+.maintenance-logo { margin-bottom:16px; }
+.maintenance-icon { font-size:2.5rem; color:var(--primary); margin-bottom:12px; }
+.maintenance-card h2 { font-size:1.3rem; margin-bottom:6px; }
+.maintenance-card h2 span { color:var(--primary); }
+.maintenance-card p { font-size:.82rem; color:var(--text2); margin-bottom:20px; }
+.maintenance-progress { height:4px; background:var(--bg3); border-radius:4px; overflow:hidden; margin-bottom:20px; }
+.maintenance-bar { height:100%; width:30%; background:linear-gradient(90deg,var(--primary),var(--accent)); border-radius:4px; animation:maintenancePulse 1.5s ease-in-out infinite; }
+@keyframes maintenancePulse { 0%{transform:translateX(-100%)} 100%{transform:translateX(400%)} }
+.maintenance-pl { display:flex; align-items:center; justify-content:center; gap:8px; font-size:.78rem; color:var(--text2); margin-top:8px; }
+
+/* PL PROMO */
+.pl-promo { padding:0 16px; margin-bottom:20px; }
+.pl-promo-inner { display:flex; align-items:center; gap:16px; flex-wrap:wrap; background:linear-gradient(135deg,var(--bg2),#0f1a2e); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px; }
+.pl-promo-brand { display:flex; align-items:center; gap:10px; }
+.pl-promo-logo { height:32px; }
+.pl-promo-name { font-size:.9rem; font-weight:700; }
+.pl-promo-name span { color:var(--primary); }
+.pl-promo-tagline { font-size:.72rem; color:var(--text2); }
+.pl-promo-services { display:flex; gap:12px; flex-wrap:wrap; flex:1; }
+.pl-promo-services span { font-size:.75rem; color:var(--text2); display:flex; align-items:center; gap:4px; }
+.pl-promo-services span i { color:var(--primary); font-size:.7rem; }
+@media(max-width:600px){ .pl-promo-inner { flex-direction:column; text-align:center; } .pl-promo-brand { flex-direction:column; } .pl-promo-services { justify-content:center; } }
