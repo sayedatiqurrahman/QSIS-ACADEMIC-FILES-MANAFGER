@@ -23,7 +23,7 @@ jobs:
       - name: Build deployment folder
         run: |
           mkdir -p _site
-          cp index.html cached.html history.html contributors.html _site/
+          cp index.html cached.html history.html contributors.html routine.html _site/
           cp -r css js assets _site/
           cp manifest.json sw.js _site/
           cp CNAME _site/ 2>/dev/null || true
