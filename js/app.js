@@ -153,7 +153,26 @@ function timeAgo(ts) {
 // ========== LOAD SEMESTERS (ENTRY POINT) ==========
 async function loadSemesters() {
   const grid = document.getElementById('semesterGrid');
-  grid.innerHTML = `<div class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Loading semesters...</div>`;
+  if (!grid) return;
+  const fallback = GITHUB.getUploadTreeFallback();
+  if (fallback) {
+    allTreeItems = fallback;
+    renderSemesterUI();
+  }
+  refreshSemesters();
+
+  // Silent background refresh every 5 minutes
+  if (!window._semRefreshInterval) {
+    window._semRefreshInterval = setInterval(() => {
+      GITHUB._fallbackTree = null;
+      refreshSemesters();
+    }, 300000);
+  }
+}
+
+async function refreshSemesters() {
+  const grid = document.getElementById('semesterGrid');
+  if (!grid) return;
   try {
     const tree = await GITHUB.getUploadTree(true);
     allTreeItems = tree.tree.filter(item => {
@@ -167,6 +186,7 @@ async function loadSemesters() {
       }
       return true;
     });
+    renderSemesterUI();
 
     const detectedSemIds = [...new Set(allTreeItems.map(i => i.path.split('/')[0]).filter(Boolean))].filter(id => id !== 'kitab');
     detectedSemIds.sort();
@@ -188,8 +208,88 @@ async function loadSemesters() {
           const f3 = (parts[3] || '').toLowerCase();
           if (parts[3] && !/^\d{4}$/.test(parts[3]) && !f3.startsWith('mid') && !f3.startsWith('final') && !f3.startsWith('note') && !parts[3].match(/\.\w{1,5}$/)) {
             courseSet.add(parts[3]);
-          }
+  }
+}
+
+function renderSemesterUI() {
+  const grid = document.getElementById('semesterGrid');
+  if (!grid) return;
+  const detectedSemIds = [...new Set(allTreeItems.map(i => i.path.split('/')[0]).filter(Boolean))].filter(id => id !== 'kitab');
+  detectedSemIds.sort();
+  const semFolders = detectedSemIds.map(semId => {
+    const numMatch = semId.match(/^(\d+)/);
+    const num = numMatch ? numMatch[1] : '';
+    const suffix = num === '1' ? 'st' : num === '2' ? 'nd' : num === '3' ? 'rd' : 'th';
+    const label = num ? num + suffix + ' Semester' : semId.replace(/-/g, ' ');
+    const items = allTreeItems.filter(i => i.path.startsWith(semId + '/'));
+    const fileCount = items.filter(i => i.type === 'blob').length;
+    const courseSet = new Set();
+    items.forEach(i => {
+      const parts = i.path.split('/');
+      if (parts.length < 3) return;
+      const f2 = (parts[2] || '').toLowerCase();
+      if (parts[2] && !/^\d{4}$/.test(parts[2]) && !f2.startsWith('mid') && !f2.startsWith('final') && !f2.startsWith('note') && !f2.startsWith('readme') && !f2.startsWith('.gitkeep') && !parts[2].match(/\.\w{1,5}$/)) {
+        courseSet.add(parts[2]);
+      } else if (parts.length >= 4 && parts[3]) {
+        const f3 = (parts[3] || '').toLowerCase();
+        if (parts[3] && !/^\d{4}$/.test(parts[3]) && !f3.startsWith('mid') && !f3.startsWith('final') && !f3.startsWith('note') && !parts[3].match(/\.\w{1,5}$/)) {
+          courseSet.add(parts[3]);
         }
+      }
+    });
+    const courseCount = courseSet.size;
+    const years = new Set();
+    items.forEach(i => {
+      const m = i.path.match(/\/(\d{4})\//);
+      if (m) years.add(m[1]);
+    });
+    return { id: semId, label, icon: 'fa-book', fileCount, courseCount, yearCount: years.size };
+  });
+  semesterLabels = {};
+  semFolders.forEach(s => semesterLabels[s.id] = s.label);
+
+  const semSelect = document.getElementById('searchSemester');
+  if (semSelect) {
+    semSelect.innerHTML = '<option value="">All Semesters</option>' +
+      semFolders.map(s => `<option value="${s.id}">${s.label}</option>`).join('');
+  }
+
+  grid.innerHTML = semFolders.map(s => `
+    <div class="semester-card" onclick="openSemester('${s.id}')">
+      <div class="semester-icon"><i class="fas fa-book"></i></div>
+      <div class="semester-label">${s.label}</div>
+      <div class="semester-meta">${s.courseCount || 0} courses &middot; ${s.fileCount} files</div>
+    </div>
+  `).join('');
+
+  document.getElementById('statsSemesters').textContent = semFolders.length;
+  document.getElementById('statsCourses').textContent = semFolders.reduce((sum, s) => sum + s.courseCount, 0);
+  document.getElementById('statsFiles').textContent = allTreeItems.filter(i => i.type === 'blob').length;
+  document.getElementById('statsYears').textContent = semFolders.reduce((sum, s) => sum + s.yearCount, 0);
+
+  const hasKitab = allTreeItems.some(i => i.path.startsWith('kitab/'));
+  const kitabSection = document.getElementById('kitabSection');
+  const semSection = document.getElementById('semesterSection');
+  if (hasKitab && kitabSection) {
+    kitabSection.style.display = '';
+    semSection.style.marginBottom = '0';
+    const kGrid = document.getElementById('kitabGrid');
+    if (kGrid && !kGrid.querySelector('.kitab-hero')) {
+      const kCount = allTreeItems.filter(i => i.path.startsWith('kitab/') && i.type === 'blob').length;
+      kGrid.innerHTML = `<div class="kitab-hero" onclick="openKitab()">
+        <div class="kitab-hero-icon"><i class="fas fa-book" style="color:#a855f7"></i></div>
+        <div class="kitab-hero-info">
+          <div class="kitab-hero-title">Kitab</div>
+          <div class="kitab-hero-sub">General books & references for all semesters</div>
+        </div>
+        <div class="kitab-hero-count">${kCount} files</div>
+        <i class="fas fa-chevron-right kitab-hero-arrow"></i>
+      </div>`;
+    }
+  } else if (kitabSection) {
+    kitabSection.style.display = 'none';
+  }
+}
       });
       const courseCount = courseSet.size;
       const years = new Set();
@@ -244,14 +344,17 @@ async function loadSemesters() {
       kitabSection.style.display = 'none';
     }
   } catch (err) {
-    console.error(err);
-    grid.innerHTML = `<div class="loading-cell" style="grid-column:1/-1">
-      <i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i>
-      <p>Could not load from GitHub. Check connection.</p>
-      <button class="btn btn-sm" onclick="loadSemesters()" style="margin-top:12px"><i class="fas fa-sync"></i> Retry</button>
-    </div>`;
+    if (!GITHUB.getUploadTreeFallback()) {
+      grid.innerHTML = `<div class="loading-cell" style="grid-column:1/-1">
+        <i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i>
+        <p>Could not load from GitHub. Check connection.</p>
+        <button class="btn btn-sm" onclick="refreshSemesters()" style="margin-top:12px"><i class="fas fa-sync"></i> Retry</button>
+      </div>`;
+    }
   }
 }
+
+function renderSemesterUI() {
 
 // ========== NAVIGATION ==========
 function semLabel(semId) { return semesterLabels[semId] || semId.replace(/-/g, ' '); }

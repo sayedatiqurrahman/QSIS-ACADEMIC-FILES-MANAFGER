@@ -13,17 +13,19 @@ const GITHUB = {
     return h;
   },
 
-  getUploadTreeCache() {
+  _fallbackTree: null,
+
+  getUploadTreeFallback() {
+    if (this._fallbackTree) return this._fallbackTree;
     try {
       const cached = JSON.parse(localStorage.getItem('qsis_tree_cache'));
-      if (cached && cached.timestamp && Date.now() - cached.timestamp < 1800000) {
-        return cached.tree;
-      }
+      if (cached && cached.tree) return cached.tree;
     } catch {}
     return null;
   },
 
   setUploadTreeCache(tree) {
+    this._fallbackTree = tree;
     try {
       localStorage.setItem('qsis_tree_cache', JSON.stringify({ tree, timestamp: Date.now() }));
     } catch {}
@@ -39,12 +41,16 @@ const GITHUB = {
   async getTree(recursive = true) {
     const url = `${this.api}/repos/${this.owner}/${this.repo}/git/trees/${this.branch}?recursive=${recursive ? 1 : 0}`;
     const res = await fetch(url, { headers: this.headers() });
+    if (res.status === 403) {
+      const cached = this.getUploadTreeFallback();
+      if (cached) return { tree: cached };
+    }
     if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
     return res.json();
   },
 
   async getUploadTree(recursive = true) {
-    const cached = this.getUploadTreeCache();
+    const cached = this.getUploadTreeFallback();
     if (cached) return { tree: cached };
 
     const fullTree = await this.getTree(recursive);
