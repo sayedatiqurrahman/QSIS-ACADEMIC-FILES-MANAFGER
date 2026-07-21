@@ -34,6 +34,36 @@ jobs:
               core.setFailed(`Changes outside upload_academic_files/ detected: ${badFiles.join(', ')}`);
             }
 
+      - name: Validate File Locations (must be in allowed folders only)
+        id: location_check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            const head = '${{ github.event.pull_request.head.sha }}';
+            const base = '${{ github.event.pull_request.base.sha }}';
+            const files = execSync(`git diff --name-only ${base}...${head}`).toString().trim().split('\n').filter(Boolean);
+
+            const semPattern = /^upload_academic_files\/([^/]+?)(?:-semister|\d)/;
+            const allowed = [
+              // sheet/{course-code}/any-file
+              /^upload_academic_files\/[^/]+-semister\/sheet\/[^/]+\/.+$/,
+              // Previous Question ({N} Semester)/{year}/{Mid|Final}/any-file
+              /^upload_academic_files\/[^/]+-semister\/Previous Question \(\d+ Semester\)\/20\d{2}\/(Mid|Final)\/.+$/,
+              // NOTES/any-file
+              /^upload_academic_files\/[^/]+-semister\/NOTES\/.+$/,
+              // Syllabus/any-file
+              /^upload_academic_files\/[^/]+-semister\/Syllabus\/.+$/,
+            ];
+
+            const bad = files.filter(f => !allowed.some(p => p.test(f)));
+
+            if (bad.length > 0) {
+              core.setFailed(`Files in wrong locations:\n${bad.join('\n')}\n\nAllowed folders:\n- {semester}/sheet/{course-code}/\n- {semester}/Previous Question ({N} Semester)/{year}/{Mid|Final}/\n- {semester}/NOTES/\n- {semester}/Syllabus/`);
+            } else {
+              console.log('All files in valid locations ✓');
+            }
+
       - name: Verify Contributor Info (QSIS ID, Full Name, WhatsApp Required)
         id: contributor
         uses: actions/github-script@v7
