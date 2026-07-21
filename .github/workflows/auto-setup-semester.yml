@@ -28,9 +28,9 @@ jobs:
             num="${sem_name%-semister}"
 
             folders=(
+              "NOTES"
+              "Previous Question (${num} Semester)"
               "sheet"
-              "Previous Questions (${num} Semester)"
-              "Notes"
               "Syllabus"
             )
 
