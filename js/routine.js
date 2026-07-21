@@ -994,8 +994,9 @@ function captureRoutine(el, filename, isImage) {
       } else {
         const imgData = canvas.toDataURL('image/png')
         const { jsPDF } = window.jspdf
-        const orientation = 'landscape'
-        const w = 297
+        const isExam = !!el.querySelector('.r-exam-table')
+        const orientation = isExam ? 'portrait' : 'landscape'
+        const w = isExam ? 210 : 297
         const h = w * canvas.height / canvas.width
         const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' })
         pdf.addImage(imgData, 'PNG', 0, 0, w, h)
