@@ -1,6 +1,6 @@
 {
-  "name": "QSIS Academic Files Manager",
-  "short_name": "QSIS Files",
+  "name": "QSIS-ARMS",
+  "short_name": "QSIS-ARMS",
   "description": "Academic Resource Hub for Qur'anic Sciences & Islamic Studies, IIUC",
   "start_url": "./index.html",
   "display": "standalone",

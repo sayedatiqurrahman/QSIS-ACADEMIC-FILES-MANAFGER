@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qsis-v3';
+const CACHE_NAME = 'qsis-v4';
 const SHELL = [
   './',
   './index.html',

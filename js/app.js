@@ -44,7 +44,21 @@ function waitForDB() {
 
 function registerSW() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        newSW.addEventListener('statechange', () => {
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            const toast = document.getElementById('toast');
+            if (toast) {
+              toast.innerHTML = '<i class="fas fa-sync"></i> New version available! <button onclick="location.reload()" class="btn btn-xs" style="margin-left:8px">Refresh</button>';
+              toast.className = 'toast show';
+              setTimeout(() => toast.className = 'toast', 8000);
+            }
+          }
+        });
+      });
+    }).catch(() => {});
   }
 }
 
