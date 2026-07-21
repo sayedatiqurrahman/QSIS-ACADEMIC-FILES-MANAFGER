@@ -69,8 +69,18 @@ const Contributors = {
     )
     const messages = userCommits.map(c => c.commit.message.toLowerCase())
 
+    // Detect file-upload-only commits: messages like "2nd semester sheet added",
+    // "notes uploaded", "previous question" — these are academic file contributions
+    const isFileUpload = messages.every(m =>
+      (m.includes('semester') || m.includes('semister') || m.includes('sheet') ||
+       m.includes('note') || m.includes('syllabus') || m.includes('question') ||
+       m.includes('upload') || m.includes('file submission')) &&
+      !m.includes('feat:') && !m.includes('fix:') && !m.includes('refactor')
+    )
+    if (isFileUpload) return 'Data Collector'
+
     const hasDevWork = messages.some(m =>
-      m.includes('feat') || m.includes('feature') || m.includes('add') ||
+      m.includes('feat') || m.includes('feature') || m.includes('add ') ||
       m.includes('implement') || m.includes('build') || m.includes('setup') ||
       m.includes('create') || m.includes('ui') || m.includes('frontend') ||
       m.includes('backend') || m.includes('refactor') || m.includes('component') ||
@@ -78,7 +88,7 @@ const Contributors = {
       m.includes('pdf') || m.includes('download') || m.includes('viewer') ||
       m.includes('deploy') || m.includes('workflow') || m.includes('ci') ||
       m.includes('config') || m.includes('script') || m.includes('style') ||
-      m.includes('css') || m.includes('js')
+      m.includes('css') || m.includes('js') || m.startsWith('feat')
     )
     if (hasDevWork) return 'Developer'
 
@@ -88,11 +98,6 @@ const Contributors = {
       m.includes('repair') || m.includes('duplicate') || m.includes('missing')
     )
     if (hasBugFix) return 'Problem Solver'
-
-    // PR-only users (added via squash merge, no direct commits)
-    // who have Developer-check keywords in PR messages are misclassified.
-    // If they have no direct commits at all, they're file contributors.
-    if (userCommits.length === 0) return 'Data Collector'
 
     return 'Academic Contributor'
   },
