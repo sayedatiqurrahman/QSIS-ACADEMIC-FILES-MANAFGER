@@ -89,6 +89,11 @@ const Contributors = {
     )
     if (hasBugFix) return 'Problem Solver'
 
+    // PR-only users (added via squash merge, no direct commits)
+    // who have Developer-check keywords in PR messages are misclassified.
+    // If they have no direct commits at all, they're file contributors.
+    if (userCommits.length === 0) return 'Data Collector'
+
     return 'Academic Contributor'
   },
 
@@ -112,6 +117,7 @@ const Contributors = {
     const roleColors = {
       'Developer': 'var(--primary)',
       'Problem Solver': '#f59e0b',
+      'Data Collector': '#22c55e',
       'Academic Contributor': '#3b82f6',
       'Bot': '#94a3b8'
     }
@@ -119,6 +125,7 @@ const Contributors = {
     const roleIcons = {
       'Developer': 'fa-code',
       'Problem Solver': 'fa-wrench',
+      'Data Collector': 'fa-database',
       'Academic Contributor': 'fa-graduation-cap',
       'Bot': 'fa-robot'
     }
