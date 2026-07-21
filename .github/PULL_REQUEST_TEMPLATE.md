@@ -1,23 +1,14 @@
-## 📚 File Submission
+### Your Name
+<!-- Your full name as you want it to appear -->
 
-### Contributor Information (Required)
+### QSIS ID Number
+<!-- e.g. QSIS-2024-001 -->
 
-| Field | Value |
-|-------|-------|
-| **Full Name** | <!-- Your full name --> |
-| **QSIS ID Number** | <!-- e.g. QSIS-2024-001 --> |
-| **WhatsApp Number** | <!-- e.g. +8801XXXXXXXXX --> |
-| **Semester** | <!-- e.g. 6th Semester --> |
-
-### Files Uploaded
-
-<!-- List the files you are submitting -->
-
-### Description
-
-<!-- Brief description of what you are contributing -->
+### WhatsApp Number
+<!-- e.g. +8801XXXXXXXXX -->
 
 ---
 
-> ⚠️ **QSIS ID is mandatory.** Submissions without a valid QSIS ID will not be approved.
-> Your name and contribution credit will appear on the [QSIS-ARMS website](https://qsis-arms.eu.cc/) contributors section.
+Add your academic files inside `upload_academic_files/{semester}/notes/` or `upload_academic_files/{semester}/sheet/` etc.
+
+> ⚠️ QSIS ID is required. Submissions without a valid QSIS ID will not be approved.

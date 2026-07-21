@@ -36,13 +36,13 @@ jobs:
         with:
           script: |
             const body = context.payload.pull_request.body || '';
-            const qsMatch = body.match(/\*\*QSIS ID Number\*\*\s*\|\s*(.+)/i);
-            const nameMatch = body.match(/\*\*Full Name\*\*\s*\|\s*(.+)/i);
-            const whatsappMatch = body.match(/\*\*WhatsApp Number\*\*\s*\|\s*(.+)/i);
+            const nameMatch = body.match(/### Your Name\s*\n\s*<!--[^>]*-->\s*\n\s*([^\n]+)/i);
+            const qsMatch = body.match(/### QSIS ID Number\s*\n\s*<!--[^>]*-->\s*\n\s*([^\n]+)/i);
+            const whatsappMatch = body.match(/### WhatsApp Number\s*\n\s*<!--[^>]*-->\s*\n\s*([^\n]+)/i);
 
-            const qsId = qsMatch ? qsMatch[1].trim().replace(/<!--.*-->/, '').trim() : '';
-            const name = nameMatch ? nameMatch[1].trim().replace(/<!--.*-->/, '').trim() : '';
-            const whatsapp = whatsappMatch ? whatsappMatch[1].trim().replace(/<!--.*-->/, '').trim() : '';
+            const name = nameMatch ? nameMatch[1].trim() : '';
+            const qsId = qsMatch ? qsMatch[1].trim() : '';
+            const whatsapp = whatsappMatch ? whatsappMatch[1].trim() : '';
 
             const missing = [];
             if (!qsId || qsId === '') missing.push('QSIS ID Number');
@@ -69,7 +69,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `## ❌ Contributor Information Required\n\nYour pull request is missing required fields: **${missing}**\n\nPlease update your PR description using the template. Fill in all fields:\n\n| Field | Value |\n|-------|-------|\n| **Full Name** | Your full name |\n| **QSIS ID Number** | e.g. QSIS-2024-001 |\n| **WhatsApp Number** | e.g. +8801XXXXXXXXX |\n| **Semester** | e.g. 6th Semester |\n\n> ⚠️ Submissions without QSIS ID will not be approved.\n\n---\n*This is an automated check by QSIS-ARMS Bot.*`
+              body: `## ❌ Missing Information\n\nPlease fill in these fields at the top of your PR description:\n\n- **Your Name** — as you want it to appear on the site\n- **QSIS ID Number** — your student/QSIS ID\n- **WhatsApp Number** — with country code\n\n> ⚠️ QSIS ID is required. Submissions without a valid QSIS ID will not be approved.\n\n---\n*This is an automated check by QSIS-ARMS Bot.*`
             });
 
       - name: Comment - Info Verified
@@ -83,7 +83,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `## ✅ Contributor Information Verified\n\n| Field | Value |\n|-------|-------|\n| **Contributor** | ${name} |\n| **QSIS ID** | ${qsId} |\n\n> Your contribution credit will appear on the [QSIS-ARMS website](https://qsis-arms.eu.cc/) contributors section.\n\n---\n*This is an automated check by QSIS-ARMS Bot.*`
+              body: `## ✅ Thanks ${name}!\n\n| Field | Value |\n|-------|-------|\n| **Name** | ${name} |\n| **QSIS ID** | ${qsId} |\n\nYour files will be reviewed and merged. Credit will appear on the [QSIS-ARMS contributors page](https://qsis-arms.eu.cc/contributors.html).`
             });
 
       - name: Validate File Structure

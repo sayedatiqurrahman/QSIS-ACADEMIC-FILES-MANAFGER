@@ -15,24 +15,23 @@ Click **Fork** at the top-right of this repo to copy it to your GitHub account.
 In your forked copy, navigate to `upload_academic_files/{semester}/` and add your files.
 
 ### 3. Create a Pull Request (PR)
-Open a Pull Request from your fork to this repo. The PR **must** include:
+Open a Pull Request from your fork to this repo. At the top of the PR description, type:
 
-| Field | Description | Example |
-|-------|-------------|---------|
-| **Full Name** | Your full name | Sayeed Atiqur Rahman |
-| **QSIS ID Number** | Your QSIS student ID | QSIS-2024-001 |
-| **WhatsApp Number** | Your WhatsApp with country code | +8801XXXXXXXXX |
-| **Semester** | The semester you are contributing to | 6th Semester |
+- **Your Name** — as you want it to appear
+- **QSIS ID Number** — your student ID
+- **WhatsApp Number** — with country code
 
-**⚠️ Your PR will be auto-rejected if these fields are missing.**
+That's it. No table, no markdown.
 
 ### 4. PR Auto-Approval Process
 Our bot will automatically:
-1. Extract your **Full Name, QSIS ID, and WhatsApp** from the PR description
-2. Validate the file structure matches our convention (see below)
+1. Extract your **Name, QSIS ID, and WhatsApp** from the PR description
+2. Validate the file structure matches our convention
 3. Check files are only inside `upload_academic_files/`
 4. Verify file types (PDF, DOC, DOCX, JPG, PNG, GIF)
-5. **Auto-approve and merge** if everything passes
+5. **Auto-merge** if everything passes
+
+**⚠️ Your PR will be auto-rejected if QSIS ID is missing.**
 
 ---
 
@@ -49,13 +48,6 @@ upload_academic_files/
     NOTES/                         ← Lecture notes
     Syllabus/                      ← Course syllabus
 ```
-
-| Category | Path |
-|----------|------|
-| Sheet | `{semester}/sheet/{course_code}/` |
-| Previous Question | `{semester}/Previous Question ({semester})/{year}/Mid or Final/` |
-| Notes | `{semester}/NOTES/` |
-| Syllabus | `{semester}/Syllabus/` |
 
 ### Naming Guidelines
 - Use descriptive filenames with course codes
