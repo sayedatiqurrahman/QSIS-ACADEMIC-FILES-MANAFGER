@@ -38,6 +38,22 @@ const Contributors = {
     }
   },
 
+  async fetchMergedPRs() {
+    try {
+      const res = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/pulls?state=closed&per_page=100`);
+      if (!res.ok) throw new Error('Failed to fetch PRs');
+      const prs = await res.json();
+      return prs.filter(pr => pr.merged_at).map(pr => ({
+        login: pr.user.login,
+        avatar_url: pr.user.avatar_url,
+        html_url: pr.user.html_url,
+        contributions: 1
+      }));
+    } catch (err) {
+      return [];
+    }
+  },
+
   assignRole(username) {
     if (username === this.ownerLogin) return this.ownerDesignation
     const lower = username.toLowerCase()
@@ -47,6 +63,7 @@ const Contributors = {
   },
 
   getRoleFromCommits(username, commits) {
+    if (username === 'github-actions[bot]' || username === 'github-actions') return 'Bot'
     const userCommits = commits.filter(c =>
       c.author && c.author.login === username
     )
@@ -95,13 +112,15 @@ const Contributors = {
     const roleColors = {
       'Developer': 'var(--primary)',
       'Problem Solver': '#f59e0b',
-      'Academic Contributor': '#3b82f6'
+      'Academic Contributor': '#3b82f6',
+      'Bot': '#94a3b8'
     }
     const color = roleColors[role] || 'var(--text2)'
     const roleIcons = {
       'Developer': 'fa-code',
       'Problem Solver': 'fa-wrench',
-      'Academic Contributor': 'fa-graduation-cap'
+      'Academic Contributor': 'fa-graduation-cap',
+      'Bot': 'fa-robot'
     }
     return `
       <div class="contributor-card">
@@ -122,20 +141,34 @@ const Contributors = {
     const countEl = document.getElementById('contributorsCount')
     if (!grid) return
 
-    const [contributors, commits] = await Promise.all([
+    const [contributors, commits, mergedPRs] = await Promise.all([
       this.fetchContributors(),
-      this.fetchCommits()
+      this.fetchCommits(),
+      this.fetchMergedPRs()
     ])
 
-    if (!contributors.length) {
+    // Merge PR authors into contributors (deduplicate by login)
+    const contribMap = {}
+    contributors.forEach(c => { contribMap[c.login] = c })
+    mergedPRs.forEach(pr => {
+      if (!contribMap[pr.login]) {
+        contribMap[pr.login] = pr
+      } else {
+        contribMap[pr.login].contributions += 1
+      }
+    })
+
+    const allContributors = Object.values(contribMap)
+
+    if (!allContributors.length) {
       grid.innerHTML = '<div class="loading-cell"><i class="fas fa-users"></i> No contributors found yet. Be the first!</div>'
       return
     }
 
-    if (countEl) countEl.textContent = contributors.length
+    if (countEl) countEl.textContent = allContributors.length
 
     const ownerHtml = this.renderOwnerProfile()
-    const contribHtml = contributors.map(c => {
+    const contribHtml = allContributors.map(c => {
       const role = this.getRoleFromCommits(c.login, commits)
       return this.renderContributor(c, role)
     }).filter(Boolean).join('')
