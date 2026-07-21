@@ -1,5 +1,5 @@
 const CONFIG = {
-  appName: 'QSIS Academic Files Manager',
+  appName: 'QSIS-ARMS',
   repoUrl: 'https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER',
   uploadPath: 'upload_academic_files',
   adobeClientId: 'd57fdbe801014db1a20bfb74914b5033',
