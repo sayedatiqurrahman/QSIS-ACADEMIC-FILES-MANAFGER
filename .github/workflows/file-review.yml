@@ -1,7 +1,7 @@
 name: File Review & Validation
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
     paths:
       - 'upload_academic_files/**'
@@ -15,8 +15,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Fetch PR head ref for diff
+        run: |
+          git fetch origin ${{ github.event.pull_request.head.ref }} --depth=10
 
       - name: Verify Changes are in upload_academic_files only
         id: check_paths
@@ -24,7 +26,9 @@ jobs:
         with:
           script: |
             const { execSync } = require('child_process');
-            const files = execSync(`git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD`).toString().trim().split('\n').filter(Boolean);
+            const head = '${{ github.event.pull_request.head.sha }}';
+            const base = '${{ github.event.pull_request.base.sha }}';
+            const files = execSync(`git diff --name-only ${base}...${head}`).toString().trim().split('\n').filter(Boolean);
             const badFiles = files.filter(f => !f.startsWith('upload_academic_files/'));
             if (badFiles.length > 0) {
               core.setFailed(`Changes outside upload_academic_files/ detected: ${badFiles.join(', ')}`);
@@ -92,8 +96,9 @@ jobs:
           echo "## 📋 File Validation Report" > report.md
           echo "" >> report.md
 
-          FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
-          HAS_ERROR=false
+          head='${{ github.event.pull_request.head.sha }}'
+          base='${{ github.event.pull_request.base.sha }}'
+          FILES=$(git diff --name-only "$base"..."$head")
 
           echo "### Files Changed:" >> report.md
           echo '```' >> report.md
@@ -117,11 +122,6 @@ jobs:
                 echo "  ⚠️ Unusual extension: .$EXT" >> report.md
                 ;;
             esac
-
-            SIZE=$(stat -c%s "$file" 2>/dev/null || echo 0)
-            if [ "$SIZE" -gt 10485760 ]; then
-              echo "  ⚠️ Large file (>10MB): $(($SIZE/1048576))MB" >> report.md
-            fi
           done
 
           echo '```' >> report.md
@@ -147,7 +147,7 @@ jobs:
               issue_number: context.issue.number
             });
             const botComment = comments.find(c => c.user.type === 'Bot' && c.body.includes('File Validation Report'));
-            const msg = report + '\n\n---\n> **Note:** The "Setup Pages" build failure you may see in the Actions tab is expected. Only the main repository deploys to GitHub Pages. Your PR only needs to pass this review — an admin will merge it and the deploy happens automatically.';
+            const msg = report + '\n\n---\n*This is an automated check by QSIS-ARMS Bot.*';
             if (botComment) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
