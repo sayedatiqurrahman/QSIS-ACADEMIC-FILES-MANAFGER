@@ -10,7 +10,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
 
     steps:
@@ -166,8 +166,16 @@ jobs:
 
       - name: Auto-Merge (if all checks pass)
         if: success()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "✅ All checks passed. Merging PR..."
-          gh pr merge ${{ github.event.pull_request.number }} --merge --subject "Auto-merged: ${{ github.event.pull_request.title }}"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pullNumber = context.issue.number;
+            await github.rest.pulls.merge({
+              owner,
+              repo,
+              pull_number: pullNumber,
+              merge_method: 'squash',
+              commit_title: `Auto-merged: ${context.payload.pull_request.title}`
+            });
+            console.log(`✅ PR #${pullNumber} auto-merged successfully.`);
