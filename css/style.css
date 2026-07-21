@@ -38,8 +38,8 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 .nav-extras a:hover, .nav-extras button:hover { background:var(--bg3); color:var(--text); }
 .nav-star-badge { gap:3px; padding:0 10px; border-radius:17px; min-width:auto !important; width:auto !important; }
 .nav-star-badge i { font-size:.85rem; }
-.nav-upload-btn { background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; padding:6px 14px; border-radius:17px; font-size:.78rem; font-weight:700; transition:all .2s; white-space:nowrap; flex-shrink:0; box-shadow:0 0 12px var(--primary-glow); }
-.nav-upload-btn:hover { transform:translateY(-1px); box-shadow:0 0 20px var(--primary-glow); }
+.nav-extras .nav-upload-btn { background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; padding:6px 14px; border-radius:17px; font-size:.78rem; font-weight:700; transition:all .2s; white-space:nowrap; flex-shrink:0; box-shadow:0 0 12px var(--primary-glow); height:auto; min-width:0; }
+.nav-extras .nav-upload-btn:hover { transform:translateY(-1px); box-shadow:0 0 20px var(--primary-glow); }
 
 /* NAV MOBILE */
 @media (max-width:768px) {
