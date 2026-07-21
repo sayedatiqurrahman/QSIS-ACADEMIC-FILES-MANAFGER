@@ -31,6 +31,13 @@ function getCurrentPage() {
   return location.pathname.split('/').pop().replace('.html', '') || 'index';
 }
 
+function setActiveNav(pageName) {
+  document.querySelectorAll('.nav-link').forEach(a => {
+    const href = a.getAttribute('href').replace('.html', '');
+    a.classList.toggle('active', href === pageName);
+  });
+}
+
 function navigateTo(url, push) {
   if (!url) return;
   const currentPage = getCurrentPage();
@@ -45,7 +52,7 @@ function navigateTo(url, push) {
     const content = tmp.querySelector('#pageContent');
     if (content) {
       pc.innerHTML = content.innerHTML;
-      reExecScripts(pc);
+      try { reExecScripts(pc); } catch (e) { console.error('reExec error', e); }
       const t = tmp.querySelector('title');
       if (t) document.title = t.textContent;
       if (push !== false) history.pushState({ page: url }, '', url);
@@ -56,7 +63,7 @@ function navigateTo(url, push) {
 
   pc.innerHTML = '<div class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
   fetch(url)
-    .then(r => { if (!r.ok) throw Error(); return r.text() })
+    .then(r => { if (!r.ok) throw Error('HTTP ' + r.status); return r.text() })
     .then(html => {
       routerCache[url] = html;
       const tmp = document.createElement('div');
@@ -64,23 +71,18 @@ function navigateTo(url, push) {
       const content = tmp.querySelector('#pageContent');
       if (content) {
         pc.innerHTML = content.innerHTML;
-        reExecScripts(pc);
+        try { reExecScripts(pc); } catch (e) { console.error('reExec error', e); }
+        const t = tmp.querySelector('title');
+        if (t) document.title = t.textContent;
+        if (push !== false) history.pushState({ page: url }, '', url);
+        setActiveNav(pageName);
+      } else {
+        window.location.href = url;
       }
-      const t = tmp.querySelector('title');
-      if (t) document.title = t.textContent;
-      if (push !== false) history.pushState({ page: url }, '', url);
-      setActiveNav(pageName);
     })
     .catch(() => {
-      pc.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load page.</p></div>';
+      window.location.href = url;
     });
-}
-
-function setActiveNav(pageName) {
-  document.querySelectorAll('.nav-link').forEach(a => {
-    const href = a.getAttribute('href').replace('.html', '');
-    a.classList.toggle('active', href === pageName);
-  });
 }
 
 function initRouter() {
