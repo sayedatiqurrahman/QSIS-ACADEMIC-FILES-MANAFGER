@@ -454,6 +454,7 @@ function renderClassTable(r) {
   h += `<div class="r-print-footer">
     <span>Generated: ${new Date().toLocaleString()} · Last Updated: ${new Date(m.updatedAt).toLocaleString()}</span>
     <span><img src="assets/arms-logo.png" alt="QSIS-ARMS" style="height:24px;vertical-align:middle;border-radius:3px" /> QSIS-ARMS</span>
+    <span>Presented by <a href="https://programming-light.eu.cc" target="_blank">Programming Light</a></span>
   </div>`
   return h
 }
@@ -520,6 +521,7 @@ function renderExamTable(r) {
   h += `<div class="r-print-footer">
     <span>Generated: ${new Date().toLocaleString()} · Last Updated: ${new Date(m.updatedAt).toLocaleString()}</span>
     <span><img src="assets/arms-logo.png" alt="QSIS-ARMS" style="height:24px;vertical-align:middle;border-radius:3px" /> QSIS-ARMS</span>
+    <span>Presented by <a href="https://programming-light.eu.cc" target="_blank">Programming Light</a></span>
   </div>`
   return h
 }
