@@ -33,7 +33,7 @@
  * @typedef {Object} ExamEntry
  * @property {string} date
  * @property {string} day
- * @property {string} slot       - "first"|"second"|"third"
+ * @property {string} slot       - "first"|"second"
  * @property {string} code
  * @property {string} subject
  * @property {string} time
@@ -220,12 +220,69 @@ function semLabel(id) {
 }
 function semNum(id) { const m = id && id.match(/^(\d+)/); return m ? parseInt(m[1]) : 0 }
 const DAYS = ['Saturday','Sunday','Monday','Tuesday','Wednesday','Thursday']
-const SHIFTS = { first: '9:00 AM', second: '11:00 AM', third: '1:00 PM' }
+const DEFAULT_SHIFTS = { first: '9:00 AM', second: '11:00 AM' }
 const COLORS = ['#1b7d3b','#1565c0','#6a1b9a','#e65100','#00838f','#c62828','#283593','#4e342e']
-const TIME_SLOTS = [
-  '8:00-8:55','9:00-9:55','10:00-10:55','11:00-11:55',
-  '12:00-12:55','1:00-1:55','2:00-2:55','3:00-3:55','4:00-4:55'
+
+function getShifts() {
+  try {
+    var s = localStorage.getItem('qsis_exam_shifts')
+    if (s) { var p = JSON.parse(s); if (p && p.first && p.second) return p }
+  } catch {}
+  return DEFAULT_SHIFTS
+}
+
+function saveShifts(obj) {
+  localStorage.setItem('qsis_exam_shifts', JSON.stringify(obj))
+}
+
+function resetShifts() {
+  localStorage.removeItem('qsis_exam_shifts')
+}
+const DEFAULT_TIME_SLOTS = [
+  '1st (10:40-11:30)','2nd (11:30-12:20)','3rd (12:20-1:10)',
+  'Break (1:10-1:50)',
+  '4th (1:50-2:40)','5th (2:40-3:30)','6th (3:30-4:20)'
 ]
+
+function getTimeSlots() {
+  try {
+    var s = localStorage.getItem('qsis_time_slots')
+    if (s) { var p = JSON.parse(s); if (Array.isArray(p) && p.length) return p }
+  } catch {}
+  return DEFAULT_TIME_SLOTS
+}
+
+function saveTimeSlots(arr) {
+  localStorage.setItem('qsis_time_slots', JSON.stringify(arr))
+}
+
+function resetTimeSlots() {
+  localStorage.removeItem('qsis_time_slots')
+}
+
+function openTimeSettings() {
+  var cur = getTimeSlots().join('\n')
+  var shifts = getShifts()
+  var msg = 'Edit Class Routine time slots (one per line):\n(Leave empty to reset defaults)\n\n'
+  msg += '--- Exam Shift timings ---\nSlot 1: ' + shifts.first + '\nSlot 2: ' + shifts.second
+  var val = prompt(msg, cur)
+  if (val === null) return
+  var arr = val.split('\n').map(function(s) { return s.trim() }).filter(Boolean)
+  if (!arr.length) { resetTimeSlots(); showToast('Class times reset to defaults', 'info') }
+  else { saveTimeSlots(arr); showToast('Class times updated', 'success') }
+  setTimeout(function() {
+    var s1 = prompt('Exam Slot 1 time (e.g. 9:00 AM):', getShifts().first)
+    if (s1 === null) return
+    var s2 = prompt('Exam Slot 2 time (e.g. 11:00 AM):', getShifts().second)
+    if (s2 === null) return
+    if (!s1 && !s2) { resetShifts(); showToast('Exam shifts reset to defaults', 'info') }
+    else { saveShifts({ first: s1 || DEFAULT_SHIFTS.first, second: s2 || DEFAULT_SHIFTS.second }); showToast('Exam shifts updated', 'success') }
+    if (typeof renderRoutineTable === 'function') renderRoutineTable()
+    if (typeof renderList === 'function') renderList()
+    if (typeof RManager !== 'undefined' && RManager.refreshPreview) RManager.refreshPreview()
+  }, 200)
+}
+
 const BREAK_TYPES = { break: 'Break', lunch: 'Lunch', prayer: 'Prayer' }
 
 /* =========================================
@@ -345,7 +402,7 @@ function renderClassTable(r) {
   </div>`
 
   h += `<table class="r-class-table"><thead><tr><th>Day</th>`
-  TIME_SLOTS.forEach(t => { h += `<th>${t}</th>` })
+  getTimeSlots().forEach(t => { h += `<th>${t}</th>` })
   h += `</tr></thead><tbody>`
 
   const map = {}
@@ -356,9 +413,17 @@ function renderClassTable(r) {
 
   days.forEach(day => {
     const isToday = day === today
+    const dayEntries = r.entries.filter(e => e.day === day)
+    const hasClasses = dayEntries.some(e => !e.breakType)
+
+    if (!hasClasses) {
+      h += `<tr ${isToday ? 'style="background:var(--r-today)"' : ''}><td>${esc(day)}</td><td colspan="${getTimeSlots().length}" style="text-align:center;color:#aaa;font-style:italic;padding:14px 0;font-size:.85rem">Off-Day</td></tr>`
+      return
+    }
+
     h += `<tr ${isToday ? 'style="background:var(--r-today)"' : ''}><td>${day}</td>`
 
-    TIME_SLOTS.forEach(time => {
+    getTimeSlots().forEach(time => {
       const key = day + '|' + time
       const e = map[key]
 
@@ -388,7 +453,7 @@ function renderClassTable(r) {
   h += `</tbody></table>`
   h += `<div class="r-print-footer">
     <span>Generated: ${new Date().toLocaleString()} · Last Updated: ${new Date(m.updatedAt).toLocaleString()}</span>
-    <span><img src="assets/qsis-logo.jpg" alt="QSIS" style="height:24px;vertical-align:middle;border-radius:3px" /> QSIS-ARMS</span>
+    <span><img src="assets/arms-logo.png" alt="QSIS-ARMS" style="height:24px;vertical-align:middle;border-radius:3px" /> QSIS-ARMS</span>
   </div>`
   return h
 }
@@ -397,7 +462,7 @@ function renderClassTable(r) {
 function renderExamTable(r) {
   const m = r.meta
   const sLabel = semLabel(m.semester)
-  const slots = ['first','second','third']
+  const slots = ['first','second']
 
   let h = `<div class="r-print-header">
     <img src="assets/iiuc-logo.png" alt="IIUC" class="header-logo" />
@@ -409,7 +474,7 @@ function renderExamTable(r) {
   </div>`
 
   h += `<table class="r-exam-table"><thead><tr><th>Date</th><th>Day</th>`
-  h += `<th>Slot 1<br>${SHIFTS.first}</th><th>Slot 2<br>${SHIFTS.second}</th><th>Slot 3<br>${SHIFTS.third}</th>`
+  h += `<th>Slot 1<br>${getShifts().first}</th><th>Slot 2<br>${getShifts().second}</th>`
   h += `</tr></thead><tbody>`
 
   const map = {}
@@ -433,7 +498,7 @@ function renderExamTable(r) {
         h += `<td><div class="exam-slot" style="background:${bgMatch}18;border-left:3px solid ${bgMatch}">
           <div class="code">${esc(e.code)}</div>
           <div class="subject">${esc(e.subject)}</div>
-          ${e.time ? `<div class="time">${esc(e.time)}</div>` : `<div class="time">${SHIFTS[slot] || ''}</div>`}
+          ${e.time ? `<div class="time">${esc(e.time)}</div>` : `<div class="time">${getShifts()[slot] || ''}</div>`}
           ${e.room ? `<div class="room">Room ${esc(e.room)}</div>` : ''}
           ${e.invigilator ? `<div class="invigilator">Inv: ${esc(e.invigilator)}</div>` : ''}
         </div></td>`
@@ -454,7 +519,7 @@ function renderExamTable(r) {
 
   h += `<div class="r-print-footer">
     <span>Generated: ${new Date().toLocaleString()} · Last Updated: ${new Date(m.updatedAt).toLocaleString()}</span>
-    <span><img src="assets/qsis-logo.jpg" alt="QSIS" style="height:24px;vertical-align:middle;border-radius:3px" /> QSIS-ARMS</span>
+    <span><img src="assets/arms-logo.png" alt="QSIS-ARMS" style="height:24px;vertical-align:middle;border-radius:3px" /> QSIS-ARMS</span>
   </div>`
   return h
 }
@@ -632,7 +697,7 @@ RManager.addEntryRow = function(id) {
   const section = document.getElementById('entriesSection')
   const last = section.querySelector('.entry-row:last-child')
   const daySelect = `<select name="entryDay${section.children.length}"><option value="">Day</option>${DAYS.map(d => `<option>${d}</option>`).join('')}</select>`
-  const timeSelect = `<select name="entryTime${section.children.length}"><option value="">Time</option>${TIME_SLOTS.map(t => `<option>${t}</option>`).join('')}</select>`
+  const timeSelect = `<select name="entryTime${section.children.length}"><option value="">Time</option>${getTimeSlots().map(t => `<option>${t}</option>`).join('')}</select>`
 
   const div = document.createElement('div')
   div.className = 'entry-row'
@@ -659,13 +724,25 @@ RManager.addExamEntryRow = function(id) {
   div.innerHTML = `<div class="form-row-inline" style="gap:6px">
     <div><input name="exDate${i}" type="date" /></div>
     <div><select name="exDay${i}"><option value="">Day</option>${DAYS.map(d => `<option>${d}</option>`).join('')}</select></div>
-    <div><select name="exSlot${i}"><option value="">Slot</option><option value="first">Slot 1</option><option value="second">Slot 2</option><option value="third">Slot 3</option></select></div>
+    <div><select name="exSlot${i}" onchange="autoFillShiftTime(this)"><option value="">Slot</option><option value="first">Slot 1</option><option value="second">Slot 2</option></select></div>
     <div style="flex:1"><input name="exCode${i}" placeholder="Code" /></div>
     <div style="flex:2"><input name="exSubject${i}" placeholder="Subject" /></div>
     <div><input name="exTime${i}" placeholder="Time" /></div>
     <button type="button" style="border:none;color:var(--danger);background:none;font-size:1.1rem;cursor:pointer" onclick="RManager.deleteEntryRow(this)">&times;</button>
   </div>`
   section.appendChild(div)
+}
+
+function autoFillShiftTime(sel) {
+  var row = sel.closest('.entry-row')
+  if (!row) return
+  var timeInput = row.querySelector('[name^="exTime"]')
+  if (!timeInput) return
+  var shifts = getShifts()
+  var map = { first: shifts.first, second: shifts.second }
+  if (sel.value && map[sel.value] && !timeInput.value) {
+    timeInput.value = map[sel.value]
+  }
 }
 
 RManager.deleteEntryRow = function(btn) {
@@ -909,8 +986,8 @@ function captureRoutine(el, filename, isImage) {
       } else {
         const imgData = canvas.toDataURL('image/png')
         const { jsPDF } = window.jspdf
-        const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait'
-        const w = orientation === 'landscape' ? 297 : 210
+        const orientation = 'landscape'
+        const w = 297
         const h = w * canvas.height / canvas.width
         const pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' })
         pdf.addImage(imgData, 'PNG', 0, 0, w, h)

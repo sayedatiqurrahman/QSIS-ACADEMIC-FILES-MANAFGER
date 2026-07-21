@@ -13,6 +13,22 @@ const GITHUB = {
     return h;
   },
 
+  getUploadTreeCache() {
+    try {
+      const cached = JSON.parse(localStorage.getItem('qsis_tree_cache'));
+      if (cached && cached.timestamp && Date.now() - cached.timestamp < 1800000) {
+        return cached.tree;
+      }
+    } catch {}
+    return null;
+  },
+
+  setUploadTreeCache(tree) {
+    try {
+      localStorage.setItem('qsis_tree_cache', JSON.stringify({ tree, timestamp: Date.now() }));
+    } catch {}
+  },
+
   async getContents(path = '') {
     const url = `${this.api}/repos/${this.owner}/${this.repo}/contents/${path.replace(/^\//, '')}?ref=${this.branch}`;
     const res = await fetch(url, { headers: this.headers() });
@@ -28,6 +44,9 @@ const GITHUB = {
   },
 
   async getUploadTree(recursive = true) {
+    const cached = this.getUploadTreeCache();
+    if (cached) return { tree: cached };
+
     const fullTree = await this.getTree(recursive);
     const prefix = CONFIG.uploadPath + '/';
     fullTree.tree = fullTree.tree.filter(item =>
@@ -36,6 +55,7 @@ const GITHUB = {
       ...item,
       path: item.path.substring(prefix.length)
     }));
+    this.setUploadTreeCache(fullTree.tree);
     return fullTree;
   },
 

@@ -19,11 +19,11 @@
     <nav class="navbar">
       <div class="nav-container">
         <div class="nav-brand">
-          <a href="index.html" style="text-decoration:none;display:flex;align-items:center;gap:12px">
+          <a href="index.html" class="brand-inner">
             <img src="assets/arms-logo.png" alt="QSIS-ARMS" class="nav-logo" />
             <div class="nav-title">
               <h1>QSIS-ARMS</h1>
-              <span class="nav-subtitle">Routine Manager</span>
+              <span class="nav-subtitle">Qur'anic Sciences Club Apps</span>
             </div>
           </a>
         </div>
@@ -31,7 +31,7 @@
           <i class="fas fa-bars"></i>
         </button>
         <div class="nav-actions" id="navActions">
-          <a href="routine.html" class="nav-link" style="color:var(--primary)"><i class="fas fa-calendar-alt"></i> Routine</a>
+          <a href="routine.html" class="nav-link active"><i class="fas fa-calendar-alt"></i> Routine</a>
           <a href="contributors.html" class="nav-link"><i class="fas fa-users"></i> Contributors</a>
           <div class="nav-mobile-row">
             <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" title="Star us on GitHub">
@@ -41,6 +41,7 @@
               <i class="fas fa-moon"></i>
             </button>
             <a href="cached.html" title="Downloads"><i class="fas fa-download"></i></a>
+            <a href="history.html" title="History"><i class="fas fa-clock"></i></a>
             <a href="index.html" title="Home"><i class="fas fa-home"></i></a>
           </div>
         </div>
@@ -53,7 +54,6 @@
         <p class="page-subtitle">International Islamic University Chittagong · Department of Qur'anic Sciences &amp; Islamic Studies</p>
       </div>
 
-      <!-- Dashboard Stats -->
       <div class="r-dashboard" id="rDashboard">
         <div class="r-stat-card r-stat-green"><div class="stat-icon" style="color:#1b7d3b">📋</div><div class="stat-number" id="statTotal">0</div><div class="stat-label">Total Routines</div></div>
         <div class="r-stat-card r-stat-green"><div class="stat-icon" style="color:#1b7d3b">✅</div><div class="stat-number" id="statPublished">0</div><div class="stat-label">Published</div></div>
@@ -61,7 +61,6 @@
         <div class="r-stat-card r-stat-blue"><div class="stat-icon" style="color:#3b82f6">🗂️</div><div class="stat-number" id="statArchived">0</div><div class="stat-label">Archived</div></div>
       </div>
 
-      <!-- Filters -->
       <div class="r-filters" id="rFilters">
         <select id="fDepartment"><option value="">All Depts</option><option>Qur'anic Sciences & Islamic Studies</option></select>
         <select id="fSemester"><option value="">All Semesters</option></select>
@@ -71,31 +70,28 @@
         <span class="filter-count" id="filterCount">0 routines</span>
       </div>
 
-      <!-- Actions -->
       <div class="r-actions">
-        <button class="btn btn-glow btn-sm" onclick="RManager.modalOpen('create')"><i class="fas fa-plus"></i> Create Routine</button>
-        <button class="btn btn-sm" onclick="RManager.promptCopy()"><i class="fas fa-copy"></i> Copy from Previous</button>
-        <button class="btn btn-sm" onclick="RManager.promptImport()"><i class="fas fa-file-excel"></i> Import</button>
+        <button class="btn btn-glow btn-sm" onclick="RManager.modalOpen('create')"><i class="fas fa-plus"></i> Create</button>
+        <button class="btn btn-sm" onclick="RManager.promptCopy()"><i class="fas fa-copy"></i> Copy</button>
+        <button class="btn btn-sm" onclick="RManager.promptImport()"><i class="fas fa-file-import"></i> Import</button>
+        <button class="btn btn-sm" onclick="openTimeSettings()" style="margin-left:auto" title="Customize time slots"><i class="fas fa-clock"></i> Times</button>
       </div>
 
-      <!-- Tabs: List vs Preview -->
       <div class="r-tabs" id="rViewTabs">
         <button class="active" data-view="list"><i class="fas fa-list"></i> Routines</button>
         <button data-view="preview" id="previewTabBtn"><i class="fas fa-eye"></i> Preview</button>
         <button data-view="print" id="printTabBtn"><i class="fas fa-print"></i> Print</button>
       </div>
 
-      <!-- LIST VIEW -->
-      <div id="rListView" class="r-tab-content">
+      <div id="rListView">
         <div class="r-list-placeholder" id="rTableWrapper">
-          <div class="r-empty"><i class="fas fa-calendar-alt"></i><p>No routines yet. Click "Create Routine" to get started.</p></div>
+          <div class="r-empty"><i class="fas fa-calendar-alt"></i><p>No routines yet. Click Create to get started.</p></div>
         </div>
       </div>
 
-      <!-- PREVIEW VIEW -->
-      <div id="rPreviewView" class="r-tab-content" style="display:none">
+      <div id="rPreviewView" style="display:none">
         <div class="routine-controls" style="margin-bottom:12px">
-          <span style="font-weight:700;color:var(--r-green,green)" id="previewTitle">Preview</span>
+          <span style="font-weight:700;color:#1b7d3b" id="previewTitle">Preview</span>
           <span style="font-size:.8rem;color:var(--text2)" id="previewMeta"></span>
           <div class="download-actions">
             <button class="btn btn-sm" onclick="RManager.printPreview()"><i class="fas fa-print"></i> Print</button>
@@ -108,34 +104,30 @@
         </div>
       </div>
 
-      <!-- PRINT VIEW -->
-      <div id="rPrintView" class="r-tab-content" style="display:none">
-        <div class="r-empty"><i class="fas fa-print"></i><p>Loading print preview...</p></div>
+      <div id="rPrintView" style="display:none">
+        <div class="r-empty"><i class="fas fa-print"></i><p>Loading...</p></div>
       </div>
     </main>
 
-    <!-- Side-panel modal for Create / Edit -->
     <div id="rModal" class="r-modal-overlay">
       <div class="r-modal-backdrop" onclick="RManager.modalClose()"></div>
-      <div class="r-modal-panel" id="rModalPanel">
+      <div class="r-modal-panel">
         <div class="r-modal-header" id="rModalHeader">
-          <h2 id="rModalTitle"><i class="fas fa-plus"></i> Create Routine</h2>
+          <h2 id="rModalTitle"><i class="fas fa-plus"></i> Routine</h2>
           <button class="close" onclick="RManager.modalClose()">&times;</button>
         </div>
         <div class="r-modal-body" id="rModalBody"></div>
       </div>
     </div>
 
-    <!-- Copy drawer -->
     <div id="rCopyDrawer" class="r-modal-overlay">
       <div class="r-modal-backdrop" onclick="RManager.closeCopy()"></div>
       <div class="r-modal-panel">
-        <div class="r-modal-header"><h2><i class="fas fa-copy"></i> Copy from Previous</h2><button class="close" onclick="RManager.closeCopy()">&times;</button></div>
+        <div class="r-modal-header"><h2><i class="fas fa-copy"></i> Copy Routine</h2><button class="close" onclick="RManager.closeCopy()">&times;</button></div>
         <div class="r-modal-body" id="rCopyBody"></div>
       </div>
     </div>
 
-    <!-- Delete confirm -->
     <div id="rConfirmOverlay" class="r-modal-overlay">
       <div class="r-modal-backdrop" onclick="RManager.closeConfirm()"></div>
       <div style="position:relative;width:min(400px,90vw);margin:auto;background:var(--bg);border-radius:12px;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,.2);align-self:center;text-align:center">
@@ -144,7 +136,7 @@
         <p id="confirmBody" style="font-size:.85rem;color:var(--text2);margin:0 0 20px">Are you sure?</p>
         <div style="display:flex;gap:8px;justify-content:center">
           <button class="btn" onclick="RManager.closeConfirm()">Cancel</button>
-          <button class="btn" style="border-color:var(--danger);color:var(--danger)" id="confirmProceed" onclick="">Proceed</button>
+          <button class="btn" style="border-color:var(--danger);color:var(--danger)" id="confirmProceed">Proceed</button>
         </div>
       </div>
     </div>
@@ -165,10 +157,7 @@
     </footer>
   </div>
 
-  <!-- Floating action button -->
-  <button class="r-fab" onclick="RManager.modalOpen('create')" title="Create Routine">
-    <i class="fas fa-plus"></i>
-  </button>
+  <button class="r-fab" onclick="RManager.modalOpen('create')" title="Create"><i class="fas fa-plus"></i></button>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -185,7 +174,7 @@
       const i = document.querySelector('.theme-toggle i')
       if (i) i.className = t === 'dark' ? 'fas fa-moon' : 'fas fa-sun'
     }
-    ;(function () {
+    ;(function() {
       const s = localStorage.getItem('qsis-theme')
       if (s) document.documentElement.setAttribute('data-theme', s)
     })()

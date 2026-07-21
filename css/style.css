@@ -21,10 +21,11 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 .navbar { background:var(--bg2); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; backdrop-filter:blur(12px); }
 .nav-container { max-width:1200px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .nav-brand { display:flex; align-items:center; gap:12px; }
+.brand-inner { display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; }
 .nav-logo { width:40px; height:40px; object-fit:contain; border-radius:50%; background:#fff; padding:3px; filter:drop-shadow(0 1px 3px rgba(0,0,0,.3)); }
 [data-theme="light"] .nav-logo { background:#fff; filter:drop-shadow(0 1px 2px rgba(0,0,0,.1)); }
 .nav-title h1 { font-size:1.1rem; font-weight:700; background:linear-gradient(135deg,var(--primary),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-.nav-subtitle { font-size:.7rem; color:var(--text2); }
+.nav-subtitle { font-size:.68rem; color:var(--text2); opacity:.8; }
 .nav-hamburger { display:none; background:none; border:none; color:var(--text2); font-size:1.4rem; cursor:pointer; padding:4px; }
 .nav-actions { display:flex; align-items:center; gap:8px; }
 .nav-link { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:8px; color:var(--text2); text-decoration:none; font-size:.78rem; font-weight:600; transition:all .2s; }

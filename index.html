@@ -18,10 +18,12 @@
     <nav class="navbar">
       <div class="nav-container">
         <div class="nav-brand">
-          <img src="assets/arms-logo.png" alt="QSIS-ARMS" class="nav-logo" />
-          <div class="nav-title">
-            <h1>QSIS-ARMS</h1>
-            <span class="nav-subtitle">Qur'anic Sciences & Islamic Studies</span>
+          <div class="brand-inner">
+            <img src="assets/arms-logo.png" alt="QSIS-ARMS" class="nav-logo" />
+            <div class="nav-title">
+              <h1>QSIS-ARMS</h1>
+              <span class="nav-subtitle">Qur'anic Sciences Club Apps</span>
+            </div>
           </div>
         </div>
         <button class="nav-hamburger" onclick="toggleNav()" aria-label="Menu">
@@ -162,7 +164,6 @@
             <button class="tab-btn active" onclick="showUploadTab('guide')"><i class="fas fa-book"></i> Step-by-Step Guide</button>
             <button class="tab-btn" onclick="showUploadTab('quick')"><i class="fas fa-bolt"></i> Quick Links</button>
           </div>
-
           <div id="uploadTabGuide" class="upload-tab active">
             <div class="tutorial-steps">
               <div class="tutorial-step">
@@ -189,20 +190,19 @@
                   <p>In your forked repo, navigate to the correct folder:</p>
                   <div class="path-guide">
                     <code>upload_academic_files/</code><br>
-                    <code>&nbsp;&nbsp;{semester}/</code> (e.g. 6th-semister)<br>
-                    <code>&nbsp;&nbsp;&nbsp;&nbsp;sheet/{course-code}/</code> &mdash; For study sheets<br>
+                    <code>&nbsp;&nbsp;{semester}/</code><br>
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;sheet/{course-code}/</code> &mdash; Study sheets<br>
                     <code>&nbsp;&nbsp;&nbsp;&nbsp;Previous Question ({semester})/2026/Mid/</code><br>
-                    <code>&nbsp;&nbsp;&nbsp;&nbsp;NOTES/</code> &mdash; For lecture notes<br>
-                    <code>&nbsp;&nbsp;&nbsp;&nbsp;Syllabus/</code> &mdash; For course syllabi
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;NOTES/</code> &mdash; Lecture notes<br>
+                    <code>&nbsp;&nbsp;&nbsp;&nbsp;Syllabus/</code> &mdash; Course syllabi
                   </div>
-                  <p style="margin-top:8px">Use the <strong>"Add file &gt; Upload files"</strong> button on GitHub to upload your PDFs, images, or documents.</p>
                 </div>
               </div>
               <div class="tutorial-step">
                 <div class="step-number">4</div>
                 <div class="step-content">
                   <h4>Create Pull Request</h4>
-                  <p>After uploading, click <strong>"Contribute &gt; Open pull request"</strong> to submit. A simple form will appear — just type your <strong>Name, QSIS ID & WhatsApp</strong>. No table needed.</p>
+                  <p>After uploading, click <strong>Contribute &gt; Open pull request</strong> to submit.</p>
                   <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/pulls" target="_blank" class="btn btn-sm btn-outline" style="margin-top:8px">
                     <i class="fas fa-eye"></i> View Existing PRs
                   </a>
@@ -212,12 +212,11 @@
                 <div class="step-number">5</div>
                 <div class="step-content">
                   <h4>Get Credit!</h4>
-                  <p>Type your <strong>Name, QSIS ID & WhatsApp</strong> in the PR description. Your name will appear in the <strong>Contributors</strong> section. Thank you!</p>
+                  <p>Type your <strong>Name, QSIS ID & WhatsApp</strong> in the PR description. Your name will appear in the Contributors section.</p>
                 </div>
               </div>
             </div>
           </div>
-
           <div id="uploadTabQuick" class="upload-tab" style="display:none">
             <div class="quick-links">
               <a href="https://github.com/signup" target="_blank" class="quick-link">
@@ -241,10 +240,6 @@
                 <small>Submit for review</small>
               </a>
             </div>
-            <div class="upload-info" style="margin-top:16px">
-              <i class="fas fa-info-circle"></i>
-              <span>All files go through admin review before being published. This ensures quality and proper organization.</span>
-            </div>
           </div>
         </div>
       </div>
@@ -259,13 +254,13 @@
         <div class="modal-body">
           <div class="contribute-info">
             <i class="fas fa-heart"></i>
-            <p>Share your notes, sheets & previous questions with fellow students. It takes just 3 minutes!</p>
+            <p>Share your notes, sheets & previous questions with fellow students.</p>
           </div>
           <div class="tutorial-steps">
-            <div class="tutorial-step"><div class="step-number">1</div><div class="step-content"><h4>Create GitHub Account</h4><p>Go to <a href="https://github.com/signup" target="_blank">github.com</a> and sign up with Google &mdash; it's free.</p></div></div>
-            <div class="tutorial-step"><div class="step-number">2</div><div class="step-content"><h4>Fork This Repo</h4><p>Click <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/fork" target="_blank">Fork</a> to get your own copy of this repository.</p></div></div>
-            <div class="tutorial-step"><div class="step-number">3</div><div class="step-content"><h4>Upload Your Files</h4><p>In your fork, go to <code>upload_academic_files/{semester}/</code> and click <strong>Add file &gt; Upload files</strong>. Place them in the right category folder.</p></div></div>
-            <div class="tutorial-step"><div class="step-number">4</div><div class="step-content"><h4>Submit Pull Request</h4>                    <p>Click <strong>Contribute &gt; Open pull request</strong>. A simple form opens — enter your <strong>Name, QSIS ID & WhatsApp</strong>. No table, just type and submit!</p></div></div>
+            <div class="tutorial-step"><div class="step-number">1</div><div class="step-content"><h4>Create GitHub Account</h4><p>Go to <a href="https://github.com/signup" target="_blank">github.com</a> and sign up &mdash; it's free.</p></div></div>
+            <div class="tutorial-step"><div class="step-number">2</div><div class="step-content"><h4>Fork This Repo</h4><p>Click <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER/fork" target="_blank">Fork</a> to get your own copy.</p></div></div>
+            <div class="tutorial-step"><div class="step-number">3</div><div class="step-content"><h4>Upload Your Files</h4><p>Go to <code>upload_academic_files/{semester}/</code> and click <strong>Add file &gt; Upload files</strong>.</p></div></div>
+            <div class="tutorial-step"><div class="step-number">4</div><div class="step-content"><h4>Submit Pull Request</h4><p>Click <strong>Contribute &gt; Open pull request</strong>. Enter your <strong>Name, QSIS ID & WhatsApp</strong>.</p></div></div>
           </div>
         </div>
       </div>
@@ -296,9 +291,7 @@
   <script src="js/contributors.js"></script>
   <script src="js/app.js"></script>
   <script>
-    function toggleNav() {
-      document.getElementById('navActions').classList.toggle('nav-open');
-    }
+    function toggleNav() { document.getElementById('navActions').classList.toggle('nav-open'); }
     document.addEventListener('DOMContentLoaded', () => {
       Contributors.renderStarBadge().then(() => {
         const el = document.getElementById('footerStars');
@@ -307,17 +300,5 @@
       });
     });
   </script>
-  <!-- Cloudflare Web Analytics -->
-  <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "11869d2b319c4c469c6d30c774151412"}'></script>
-  <!-- End Cloudflare Web Analytics -->
-  <!-- Microsoft Clarity -->
-  <script>
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "xpr3gjs6nb");
-  </script>
-  <!-- End Microsoft Clarity -->
 </body>
 </html>

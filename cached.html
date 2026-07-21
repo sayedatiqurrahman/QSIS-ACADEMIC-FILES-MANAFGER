@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Downloads - QSIS</title>
+  <title>Downloads | QSIS-ARMS</title>
   <link rel="icon" type="image/png" href="assets/arms-logo.png" />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#22c55e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="msvalidate.01" content="DD448DBC883F1B6109FDB70D65A3BB56" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="css/style.css" />
@@ -16,11 +18,11 @@
     <nav class="navbar">
       <div class="nav-container">
         <div class="nav-brand">
-          <a href="index.html" style="text-decoration:none;display:flex;align-items:center;gap:12px">
+          <a href="index.html" class="brand-inner">
             <img src="assets/arms-logo.png" alt="QSIS-ARMS" class="nav-logo" />
             <div class="nav-title">
               <h1>QSIS-ARMS</h1>
-              <span class="nav-subtitle">Downloads & Cached Files</span>
+              <span class="nav-subtitle">Qur'anic Sciences Club Apps</span>
             </div>
           </a>
         </div>
@@ -30,7 +32,7 @@
         <div class="nav-actions" id="navActions">
           <a href="routine.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Routine</a>
           <a href="contributors.html" class="nav-link"><i class="fas fa-users"></i> Contributors</a>
-          <a href="cached.html" class="nav-link" style="color:var(--primary)"><i class="fas fa-download"></i> Downloads</a>
+          <a href="cached.html" class="nav-link active"><i class="fas fa-download"></i> Downloads</a>
           <div class="nav-mobile-row">
             <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" title="Star us on GitHub">
               <i class="fas fa-star"></i> <span id="navStars">-</span>
@@ -99,48 +101,46 @@
   <script src="js/db.js"></script>
   <script src="js/github.js"></script>
   <script>
-    function toggleNav() { document.getElementById('navActions').classList.toggle('nav-open'); }
-    let allTreeItems = [];
+    function toggleNav() { document.getElementById('navActions').classList.toggle('nav-open') }
 
-    document.addEventListener('DOMContentLoaded', () => { loadTheme(); waitForDB().then(loadCached); });
+    document.addEventListener('DOMContentLoaded', () => { loadTheme(); waitForDB().then(loadCached) })
 
-    function waitForDB() { return new Promise(r => { const c = setInterval(() => { if (DB && DB.db) { clearInterval(c); r(); } }, 100); }); }
-    function loadTheme() { const s = localStorage.getItem('qsis-theme') || 'dark'; document.documentElement.setAttribute('data-theme', s); const i = document.querySelector('.theme-toggle i'); if (i) i.className = s === 'dark' ? 'fas fa-moon' : 'fas fa-sun'; }
-    function toggleTheme() { const c = document.documentElement.getAttribute('data-theme'); const n = c === 'light' ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', n); localStorage.setItem('qsis-theme', n); const i = document.querySelector('.theme-toggle i'); if (i) i.className = n === 'dark' ? 'fas fa-moon' : 'fas fa-sun'; }
-    function showToast(msg, type) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast ' + type + ' show'; clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3500); }
-    function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
+    function waitForDB() { return new Promise(r => { const c = setInterval(() => { if (DB && DB.db) { clearInterval(c); r() } }, 100) }) }
+    function loadTheme() { const s = localStorage.getItem('qsis-theme') || 'dark'; document.documentElement.setAttribute('data-theme', s); const i = document.querySelector('.theme-toggle i'); if (i) i.className = s === 'dark' ? 'fas fa-moon' : 'fas fa-sun' }
+    function toggleTheme() { const c = document.documentElement.getAttribute('data-theme'); const n = c === 'light' ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', n); localStorage.setItem('qsis-theme', n); const i = document.querySelector('.theme-toggle i'); if (i) i.className = n === 'dark' ? 'fas fa-moon' : 'fas fa-sun' }
+    function showToast(msg, type) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast ' + type + ' show'; clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3500) }
+    function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML }
 
     function getFileIcon(mime) {
-      if (mime === 'image') return '<i class="fas fa-file-image" style="color:#34d399"></i>';
-      if (mime === 'pdf') return '<i class="fas fa-file-pdf" style="color:#ef4444"></i>';
-      if (mime === 'doc') return '<i class="fas fa-file-word" style="color:#3b82f6"></i>';
-      return '<i class="fas fa-file" style="color:var(--text2)"></i>';
+      if (mime === 'image') return '<i class="fas fa-file-image" style="color:#34d399"></i>'
+      if (mime === 'pdf') return '<i class="fas fa-file-pdf" style="color:#ef4444"></i>'
+      if (mime === 'doc') return '<i class="fas fa-file-word" style="color:#3b82f6"></i>'
+      return '<i class="fas fa-file" style="color:var(--text2)"></i>'
     }
 
     function formatSize(bytes) {
-      if (!bytes) return '';
-      if (bytes < 1024) return bytes + ' B';
-      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-      return (bytes / 1048576).toFixed(1) + ' MB';
+      if (!bytes) return ''
+      if (bytes < 1024) return bytes + ' B'
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'
+      return (bytes / 1048576).toFixed(1) + ' MB'
     }
 
-    function timeAgo(ts) { const d = Date.now() - ts; if (d < 60000) return 'Just now'; if (d < 3600000) return Math.floor(d / 60000) + 'm ago'; if (d < 86400000) return Math.floor(d / 3600000) + 'h ago'; return Math.floor(d / 86400000) + 'd ago'; }
+    function timeAgo(ts) { const d = Date.now() - ts; if (d < 60000) return 'Just now'; if (d < 3600000) return Math.floor(d / 60000) + 'm ago'; if (d < 86400000) return Math.floor(d / 3600000) + 'h ago'; return Math.floor(d / 86400000) + 'd ago' }
 
     async function loadCached() {
-      const list = document.getElementById('cachedList');
+      const list = document.getElementById('cachedList')
       try {
-        const items = await DB.cacheGetAll();
+        const items = await DB.cacheGetAll()
         if (!items || items.length === 0) {
-          list.innerHTML = '<div class="empty-state"><i class="fas fa-download"></i><p>No downloaded files yet.<br>Open a file and tap Download to cache it offline.</p><a href="index.html" class="btn btn-sm btn-outline" style="margin-top:12px"><i class="fas fa-home"></i> Browse Files</a></div>';
-          return;
+          list.innerHTML = '<div class="empty-state"><i class="fas fa-download"></i><p>No downloaded files yet.</p><a href="index.html" class="btn btn-sm btn-outline" style="margin-top:12px"><i class="fas fa-home"></i> Browse Files</a></div>'
+          return
         }
-
-        let totalSize = 0;
-        items.forEach(i => totalSize += i.size || 0);
-        document.getElementById('cacheSize').textContent = items.length + ' files \u00B7 ' + formatSize(totalSize);
+        let totalSize = 0
+        items.forEach(i => totalSize += i.size || 0)
+        document.getElementById('cacheSize').textContent = items.length + ' files \u00B7 ' + formatSize(totalSize)
 
         list.innerHTML = items.map(item => {
-          const id = DB.makeId(item.path);
+          const id = DB.makeId(item.path)
           return `<div class="list-item" id="cache-${id}">
             <div class="list-item-icon">${getFileIcon(item.mimeType)}</div>
             <div class="list-item-info">
@@ -152,179 +152,124 @@
               <button class="btn-action btn-saveas" title="Save to device" onclick="saveToDevice('${id}','${esc(item.name).replace(/'/g, "&#39;")}')"><i class="fas fa-share-alt"></i></button>
               <button class="btn-action" title="Remove" onclick="removeCache('${id}')" style="border-color:var(--danger);color:var(--danger)"><i class="fas fa-trash"></i></button>
             </div>
-          </div>`;
-        }).join('');
-      } catch (err) {
-        list.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load downloads.</p></div>';
+          </div>`
+        }).join('')
+      } catch {
+        list.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load downloads.</p></div>'
       }
     }
 
     async function saveToDevice(id, name) {
-      const item = await DB.cacheGet(id);
-      if (!item || !item.blob) { showToast('File not found.', 'error'); return; }
-      const url = URL.createObjectURL(item.blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = name;
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('Saving: ' + name, 'info');
+      const item = await DB.cacheGet(id)
+      if (!item || !item.blob) { showToast('File not found.', 'error'); return }
+      const url = URL.createObjectURL(item.blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = name
+      document.body.appendChild(a); a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      showToast('Saving: ' + name, 'info')
     }
 
-    async function removeCache(id) {
-      await DB.cacheDelete(id);
-      showToast('Removed', 'info');
-      loadCached();
-    }
+    async function removeCache(id) { await DB.cacheDelete(id); showToast('Removed', 'info'); loadCached() }
+    async function clearAllCache() { if (!confirm('Delete all cached files?')) return; await DB.cacheClear(); showToast('All downloads cleared', 'info'); loadCached() }
 
-    async function clearAllCache() {
-      if (!confirm('Delete all cached files?')) return;
-      await DB.cacheClear();
-      showToast('All downloads cleared', 'info');
-      loadCached();
-    }
-
-    // ========== FULLSCREEN VIEWER ==========
     async function previewCached(id) {
-      const item = await DB.cacheGet(id);
-      if (!item || !item.blob) { showToast('File not found.', 'error'); return; }
+      const item = await DB.cacheGet(id)
+      if (!item || !item.blob) { showToast('File not found.', 'error'); return }
 
-      const viewer = document.getElementById('fileViewer');
-      const viewerTitle = document.getElementById('viewerTitle');
-      const viewerBody = document.getElementById('viewerBody');
+      const viewer = document.getElementById('fileViewer')
+      const viewerTitle = document.getElementById('viewerTitle')
+      const viewerBody = document.getElementById('viewerBody')
 
-      viewerTitle.textContent = item.name;
+      viewerTitle.textContent = item.name
+      const url = URL.createObjectURL(item.blob)
 
-      const url = URL.createObjectURL(item.blob);
-      const ext = (item.name.split('.').pop() || '').toLowerCase();
+      var isPdf = item.mimeType === 'pdf'
+      document.querySelector('.viewer-header').style.display = isPdf ? 'none' : ''
 
-      if (item.mimeType === 'pdf') {
-        openPdfViewer(url, viewerBody, item.path);
-        document.getElementById('viewerSaveAsBtn').onclick = () => saveToDevice(id, item.name);
-        document.getElementById('viewerSaveAsBtn').style.display = '';
+      if (isPdf) {
+        openPdfViewer(url, viewerBody, item.path)
+        document.getElementById('viewerSaveAsBtn').onclick = () => saveToDevice(id, item.name)
+        document.getElementById('viewerSaveAsBtn').style.display = ''
       } else if (item.mimeType === 'image') {
-        openImageViewer(url, item.name, viewerBody);
-        document.getElementById('viewerSaveAsBtn').onclick = () => saveToDevice(id, item.name);
-        document.getElementById('viewerSaveAsBtn').style.display = '';
+        openImageViewer(url, item.name, viewerBody)
+        document.getElementById('viewerSaveAsBtn').onclick = () => saveToDevice(id, item.name)
+        document.getElementById('viewerSaveAsBtn').style.display = ''
       } else {
-        viewerBody.innerHTML = `<div class="viewer-fallback">
-          <i class="fas fa-file" style="font-size:3rem;color:var(--text2);margin-bottom:16px"></i>
-          <p>Preview not available for this file type.</p>
-          <p style="font-size:0.85rem;color:var(--text2)">Use "Save as" to download to device.</p>
-        </div>`;
-        document.getElementById('viewerSaveAsBtn').onclick = () => saveToDevice(id, item.name);
-        document.getElementById('viewerSaveAsBtn').style.display = '';
+        viewerBody.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file" style="font-size:3rem;color:var(--text2);margin-bottom:16px"></i><p>Preview not available for this file type.</p></div>'
+        document.getElementById('viewerSaveAsBtn').onclick = () => saveToDevice(id, item.name)
+        document.getElementById('viewerSaveAsBtn').style.display = ''
       }
 
-      viewer.classList.add('active');
-      document.body.style.overflow = 'hidden';
+      viewer.classList.add('active')
+      document.body.style.overflow = 'hidden'
+      var pdfDl = document.getElementById('pdfDlBtn')
+      if (pdfDl) pdfDl.onclick = function() { saveToDevice(id, item.name) }
+      var rawUrl = 'https://raw.githubusercontent.com/' + GITHUB.owner + '/' + GITHUB.repo + '/' + GITHUB.branch + '/' + CONFIG.uploadPath + '/' + item.path
+      localStorage.setItem('viewerState', JSON.stringify({ path: item.path, name: item.name, mimeType: item.mimeType, rawUrl: rawUrl }))
     }
 
     function closeViewer() {
-      const viewer = document.getElementById('fileViewer');
-      if (viewer) viewer.classList.remove('active');
-      document.body.style.overflow = '';
-      if (document.fullscreenElement) document.exitFullscreen();
-      const body = document.getElementById('viewerBody');
-      if (body) body.innerHTML = '';
+      const viewer = document.getElementById('fileViewer')
+      if (viewer) viewer.classList.remove('active')
+      document.body.style.overflow = ''
+      if (document.fullscreenElement) document.exitFullscreen()
+      const body = document.getElementById('viewerBody')
+      if (body) body.innerHTML = ''
+      localStorage.removeItem('viewerState')
     }
 
-    // ========== PDF VIEWER (Adobe PDF Embed API — Edge-like) ==========
-    let pdfFilePath = '';
+    try {
+      var vs = JSON.parse(localStorage.getItem('viewerState'))
+      if (vs && vs.path) { window.location.href = 'index.html' }
+    } catch(e) {}
 
+    let pdfFilePath = ''
     function openPdfViewer(url, container, filePath) {
-      pdfFilePath = filePath || '';
-      const fileName = filePath ? filePath.split('/').pop() : 'document.pdf';
-      const pdfId = filePath || fileName;
-
-      container.innerHTML = '<div class="adobe-pdf-wrapper"><div id="adobe-dc-view"></div></div>';
+      pdfFilePath = filePath || ''
+      const fileName = filePath ? filePath.split('/').pop() : 'document.pdf'
+      const pdfId = filePath || fileName
+      container.innerHTML = '<div class="adobe-pdf-wrapper" style="position:relative;height:100%"><div id="adobe-dc-view"></div><div style="position:absolute;top:4px;left:4px;display:flex;gap:4px;z-index:10">
+        <button id="pdfDlBtn" class="btn btn-sm" title="Save to device" style="background:#000;color:#fff;border:none;font-size:.72rem;padding:4px 8px;border-radius:4px"><i class="fas fa-download"></i> Save</button><button class="btn btn-sm" title="Close" onclick="closeViewer()" style="background:#000;color:#fff;border:none;font-size:.72rem;padding:4px 8px;border-radius:4px;min-width:30px"><i class="fas fa-times"></i></button></div></div>'
 
       function initAdobe() {
-        var adobeDCView = new AdobeDC.View({
-          clientId: CONFIG.adobeClientId,
-          divId: 'adobe-dc-view'
-        });
-
+        var adobeDCView = new AdobeDC.View({ clientId: CONFIG.adobeClientId, divId: 'adobe-dc-view' })
         var previewConfig = {
-          embedMode: 'FULL_WINDOW',
-          defaultViewMode: 'FIT_WIDTH',
-          showDownloadPDF: true,
-          showPrintPDF: true,
-          showAnnotationTools: true,
-          enableAnnotationAPIs: true,
-          includeAnnotationAPIs: true,
-          showLeftHandPanel: true,
-          showPageControls: true,
-          showFullScreenViewButton: true,
-          enableFormFilling: true,
-          showToolbarPDF: true
-        };
-
-        var contentConfig = { location: { url: url } };
-
-        adobeDCView.previewFile(
-          { content: contentConfig, metaData: { fileName: fileName, id: pdfId } },
-          previewConfig
-        ).catch(function(err) {
-          console.error('Adobe PDF viewer error:', err);
-          container.innerHTML = '<div class="viewer-fallback">' +
-            '<i class="fas fa-exclamation-triangle" style="font-size:2rem;color:var(--warning);margin-bottom:12px"></i>' +
-            '<p>Could not load PDF viewer.</p>' +
-            '<a href="' + url + '" target="_blank" class="btn btn-sm" style="margin-top:12px"><i class="fas fa-external-link-alt"></i> Open in new tab</a>' +
-            '</div>';
-        });
+          embedMode: 'FULL_WINDOW', defaultViewMode: 'FIT_WIDTH',
+          showDownloadPDF: true, showPrintPDF: true, showAnnotationTools: true,
+          enableAnnotationAPIs: true, includeAnnotationAPIs: true,
+          showLeftHandPanel: true, showPageControls: true,
+          showFullScreenViewButton: true, enableFormFilling: true, showToolbarPDF: true
+        }
+        var contentConfig = { location: { url: url } }
+        adobeDCView.previewFile({ content: contentConfig, metaData: { fileName: fileName, id: pdfId } }, previewConfig)
+          .catch(function(err) {
+            console.error('Adobe PDF viewer error:', err)
+            container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-exclamation-triangle" style="font-size:2rem;color:var(--warning);margin-bottom:12px"></i><p>Could not load PDF viewer.</p><a href="' + url + '" target="_blank" class="btn btn-sm" style="margin-top:12px"><i class="fas fa-external-link-alt"></i> Open in new tab</a></div>'
+          })
       }
 
-      if (window.AdobeDC) {
-        initAdobe();
-      } else {
-        document.addEventListener('adobe_dc_view_sdk.ready', initAdobe, { once: true });
-      }
+      if (window.AdobeDC) { initAdobe() } else { document.addEventListener('adobe_dc_view_sdk.ready', initAdobe, { once: true }) }
     }
 
-    // ========== IMAGE VIEWER ==========
-    let imgZoom = 100, imgRotation = 0;
+    let imgZoom = 100, imgRotation = 0
     function openImageViewer(url, name, container) {
-      imgZoom = 100; imgRotation = 0;
-      container.innerHTML = `<div class="image-viewer-container">
-        <div class="image-toolbar">
-          <button class="btn btn-sm" onclick="imgZoomOut()"><i class="fas fa-minus"></i></button>
-          <span id="imgZoomInfo">100%</span>
-          <button class="btn btn-sm" onclick="imgZoomIn()"><i class="fas fa-plus"></i></button>
-          <button class="btn btn-sm" onclick="imgFit()"><i class="fas fa-expand"></i> Fit</button>
-          <button class="btn btn-sm" onclick="imgRotate()"><i class="fas fa-redo"></i></button>
-        </div>
-        <div class="image-scroll-area" id="imageScrollArea">
-          <img id="viewerImage" src="${url}" alt="${esc(name)}" />
-        </div>
-      </div>`;
+      imgZoom = 100; imgRotation = 0
+      container.innerHTML = '<div class="image-viewer-container"><div class="image-toolbar"><button class="btn btn-sm" onclick="imgZoomOut()"><i class="fas fa-minus"></i></button><span id="imgZoomInfo">100%</span><button class="btn btn-sm" onclick="imgZoomIn()"><i class="fas fa-plus"></i></button><button class="btn btn-sm" onclick="imgFit()"><i class="fas fa-expand"></i> Fit</button><button class="btn btn-sm" onclick="imgRotate()"><i class="fas fa-redo"></i></button></div><div class="image-scroll-area" id="imageScrollArea"><img id="viewerImage" src="' + url + '" alt="' + esc(name) + '" /></div></div>'
     }
-    function imgZoomIn() { imgZoom = Math.min(imgZoom + 15, 300); applyImgTransform(); }
-    function imgZoomOut() { imgZoom = Math.max(imgZoom - 15, 20); applyImgTransform(); }
-    function imgFit() { imgZoom = 100; imgRotation = 0; applyImgTransform(); }
-    function imgRotate() { imgRotation = (imgRotation + 90) % 360; applyImgTransform(); }
+    function imgZoomIn() { imgZoom = Math.min(imgZoom + 15, 300); applyImgTransform() }
+    function imgZoomOut() { imgZoom = Math.max(imgZoom - 15, 20); applyImgTransform() }
+    function imgFit() { imgZoom = 100; imgRotation = 0; applyImgTransform() }
+    function imgRotate() { imgRotation = (imgRotation + 90) % 360; applyImgTransform() }
     function applyImgTransform() {
-      const img = document.getElementById('viewerImage');
-      if (img) img.style.transform = `scale(${imgZoom / 100}) rotate(${imgRotation}deg)`;
-      const info = document.getElementById('imgZoomInfo');
-      if (info) info.textContent = Math.round(imgZoom) + '%';
+      const img = document.getElementById('viewerImage')
+      if (img) img.style.transform = 'scale(' + (imgZoom / 100) + ') rotate(' + imgRotation + 'deg)'
+      const info = document.getElementById('imgZoomInfo')
+      if (info) info.textContent = Math.round(imgZoom) + '%'
     }
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeViewer();
-    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeViewer() })
   </script>
-  <!-- Cloudflare Web Analytics -->
-  <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "11869d2b319c4c469c6d30c774151412"}'></script>
-  <!-- End Cloudflare Web Analytics -->
-  <!-- Microsoft Clarity -->
-  <script>
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "xpr3gjs6nb");
-  </script>
-  <!-- End Microsoft Clarity -->
 </body>
 </html>

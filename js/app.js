@@ -12,9 +12,27 @@ document.addEventListener('DOMContentLoaded', () => {
   registerSW();
   waitForDB().then(() => {
     loadRecentReads();
-    loadSemesters().then(() => populateYearSelect());
+    loadSemesters().then(() => {
+      populateYearSelect();
+      restoreViewerState();
+    });
   });
   setupEventListeners();
+});
+
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) {
+    loadTheme();
+    localStorage.removeItem('viewerState');
+    localStorage.removeItem('viewerPdfPage');
+    var fv = document.getElementById('fileViewer');
+    if (fv && fv.classList.contains('active')) {
+      fv.classList.remove('active');
+      document.body.style.overflow = '';
+      var vb = document.getElementById('viewerBody');
+      if (vb) vb.innerHTML = '';
+    }
+  }
 });
 
 function waitForDB() {
@@ -617,6 +635,9 @@ function openViewer(item) {
   document.getElementById('viewerDownloadBtn').onclick = () => downloadToCache(item.path, item.name, item.mimeType);
   document.getElementById('viewerSaveAsBtn').onclick = () => saveAsFile(item.path, item.name);
 
+  const isPdf = item.mimeType === 'pdf';
+  document.querySelector('.viewer-header').style.display = isPdf ? 'none' : '';
+
   const id = DB.makeId(item.path);
   DB.cacheGet(id).then(cached => {
     if (cached && cached.blob) {
@@ -628,7 +649,7 @@ function openViewer(item) {
     }
   });
 
-  if (item.mimeType === 'pdf') openPdfViewer(item.rawUrl, viewerBody, item.path);
+  if (isPdf) openPdfViewer(item.rawUrl, viewerBody, item.path);
   else if (item.mimeType === 'image') openImageViewer(item.rawUrl, item.name, viewerBody);
   else if (item.mimeType === 'doc') openDocViewer(item.rawUrl, viewerBody);
   else {
@@ -641,6 +662,9 @@ function openViewer(item) {
 
   viewer.classList.add('active');
   document.body.style.overflow = 'hidden';
+  const pdfDl = document.getElementById('pdfDlBtn');
+  if (pdfDl) pdfDl.onclick = () => downloadToCache(item.path, item.name, item.mimeType);
+  localStorage.setItem('viewerState', JSON.stringify({ path: item.path, name: item.name, mimeType: item.mimeType, rawUrl: item.rawUrl }));
   DB.historyAdd(item).then(() => loadRecentReads());
 }
 
@@ -655,8 +679,11 @@ function openViewerFromBlob(item, blob) {
   document.getElementById('viewerSaveAsBtn').style.display = '';
   document.getElementById('viewerSaveAsBtn').onclick = () => saveAsFile(item.path, item.name);
 
+  const isPdf = item.mimeType === 'pdf';
+  document.querySelector('.viewer-header').style.display = isPdf ? 'none' : '';
+
   const url = URL.createObjectURL(blob);
-  if (item.mimeType === 'pdf') openPdfViewer(url, viewerBody, item.path);
+  if (isPdf) openPdfViewer(url, viewerBody, item.path);
   else if (item.mimeType === 'image') openImageViewer(url, item.name, viewerBody);
   else {
     viewerBody.innerHTML = `<div class="viewer-fallback">
@@ -666,6 +693,9 @@ function openViewerFromBlob(item, blob) {
   }
   viewer.classList.add('active');
   document.body.style.overflow = 'hidden';
+  const pdfDl = document.getElementById('pdfDlBtn');
+  if (pdfDl) pdfDl.onclick = () => saveAsFile(item.path, item.name);
+  localStorage.setItem('viewerState', JSON.stringify({ path: item.path, name: item.name, mimeType: item.mimeType, rawUrl: item.rawUrl }));
 }
 
 function closeViewer() {
@@ -676,12 +706,36 @@ function closeViewer() {
   if (document.fullscreenElement) document.exitFullscreen();
   const body = document.getElementById('viewerBody');
   if (body) body.innerHTML = '';
+  localStorage.removeItem('viewerState');
+  localStorage.removeItem('viewerPdfPage');
+  pdfViewInstance = null;
+  if (window._pdfPageInterval) { clearInterval(window._pdfPageInterval); window._pdfPageInterval = null; }
 }
 
-// ========== PDF VIEWER (Adobe PDF Embed API with annotations toggle) ==========
+function restoreViewerState() {
+  try {
+    var nav = performance.getEntriesByType('navigation');
+    var navType = nav.length ? nav[0].type : 'navigate';
+    if (navType === 'back_forward') {
+      localStorage.removeItem('viewerState');
+      localStorage.removeItem('viewerPdfPage');
+      return;
+    }
+    const state = JSON.parse(localStorage.getItem('viewerState'));
+    if (!state || !state.path) return;
+    const item = {
+      path: state.path,
+      name: state.name,
+      mimeType: state.mimeType,
+      rawUrl: state.rawUrl
+    };
+    openViewer(item);
+  } catch {}
+}
+
+// ========== PDF VIEWER (Adobe PDF Embed API) ==========
 let pdfFilePath = '';
-let adobeDCView = null;
-let pdfAnnotationsEnabled = true;
+let pdfViewInstance = null;
 
 function openPdfViewer(url, container, filePath) {
   pdfFilePath = filePath || '';
@@ -690,18 +744,17 @@ function openPdfViewer(url, container, filePath) {
 
   container.innerHTML = `<div class="adobe-pdf-wrapper" style="position:relative;height:100%">
     <div id="adobe-dc-view"></div>
-    <button id="annotationToggleBtn" class="btn btn-sm" style="position:absolute;top:8px;right:8px;z-index:10;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:.72rem">
-      <i class="fas fa-pen"></i> <span id="annotationToggleLabel">Annotate: On</span>
-    </button>
+    <div style="position:absolute;top:4px;left:4px;display:flex;gap:4px;z-index:10; background:#000;border-radius:4px">
+    <button id="pdfCloseBtn" class="btn nav-link" title="Close" onclick="closeViewer()" style="background:#FF0000;color:fff;border:none;font-size:1rem;padding:10px;border-radius:4px;"><i class="fas fa-times"></i></button>
+      <button id="pdfDlBtn" class="btn btn-sm" title="Download" style="background:#000;color:#fff;border:none;font-size:.72rem;padding:4px 8px;border-radius:4px"><i class="fas fa-download"></i> Download</button>
+    </div>
   </div>`;
 
   function initAdobe() {
-    adobeDCView = new AdobeDC.View({
+    pdfViewInstance = new AdobeDC.View({
       clientId: CONFIG.adobeClientId,
       divId: 'adobe-dc-view'
     });
-
-    pdfAnnotationsEnabled = true;
 
     var previewConfig = {
       embedMode: 'FULL_WINDOW',
@@ -720,11 +773,25 @@ function openPdfViewer(url, container, filePath) {
 
     var contentConfig = { location: { url: url } };
 
-    adobeDCView.previewFile(
+    pdfViewInstance.previewFile(
       { content: contentConfig, metaData: { fileName: fileName, id: pdfId } },
       previewConfig
     ).then(function() {
-      setupAnnotationToggle(adobeDCView);
+      var savedPage = localStorage.getItem('viewerPdfPage');
+      if (savedPage && pdfViewInstance && pdfViewInstance.gotoPage) {
+        setTimeout(function() {
+          pdfViewInstance.gotoPage(parseInt(savedPage, 10));
+        }, 500);
+      }
+
+      if (window._pdfPageInterval) clearInterval(window._pdfPageInterval);
+      window._pdfPageInterval = setInterval(function() {
+        if (pdfViewInstance && pdfViewInstance.getCurrentPage) {
+          pdfViewInstance.getCurrentPage().then(function(page) {
+            localStorage.setItem('viewerPdfPage', page.toString());
+          }).catch(function(){});
+        }
+      }, 3000);
     }).catch(function(err) {
       console.error('Adobe PDF viewer error:', err);
       container.innerHTML = '<div class="viewer-fallback">' +
@@ -740,18 +807,6 @@ function openPdfViewer(url, container, filePath) {
   } else {
     document.addEventListener('adobe_dc_view_sdk.ready', initAdobe, { once: true });
   }
-}
-
-function setupAnnotationToggle(view) {
-  var btn = document.getElementById('annotationToggleBtn');
-  if (!btn) return;
-  btn.onclick = function() {
-    pdfAnnotationsEnabled = !pdfAnnotationsEnabled;
-    document.getElementById('annotationToggleLabel').textContent = 'Annotate: ' + (pdfAnnotationsEnabled ? 'On' : 'Off');
-    if (view && view.setTheme) {
-      view.setAnnotationManagerVisibility(pdfAnnotationsEnabled);
-    }
-  };
 }
 
 // ========== IMAGE VIEWER ==========
