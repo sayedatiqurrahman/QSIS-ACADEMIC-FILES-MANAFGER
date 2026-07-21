@@ -14,6 +14,7 @@
  * @property {string} session    - e.g. 2025-2026
  * @property {string} type       - "class"|"exam"
  * @property {string} status     - "draft"|"published"|"archived"
+ * @property {string} room       - room number (class routines, shared by all entries)
  * @property {number} createdAt
  * @property {number} updatedAt
  *
@@ -397,7 +398,7 @@ function renderClassTable(r) {
     <div class="header-info">
       <h1>International Islamic University Chittagong</h1>
       <h2>Department of Qur'anic Sciences & Islamic Studies</h2>
-      <div class="sub"><span>Class Routine</span><span>Semester: ${esc(sLabel)}</span><span>Session: ${esc(m.session || '—')}</span><span>Updated: ${new Date(m.updatedAt).toLocaleDateString()}</span></div>
+      <div class="sub"><span>Class Routine</span><span>Semester: ${esc(sLabel)}</span>${m.room ? `<span>Room: ${esc(m.room)}</span>` : ''}<span>Session: ${esc(m.session || '—')}</span><span>Updated: ${new Date(m.updatedAt).toLocaleDateString()}</span></div>
     </div>
   </div>`
 
@@ -436,7 +437,7 @@ function renderClassTable(r) {
           <div class="code">${esc(e.code)}</div>
           <div class="subject">${esc(e.subject)}</div>
           <div class="teacher">${esc(e.teacher)}</div>
-          ${e.room ? `<div class="room">Room ${esc(e.room)}</div>` : ''}
+          ${m.room ? `<div class="room">Room ${esc(m.room)}</div>` : ''}
           ${e.section ? `<span class="badge" style="background:${e.color || '#1b7d3b'}">${esc(e.section)}</span>` : ''}
           <div class="actions">
             <button onclick="RManager.modalOpen('edit','${r.meta.id}')" style="background:#1b7d3b" title="Edit">✎</button>
@@ -585,7 +586,7 @@ RManager.buildForm = function(mode, existing) {
       </div>
       <div class="form-group" style="min-width:140px">
         <label>Type</label>
-        <select name="type" required ${mode === 'edit' ? 'disabled' : ''}>
+        <select name="type" required ${mode === 'edit' ? 'disabled' : ''} onchange="document.getElementById('roomFieldRow').style.display=this.value==='exam'?'none':'flex'">
           <option value="class" ${m.type === 'exam' ? '' : 'selected'} ${!mode ? 'selected' : ''}>Class Routine</option>
           <option value="exam" ${m.type === 'exam' ? 'selected' : ''}>Exam Schedule</option>
         </select>
@@ -605,7 +606,13 @@ RManager.buildForm = function(mode, existing) {
       </div>
     </div>
 
-    <hr style="border:none;border-top:1px solid var(--border);margin:4px 0" />`
+    <hr style="border:none;border-top:1px solid var(--border);margin:4px 0" />
+    <div class="form-row-inline" id="roomFieldRow" ${!isClass ? 'style="display:none"' : ''}>
+      <div class="form-group" style="min-width:160px">
+        <label>Room Number</label>
+        <input name="room" value="${esc(m.room || '')}" placeholder="e.g. 401" />
+      </div>
+    </div>`
 
   if (mode === 'edit') {
     if (isClass) {
@@ -642,7 +649,6 @@ RManager.buildClassEntryForm = function(r) {
         <div style="flex:1;min-width:80px"><input name="entryCode${i}" value="${esc(e.code)}" placeholder="Code" /></div>
         <div style="flex:2;min-width:140px"><input name="entrySubject${i}" value="${esc(e.subject)}" placeholder="Subject" /></div>
         <div style="flex:1;min-width:100px"><input name="entryTeacher${i}" value="${esc(e.teacher)}" placeholder="Teacher" /></div>
-        <div style="flex:0 0 60px"><input name="entryRoom${i}" value="${esc(e.room || '')}" placeholder="Rm" /></div>
         <div style="flex:0 0 80px">
           <select name="entryBtype${i}">
             <option value="">Class</option>
@@ -710,7 +716,6 @@ RManager.addEntryRow = function(id) {
     <div style="flex:1;min-width:80px"><input name="entryCode${section.children.length}" placeholder="Code" /></div>
     <div style="flex:2;min-width:120px"><input name="entrySubject${section.children.length}" placeholder="Subject" /></div>
     <div style="flex:1;min-width:80px"><input name="entryTeacher${section.children.length}" placeholder="Teacher" /></div>
-    <div style="flex:0 0 60px"><input name="entryRoom${section.children.length}" placeholder="Rm" /></div>
     <button type="button" style="border:none;color:var(--danger);background:none;font-size:1.1rem;cursor:pointer" onclick="RManager.deleteEntryRow(this)">&times;</button>
   </div>`
   section.appendChild(div)
@@ -768,6 +773,7 @@ RManager.saveForm = function(e) {
 
     r.meta.title = fd.get('title')
     r.meta.session = fd.get('session')
+    r.meta.room = fd.get('room') || ''
     r.meta.updatedAt = Date.now()
 
     const newEntries = this.collectEntries(form, isClass, r.meta.type)
@@ -797,7 +803,8 @@ RManager.saveForm = function(e) {
       semester: sem,
       department: 'Qur\'anic Sciences & Islamic Studies',
       session,
-      type: rtype
+      type: rtype,
+      room: fd.get('room') || ''
     }
     this.create(meta, [])
     this.modalClose()
@@ -838,10 +845,9 @@ RManager.collectEntries = function(form, isClass) {
       const code = row.querySelector('[name^="entryCode"]')?.value || ''
       const subject = row.querySelector('[name^="entrySubject"]')?.value || ''
       const teacher = row.querySelector('[name^="entryTeacher"]')?.value || ''
-      const room = row.querySelector('[name^="entryRoom"]')?.value || ''
       const btype = row.querySelector('[name^="entryBtype"]')?.value || ''
       const color = row.querySelector('[name^="entryColor"]')?.value || ''
-      if (code || btype) entries.push({ day, time, code, subject, teacher, room, color, breakType: btype })
+      if (code || btype) entries.push({ day, time, code, subject, teacher, room: '', color, breakType: btype })
     })
   }
   return entries
