@@ -28,6 +28,53 @@ const Contributors = {
     }
   },
 
+  async fetchCommits() {
+    try {
+      const res = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/commits?per_page=100`);
+      if (!res.ok) throw new Error('Failed to fetch commits');
+      return await res.json();
+    } catch (err) {
+      return [];
+    }
+  },
+
+  assignRole(username) {
+    if (username === this.ownerLogin) return this.ownerDesignation
+    const lower = username.toLowerCase()
+    if (lower.includes('develop') || lower.includes('dev') || lower.includes('coder') || lower.includes('engineer') || lower.includes('programmer')) return 'Developer'
+    if (lower.includes('fix') || lower.includes('bug') || lower.includes('solve') || lower.includes('debug')) return 'Problem Solver'
+    return 'Academic Contributor'
+  },
+
+  getRoleFromCommits(username, commits) {
+    const userCommits = commits.filter(c =>
+      c.author && c.author.login === username
+    )
+    const messages = userCommits.map(c => c.commit.message.toLowerCase())
+
+    const hasDevWork = messages.some(m =>
+      m.includes('feat') || m.includes('feature') || m.includes('add') ||
+      m.includes('implement') || m.includes('build') || m.includes('setup') ||
+      m.includes('create') || m.includes('ui') || m.includes('frontend') ||
+      m.includes('backend') || m.includes('refactor') || m.includes('component') ||
+      m.includes('page') || m.includes('routine') || m.includes('route') ||
+      m.includes('pdf') || m.includes('download') || m.includes('viewer') ||
+      m.includes('deploy') || m.includes('workflow') || m.includes('ci') ||
+      m.includes('config') || m.includes('script') || m.includes('style') ||
+      m.includes('css') || m.includes('js')
+    )
+    if (hasDevWork) return 'Developer'
+
+    const hasBugFix = messages.some(m =>
+      m.includes('fix') || m.includes('bug') || m.includes('error') ||
+      m.includes('issue') || m.includes('broken') || m.includes('correct') ||
+      m.includes('repair') || m.includes('duplicate') || m.includes('missing')
+    )
+    if (hasBugFix) return 'Problem Solver'
+
+    return 'Academic Contributor'
+  },
+
   renderOwnerProfile() {
     return `
       <div class="contributor-card owner-card">
@@ -40,49 +87,67 @@ const Contributors = {
             <i class="fab fa-github"></i> @${this.ownerLogin}
           </a>
         </div>
-      </div>`;
+      </div>`
   },
 
-  renderContributor(c) {
-    const isOwner = c.login === this.ownerLogin;
-    if (isOwner) return '';
+  renderContributor(c, role) {
+    if (c.login === this.ownerLogin) return ''
+    const roleColors = {
+      'Developer': 'var(--primary)',
+      'Problem Solver': '#f59e0b',
+      'Academic Contributor': '#3b82f6'
+    }
+    const color = roleColors[role] || 'var(--text2)'
+    const roleIcons = {
+      'Developer': 'fa-code',
+      'Problem Solver': 'fa-wrench',
+      'Academic Contributor': 'fa-graduation-cap'
+    }
     return `
       <div class="contributor-card">
         <img src="${c.avatar_url}" alt="${c.login}" class="contributor-avatar" loading="lazy" />
         <div class="contributor-info">
           <div class="contributor-name">${c.login}</div>
+          <div class="contributor-role" style="color:${color}"><i class="fas ${roleIcons[role] || 'fa-user'}"></i> ${role}</div>
           <div class="contributor-commits"><i class="fas fa-code-commit"></i> ${c.contributions} contribution${c.contributions !== 1 ? 's' : ''}</div>
           <a href="${c.html_url}" target="_blank" class="contributor-github">
             <i class="fab fa-github"></i> View Profile
           </a>
         </div>
-      </div>`;
+      </div>`
   },
 
   async renderSection() {
-    const grid = document.getElementById('contributorsGrid');
-    const countEl = document.getElementById('contributorsCount');
-    if (!grid) return;
+    const grid = document.getElementById('contributorsGrid')
+    const countEl = document.getElementById('contributorsCount')
+    if (!grid) return
 
-    const contributors = await this.fetchContributors();
+    const [contributors, commits] = await Promise.all([
+      this.fetchContributors(),
+      this.fetchCommits()
+    ])
+
     if (!contributors.length) {
-      grid.innerHTML = '<div class="loading-cell"><i class="fas fa-users"></i> No contributors found yet. Be the first!</div>';
-      return;
+      grid.innerHTML = '<div class="loading-cell"><i class="fas fa-users"></i> No contributors found yet. Be the first!</div>'
+      return
     }
 
-    if (countEl) countEl.textContent = contributors.length;
+    if (countEl) countEl.textContent = contributors.length
 
-    const ownerHtml = this.renderOwnerProfile();
-    const contribHtml = contributors.map(c => this.renderContributor(c)).filter(Boolean).join('');
+    const ownerHtml = this.renderOwnerProfile()
+    const contribHtml = contributors.map(c => {
+      const role = this.getRoleFromCommits(c.login, commits)
+      return this.renderContributor(c, role)
+    }).filter(Boolean).join('')
 
-    grid.innerHTML = ownerHtml + contribHtml;
+    grid.innerHTML = ownerHtml + contribHtml
   },
 
   async renderStarBadge() {
-    const starCount = await this.fetchStarCount();
-    const el = document.getElementById('githubStars');
-    const navEl = document.getElementById('navStars');
-    if (el) el.textContent = starCount.toLocaleString();
-    if (navEl) navEl.textContent = starCount.toLocaleString();
+    const starCount = await this.fetchStarCount()
+    const el = document.getElementById('githubStars')
+    const navEl = document.getElementById('navStars')
+    if (el) el.textContent = starCount.toLocaleString()
+    if (navEl) navEl.textContent = starCount.toLocaleString()
   }
-};
+}

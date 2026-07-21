@@ -1,80 +1,41 @@
 const ROUTINE = {
   days: ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'],
-  defaultSlots: [
-    '8:00-8:55', '9:00-9:55', '10:00-10:55', '11:00-11:55',
-    '12:00-12:55', '1:00-1:55', '2:00-2:55', '3:00-3:55', '4:00-4:55'
-  ],
   storageKey: 'qsis_routine_data',
 
   getData() {
     try { return JSON.parse(localStorage.getItem(this.storageKey)) || {} }
     catch { return {} }
   },
-
-  saveData(data) {
-    localStorage.setItem(this.storageKey, JSON.stringify(data))
-  },
+  saveData(data) { localStorage.setItem(this.storageKey, JSON.stringify(data)) },
 
   getRoutines(semId) {
-    return this.getData()[semId] || { slots: [...this.defaultSlots], classes: [] }
+    return this.getData()[semId] || { entries: [] }
   },
-
   saveRoutines(semId, routines) {
     const data = this.getData()
     data[semId] = routines
     this.saveData(data)
   },
-
   addClass(semId, entry) {
     const routines = this.getRoutines(semId)
     entry.id = Date.now()
-    routines.classes.push(entry)
+    routines.entries.push(entry)
     this.saveRoutines(semId, routines)
   },
-
   removeClass(semId, id) {
     const routines = this.getRoutines(semId)
-    routines.classes = routines.classes.filter(c => c.id !== id)
-    this.saveRoutines(semId, routines)
-  },
-
-  updateSlot(semId, oldSlot, newSlot) {
-    const routines = this.getRoutines(semId)
-    const idx = routines.slots.indexOf(oldSlot)
-    if (idx > -1) routines.slots[idx] = newSlot
-    routines.classes.forEach(c => { if (c.slot === oldSlot) c.slot = newSlot })
-    this.saveRoutines(semId, routines)
-  },
-
-  addSlot(semId, slot) {
-    const routines = this.getRoutines(semId)
-    if (!routines.slots.includes(slot)) routines.slots.push(slot)
-    this.saveRoutines(semId, routines)
-  },
-
-  removeSlot(semId, slot) {
-    const routines = this.getRoutines(semId)
-    routines.slots = routines.slots.filter(s => s !== slot)
-    routines.classes = routines.classes.filter(c => c.slot !== slot)
+    routines.entries = routines.entries.filter(c => c.id !== id)
     this.saveRoutines(semId, routines)
   },
 
   // ---- Exam Schedule ----
   storageKeyExam: 'qsis_exam_data',
-
   getExamData() {
     try { return JSON.parse(localStorage.getItem(this.storageKeyExam)) || {} }
     catch { return {} }
   },
-
-  saveExamData(data) {
-    localStorage.setItem(this.storageKeyExam, JSON.stringify(data))
-  },
-
-  getExams(semId) {
-    return this.getExamData()[semId] || []
-  },
-
+  saveExamData(data) { localStorage.setItem(this.storageKeyExam, JSON.stringify(data)) },
+  getExams(semId) { return this.getExamData()[semId] || [] },
   addExam(semId, exam) {
     const data = this.getExamData()
     if (!data[semId]) data[semId] = []
@@ -82,7 +43,6 @@ const ROUTINE = {
     data[semId].push(exam)
     this.saveExamData(data)
   },
-
   removeExam(semId, id) {
     const data = this.getExamData()
     if (data[semId]) data[semId] = data[semId].filter(e => e.id !== id)
@@ -111,39 +71,28 @@ function renderRoutine(semId) {
   if (printLabel) printLabel.textContent = semId ? semLabelFromId(semId) : '-'
   const sel = document.getElementById('routineSemester')
   if (sel) document.getElementById('currentSemesterLabel').textContent = sel.options[sel.selectedIndex]?.text || ''
-  const routines = ROUTINE.getRoutines(semId)
-  const days = ROUTINE.days
-  const slots = routines.slots
 
-  if (!slots.length) {
-    container.innerHTML = '<div class="empty-state"><i class="fas fa-clock"></i><p>Add time slots and classes above.</p></div>'
+  const routines = ROUTINE.getRoutines(semId)
+
+  // Group entries by day then time
+  if (!routines.entries.length) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-clock"></i><p>No classes added yet. Use the form above to add one.</p></div>'
     return
   }
 
-  let html = `<div class="timetable-wrapper"><table class="timetable"><thead><tr><th class="time-col">Time</th>`
-  days.forEach(d => { html += `<th>${d}</th>` })
-  html += `</tr></thead><tbody>`
+  let html = `<div class="timetable-wrapper"><table class="timetable"><thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Code</th><th>Teacher</th><th></th></tr></thead><tbody>`
 
-  slots.forEach(slot => {
-    html += `<tr><td class="time-col">${esc(slot)}</td>`
-    days.forEach(day => {
-      const cls = routines.classes.filter(c => c.day === day && c.slot === slot)
-      if (cls.length) {
-        html += `<td class="has-class">`
-        cls.forEach(c => {
-          html += `<div class="class-entry" title="Teacher: ${esc(c.teacher)}, Room: ${esc(c.room)}">
-            <span class="class-subject">${esc(c.subject)}</span>
-            <span class="class-meta">${esc(c.teacher)} · ${esc(c.room)}</span>
-            <span class="class-type ${c.type === 'Lab' ? 'lab' : 'lecture'}">${esc(c.type)}</span>
-            <button class="class-del" onclick="removeClass(\'${semId}\',${c.id})" title="Remove">×</button>
-          </div>`
-        })
-        html += `</td>`
-      } else {
-        html += `<td class="empty-slot"></td>`
-      }
-    })
-    html += `</tr>`
+  routines.entries.sort((a, b) => ROUTINE.days.indexOf(a.day) - ROUTINE.days.indexOf(b.day) || a.time.localeCompare(b.time))
+
+  routines.entries.forEach(c => {
+    html += `<tr>
+      <td>${c.day}</td>
+      <td>${esc(c.time)}</td>
+      <td>${esc(c.subject)}</td>
+      <td>${esc(c.code)}</td>
+      <td>${esc(c.teacher)}</td>
+      <td><button class="class-del" onclick="removeClass(\'${semId}\',${c.id})" title="Remove">×</button></td>
+    </tr>`
   })
 
   html += `</tbody></table></div>`
@@ -151,9 +100,10 @@ function renderRoutine(semId) {
 }
 
 function removeClass(semId, id) {
-  if (!confirm('Remove this class entry?')) return
+  if (!confirm('Remove this entry?')) return
   ROUTINE.removeClass(semId, id)
   renderRoutine(semId)
+  renderExamSchedule(document.getElementById('routineSemester').value)
 }
 
 function renderExamSchedule(semId) {
@@ -161,30 +111,50 @@ function renderExamSchedule(semId) {
   if (!container) return
   const printLabel = document.getElementById('printExamSemLabel')
   if (printLabel) printLabel.textContent = semId ? semLabelFromId(semId) : '-'
+
   const exams = ROUTINE.getExams(semId)
 
   if (!exams.length) {
-    container.innerHTML = `<div class="empty-state"><i class="fas fa-calendar-alt"></i><p>No exams scheduled yet. Add one above.</p></div>`
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-alt"></i><p>No exams added yet. Use the form above to add one.</p></div>'
     return
   }
 
-  let html = `<div class="exam-list">`
-  exams.sort((a, b) => new Date(a.startDate) - new Date(b.startDate)).forEach(e => {
-    html += `<div class="exam-card">
-      <div class="exam-header">
-        <strong>${esc(e.name)}</strong>
-        <button class="exam-del" onclick="removeExam(\'${semId}\',${e.id})" title="Remove">×</button>
-      </div>
-      <div class="exam-dates">${esc(e.startDate)} → ${esc(e.endDate)}</div>
-      <div class="exam-subjects">${esc(e.subjects)}</div>
-    </div>`
-  })
-  html += `</div>`
-  container.innerHTML = html
+  // Group by shift
+  const shifts = { 1: [], 2: [] }
+  exams.forEach(e => { shifts[e.shift] ? shifts[e.shift].push(e) : (shifts[e.shift]=[e]) })
+
+  let html = ''
+  if (shifts[1].length) {
+    html += `<h4 style="margin:0 0 8px;font-size:.85rem;color:var(--accent)"><i class="fas fa-sun"></i> Shift 1 (9:30 AM)</h4><div class="exam-list">`
+    shifts[1].sort((a,b) => a.day.localeCompare(b.day)).forEach(e => {
+      html += renderExamCard(semId, e)
+    })
+    html += `</div>`
+  }
+  if (shifts[2].length) {
+    html += `<h4 style="margin:16px 0 8px;font-size:.85rem;color:var(--primary)"><i class="fas fa-moon"></i> Shift 2 (2:00 PM)</h4><div class="exam-list">`
+    shifts[2].sort((a,b) => a.day.localeCompare(b.day)).forEach(e => {
+      html += renderExamCard(semId, e)
+    })
+    html += `</div>`
+  }
+
+  container.innerHTML = html || '<div class="empty-state"><i class="fas fa-calendar-alt"></i><p>No exams added yet.</p></div>'
+}
+
+function renderExamCard(semId, e) {
+  return `<div class="exam-card">
+    <div class="exam-header">
+      <strong>${e.day}</strong>
+      <button class="exam-del" onclick="removeExam(\'${semId}\',${e.id})" title="Remove">×</button>
+    </div>
+    <div class="exam-dates">⏰ ${e.time}</div>
+    <div class="exam-subjects">${esc(e.subject)} · ${esc(e.code)}</div>
+  </div>`
 }
 
 function removeExam(semId, id) {
-  if (!confirm('Remove this exam schedule?')) return
+  if (!confirm('Remove this exam entry?')) return
   ROUTINE.removeExam(semId, id)
   renderExamSchedule(semId)
 }
@@ -193,7 +163,8 @@ function loadRoutine() {
   const semSelect = document.getElementById('routineSemester')
   if (!semSelect) return
   const semId = semSelect.value
-  document.getElementById('currentSemesterLabel').textContent = semSelect.options[semSelect.selectedIndex].text
+  const label = semSelect.options[semSelect.selectedIndex]?.text || ''
+  document.getElementById('currentSemesterLabel').textContent = label
   renderRoutine(semId)
   renderExamSchedule(semId)
 }
@@ -202,7 +173,6 @@ async function initRoutinePage() {
   const semSelect = document.getElementById('routineSemester')
   if (!semSelect) return
 
-  // Load semesters from GitHub
   try {
     const tree = await GITHUB.getUploadTree(true)
     const semIds = [...new Set(tree.tree.map(i => i.path.split('/')[0]).filter(Boolean))].sort()
@@ -214,7 +184,6 @@ async function initRoutinePage() {
     })
     if (semIds.length) semSelect.value = semIds[0]
   } catch {
-    // fallback: use config semesters
     CONFIG.semesters.forEach(s => {
       const opt = document.createElement('option')
       opt.value = s.id
@@ -226,7 +195,7 @@ async function initRoutinePage() {
   semSelect.addEventListener('change', loadRoutine)
   loadRoutine()
 
-  // Add class form
+  // Class routine form
   const form = document.getElementById('addClassForm')
   if (form) {
     form.addEventListener('submit', e => {
@@ -235,46 +204,34 @@ async function initRoutinePage() {
       const data = new FormData(form)
       ROUTINE.addClass(semId, {
         day: data.get('day'),
-        slot: data.get('slot'),
+        time: data.get('time'),
         subject: data.get('subject'),
-        teacher: data.get('teacher'),
-        room: data.get('room'),
-        type: data.get('type')
+        code: data.get('code'),
+        teacher: data.get('teacher')
       })
       form.reset()
       loadRoutine()
     })
   }
 
-  // Add exam form
+  // Exam form
   const examForm = document.getElementById('addExamForm')
   if (examForm) {
     examForm.addEventListener('submit', e => {
       e.preventDefault()
       const semId = semSelect.value
       const data = new FormData(examForm)
+      const shift = data.get('shift')
+      const time = shift === '2' ? '2:00 PM' : '9:30 AM'
       ROUTINE.addExam(semId, {
-        name: data.get('examName'),
-        startDate: data.get('examStart'),
-        endDate: data.get('examEnd'),
-        subjects: data.get('examSubjects')
+        shift: parseInt(shift),
+        day: data.get('examDay'),
+        time: time,
+        subject: data.get('examSubject'),
+        code: data.get('examCode')
       })
       examForm.reset()
       loadRoutine()
-    })
-  }
-
-  // Time slot management
-  const addSlotBtn = document.getElementById('addSlotBtn')
-  if (addSlotBtn) {
-    addSlotBtn.addEventListener('click', () => {
-      const semId = semSelect.value
-      const input = document.getElementById('newSlotInput')
-      if (input.value.trim()) {
-        ROUTINE.addSlot(semId, input.value.trim())
-        input.value = ''
-        loadRoutine()
-      }
     })
   }
 

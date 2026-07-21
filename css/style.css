@@ -372,24 +372,15 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 .form-row select, .form-row input { padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text); font-size:.8rem; flex:1; min-width:120px; }
 .form-row button { white-space:nowrap; }
 
-/* Timetable */
+/* Class routine table */
 .timetable-wrapper { overflow-x:auto; }
-.timetable { width:100%; border-collapse:collapse; font-size:.75rem; }
-.timetable th, .timetable td { border:1px solid var(--border); padding:6px; text-align:center; vertical-align:top; min-width:110px; }
-.timetable th { background:var(--bg3); color:var(--text2); font-weight:700; font-size:.72rem; text-transform:uppercase; padding:8px 6px; position:sticky; top:0; z-index:1; }
-.timetable .time-col { min-width:80px; font-weight:600; color:var(--text2); font-size:.7rem; white-space:nowrap; background:var(--bg3); }
-.timetable .empty-slot { background:var(--bg); }
-.timetable .has-class { background:rgba(34,197,94,.04); padding:3px; }
-.class-entry { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:6px 8px; margin-bottom:4px; text-align:left; position:relative; transition:all .2s; }
-.class-entry:hover { border-color:var(--primary); }
-.class-subject { display:block; font-weight:700; font-size:.78rem; color:var(--text); margin-bottom:2px; }
-.class-meta { display:block; font-size:.65rem; color:var(--text2); }
-.class-type { display:inline-block; padding:1px 6px; border-radius:4px; font-size:.62rem; font-weight:700; margin-top:3px; }
-.class-type.lecture { background:rgba(59,130,246,.12); color:#3b82f6; }
-.class-type.lab { background:rgba(245,158,11,.12); color:#f59e0b; }
-.class-del { position:absolute; top:2px; right:2px; background:none; border:none; color:var(--danger); cursor:pointer; font-size:.8rem; padding:2px 4px; border-radius:4px; opacity:0; transition:opacity .2s; }
-.class-entry:hover .class-del { opacity:1; }
-.class-del:hover { background:var(--danger); color:#fff; }
+.timetable { width:100%; border-collapse:collapse; font-size:.82rem; }
+.timetable th, .timetable td { border:1px solid var(--border); padding:8px 10px; text-align:left; }
+.timetable th { background:var(--bg3); color:var(--text2); font-weight:700; font-size:.75rem; text-transform:uppercase; position:sticky; top:0; z-index:1; }
+.timetable td:last-child, .timetable th:last-child { text-align:center; width:40px; }
+.timetable tr:hover td { background:var(--bg3); }
+.timetable .class-del { position:static; background:none; border:none; color:var(--danger); cursor:pointer; font-size:1rem; padding:2px 6px; border-radius:4px; opacity:.5; }
+.timetable .class-del:hover { opacity:1; background:var(--danger); color:#fff; }
 
 /* Exam Schedule */
 .exam-list { display:flex; flex-direction:column; gap:8px; }
@@ -399,8 +390,8 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
 .exam-header strong { font-size:.9rem; }
 .exam-del { background:none; border:none; color:var(--danger); cursor:pointer; font-size:1.1rem; padding:2px 6px; border-radius:4px; opacity:.6; }
 .exam-del:hover { opacity:1; background:var(--danger); color:#fff; }
-.exam-dates { font-size:.78rem; color:var(--text2); margin-bottom:4px; }
-.exam-dates::before { content:'\f073'; font-family:'Font Awesome 6 Free'; font-weight:400; margin-right:6px; color:var(--primary); }
+.exam-dates { font-size:.8rem; color:var(--text2); margin-bottom:4px; }
+.exam-subjects { font-size:.8rem; color:var(--text); }
 .exam-subjects { font-size:.78rem; color:var(--text); }
 
 .page-header { margin-bottom:20px; }

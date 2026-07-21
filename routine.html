@@ -99,7 +99,7 @@
           </div>
 
           <details class="routine-details">
-            <summary><i class="fas fa-plus-circle"></i> Add Class Entry</summary>
+            <summary><i class="fas fa-plus-circle"></i> Add Class</summary>
             <form id="addClassForm" class="routine-form">
               <div class="form-row">
                 <select name="day" required>
@@ -111,14 +111,10 @@
                   <option>Wednesday</option>
                   <option>Thursday</option>
                 </select>
-                <input type="text" name="slot" placeholder="Time slot (e.g. 8:00-8:55)" required />
-                <input type="text" name="subject" placeholder="Subject name" required />
-                <input type="text" name="teacher" placeholder="Teacher name" />
-                <input type="text" name="room" placeholder="Room" />
-                <select name="type">
-                  <option value="Lecture">Lecture</option>
-                  <option value="Lab">Lab</option>
-                </select>
+                <input type="text" name="time" placeholder="Time (e.g. 8:00-8:55)" required />
+                <input type="text" name="subject" placeholder="Subject Title" required />
+                <input type="text" name="code" placeholder="Subject Code" required />
+                <input type="text" name="teacher" placeholder="Teacher's Name" required />
                 <button type="submit" class="btn btn-glow btn-sm"><i class="fas fa-plus"></i> Add</button>
               </div>
             </form>
@@ -129,7 +125,7 @@
       <!-- Exam Schedule Tab -->
       <div id="tabExam" class="routine-tab" style="display:none">
         <div class="routine-panel">
-          <h3><i class="fas fa-file-alt"></i> Exam & Break Schedule</h3>
+          <h3><i class="fas fa-file-alt"></i> Exam Schedule (by Shift)</h3>
 
           <div id="examContainer" class="routine-print-area">
             <div id="examPrintHeader" class="routine-print-header">
@@ -150,15 +146,25 @@
           </div>
 
           <details class="routine-details">
-            <summary><i class="fas fa-plus-circle"></i> Add Exam / Break</summary>
+            <summary><i class="fas fa-plus-circle"></i> Add Exam</summary>
             <form id="addExamForm" class="routine-form">
               <div class="form-row">
-                <input type="text" name="examName" placeholder="Exam/Break name (e.g. Midterm, Break)" required />
-                <input type="date" name="examStart" required />
-                <input type="date" name="examEnd" required />
-              </div>
-              <div class="form-row">
-                <input type="text" name="examSubjects" placeholder="Subjects (comma-separated)" style="flex:2" />
+                <select name="examDay" required>
+                  <option value="">Day</option>
+                  <option>Saturday</option>
+                  <option>Sunday</option>
+                  <option>Monday</option>
+                  <option>Tuesday</option>
+                  <option>Wednesday</option>
+                  <option>Thursday</option>
+                </select>
+                <input type="text" name="examSubject" placeholder="Subject Title" required />
+                <input type="text" name="examCode" placeholder="Subject Code" required />
+                <select name="shift" required>
+                  <option value="">Shift</option>
+                  <option value="1">Shift 1 (9:30 AM)</option>
+                  <option value="2">Shift 2 (2:00 PM)</option>
+                </select>
                 <button type="submit" class="btn btn-glow btn-sm"><i class="fas fa-plus"></i> Add</button>
               </div>
             </form>
