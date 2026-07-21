@@ -50,6 +50,7 @@
       </div>
     </nav>
 
+    <div id="pageContent">
     <main class="main-content r-module" style="max-width:1200px;margin:0 auto;padding:20px">
       <div class="page-header">
         <h2><i class="fas fa-calendar-alt"></i> Routine Manager</h2>
@@ -143,6 +144,9 @@
       </div>
     </div>
 
+    <button class="r-fab" onclick="RManager.modalOpen('create')" title="Create"><i class="fas fa-plus"></i></button>
+    </div><!-- /pageContent -->
+
     <footer class="footer">
       <div class="footer-content">
         <div class="footer-logos">
@@ -161,25 +165,6 @@
 
   <button class="r-fab" onclick="RManager.modalOpen('create')" title="Create"><i class="fas fa-plus"></i></button>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/github.js"></script>
-  <script src="js/routine.js"></script>
-  <script>
-    function toggleNav() { document.getElementById('navActions').classList.toggle('nav-open') }
-    function toggleTheme() {
-      const h = document.documentElement
-      const t = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
-      h.setAttribute('data-theme', t)
-      localStorage.setItem('qsis-theme', t)
-      const i = document.querySelector('.theme-toggle i')
-      if (i) i.className = t === 'dark' ? 'fas fa-moon' : 'fas fa-sun'
-    }
-    ;(function() {
-      const s = localStorage.getItem('qsis-theme')
-      if (s) document.documentElement.setAttribute('data-theme', s)
-    })()
-  </script>
+  <script src="js/router.js"></script>
 </body>
 </html>

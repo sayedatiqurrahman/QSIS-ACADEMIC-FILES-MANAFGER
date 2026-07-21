@@ -52,6 +52,7 @@
       </div>
     </nav>
 
+    <div id="pageContent">
     <main class="main-content">
       <section class="hero">
         <div class="hero-content">
@@ -270,6 +271,16 @@
     </div>
 
     <div id="toast" class="toast"></div>
+    <script>
+      ;(function() {
+        Contributors.renderStarBadge().then(() => {
+          const el = document.getElementById('footerStars');
+          const nav = document.getElementById('navStars');
+          if (el && nav) el.textContent = nav.textContent;
+        });
+      })()
+    </script>
+    </div><!-- /pageContent -->
 
     <footer class="footer">
       <div class="footer-content">
@@ -288,20 +299,15 @@
   </div>
 
   <script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/db.js"></script>
   <script src="js/github.js"></script>
   <script src="js/contributors.js"></script>
+  <script src="js/routine.js"></script>
   <script src="js/app.js"></script>
-  <script>
-    function toggleNav() { document.getElementById('navActions').classList.toggle('nav-open'); }
-    document.addEventListener('DOMContentLoaded', () => {
-      Contributors.renderStarBadge().then(() => {
-        const el = document.getElementById('footerStars');
-        const nav = document.getElementById('navStars');
-        if (el && nav) el.textContent = nav.textContent;
-      });
-    });
-  </script>
+  <script src="js/router.js"></script>
 </body>
 </html>

@@ -49,6 +49,7 @@
       </div>
     </nav>
 
+    <div id="pageContent">
     <main class="main-content" style="max-width:800px;margin:0 auto;padding:20px">
       <div class="page-header">
         <h2><i class="fas fa-clock"></i> Read History</h2>
@@ -64,6 +65,7 @@
     </main>
 
     <div id="toast" class="toast"></div>
+    </div><!-- /pageContent -->
 
     <footer class="footer">
       <div class="footer-content">
@@ -81,13 +83,11 @@
     </footer>
   </div>
 
-  <script src="js/config.js"></script>
-  <script src="js/db.js"></script>
-  <script src="js/github.js"></script>
+  <script src="js/router.js"></script>
   <script>
     function toggleNav() { document.getElementById('navActions').classList.toggle('nav-open') }
 
-    document.addEventListener('DOMContentLoaded', () => { loadTheme(); waitForDB().then(loadHistory) })
+    ;(function() { loadTheme(); waitForDB().then(loadHistory) })()
 
     function waitForDB() { return new Promise(r => { const c = setInterval(() => { if (DB && DB.db) { clearInterval(c); r() } }, 100) }) }
     function loadTheme() { const s = localStorage.getItem('qsis-theme') || 'dark'; document.documentElement.setAttribute('data-theme', s); const i = document.querySelector('.theme-toggle i'); if (i) i.className = s === 'dark' ? 'fas fa-moon' : 'fas fa-sun' }

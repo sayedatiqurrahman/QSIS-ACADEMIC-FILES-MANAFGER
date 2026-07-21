@@ -49,6 +49,7 @@
       </div>
     </nav>
 
+    <div id="pageContent">
     <main class="main-content" style="max-width:800px;margin:0 auto;padding:20px">
       <div class="page-header">
         <h2><i class="fas fa-download"></i> Downloads</h2>
@@ -80,7 +81,8 @@
       </div>
     </div>
 
-    <div id="toast" class="toast"></div>
+    <div id="toast" class="toast">    </div>
+    </div><!-- /pageContent -->
 
     <footer class="footer">
       <div class="footer-content">
@@ -98,21 +100,11 @@
     </footer>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/db.js"></script>
-  <script src="js/github.js"></script>
+  <script src="js/router.js"></script>
   <script>
-    function toggleNav() { document.getElementById('navActions').classList.toggle('nav-open') }
-
-    document.addEventListener('DOMContentLoaded', () => { loadTheme(); waitForDB().then(loadCached) })
+    ;(function() { waitForDB().then(loadCached) })()
 
     function waitForDB() { return new Promise(r => { const c = setInterval(() => { if (DB && DB.db) { clearInterval(c); r() } }, 100) }) }
-    function loadTheme() { const s = localStorage.getItem('qsis-theme') || 'dark'; document.documentElement.setAttribute('data-theme', s); const i = document.querySelector('.theme-toggle i'); if (i) i.className = s === 'dark' ? 'fas fa-moon' : 'fas fa-sun' }
-    function toggleTheme() { const c = document.documentElement.getAttribute('data-theme'); const n = c === 'light' ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', n); localStorage.setItem('qsis-theme', n); const i = document.querySelector('.theme-toggle i'); if (i) i.className = n === 'dark' ? 'fas fa-moon' : 'fas fa-sun' }
-    function showToast(msg, type) { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast ' + type + ' show'; clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3500) }
-    function esc(t) { const d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML }
-
     function getFileIcon(mime) {
       if (mime === 'image') return '<i class="fas fa-file-image" style="color:#34d399"></i>'
       if (mime === 'pdf') return '<i class="fas fa-file-pdf" style="color:#ef4444"></i>'
@@ -221,11 +213,6 @@
       if (body) body.innerHTML = ''
       localStorage.removeItem('viewerState')
     }
-
-    try {
-      var vs = JSON.parse(localStorage.getItem('viewerState'))
-      if (vs && vs.path) { window.location.href = 'index.html' }
-    } catch(e) {}
 
     let pdfFilePath = ''
     function openPdfViewer(url, container, filePath) {
