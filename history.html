@@ -30,6 +30,7 @@
         <div class="nav-actions" id="navActions">
           <a href="routine.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Routine</a>
           <a href="contributors.html" class="nav-link"><i class="fas fa-users"></i> Contributors</a>
+          <a href="history.html" class="nav-link" style="color:var(--primary)"><i class="fas fa-clock"></i> History</a>
           <div class="nav-mobile-row">
             <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" title="Star us on GitHub">
               <i class="fas fa-star"></i> <span id="navStars">-</span>
@@ -42,10 +43,6 @@
           </div>
         </div>
       </div>
-
-      <script>
-        function toggleNav() { document.getElementById('navActions').classList.toggle('nav-open'); }
-      </script>
     </nav>
 
     <main class="main-content" style="max-width:800px;margin:0 auto;padding:20px">
@@ -63,27 +60,29 @@
     </main>
 
     <div id="toast" class="toast"></div>
-  </div>
 
-  <footer class="footer">
-    <div class="footer-content">
-      <div class="footer-logos">
-        <a href="https://programming-light.eu.cc" target="_blank" rel="noopener"><img src="assets/pl-logo.png" alt="Programming Light" class="footer-logo footer-logo-pl" /></a>
-        <span class="footer-logo-plus"><i class="fas fa-plus"></i></span>
-        <img src="assets/qsis-logo.jpg" alt="QSIS" class="footer-logo" />
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-logos">
+          <a href="https://programming-light.eu.cc" target="_blank" rel="noopener"><img src="assets/pl-logo.png" alt="Programming Light" class="footer-logo footer-logo-pl" /></a>
+          <span class="footer-logo-plus"><i class="fas fa-plus"></i></span>
+          <img src="assets/qsis-logo.jpg" alt="QSIS" class="footer-logo" />
+        </div>
+        <p>Presented by <a href="https://programming-light.eu.cc" target="_blank">Programming Light</a> to the <strong>Qur'anic Sciences Club</strong></p>
+        <p>QSIS - IIUC &middot; Faculty of Shariah & Islamic Studies</p>
+        <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="footer-star">
+          <i class="fas fa-star"></i> <span id="footerStars">-</span> Stars on GitHub
+        </a>
       </div>
-      <p>Presented by <a href="https://programming-light.eu.cc" target="_blank">Programming Light</a> to the <strong>Qur'anic Sciences Club</strong></p>
-      <p>QSIS - IIUC &middot; Faculty of Shariah & Islamic Studies</p>
-      <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="footer-star">
-        <i class="fas fa-star"></i> Stars on GitHub
-      </a>
-    </div>
-  </footer>
+    </footer>
+  </div>
 
   <script src="js/config.js"></script>
   <script src="js/db.js"></script>
   <script src="js/github.js"></script>
   <script>
+    function toggleNav() { document.getElementById('navActions').classList.toggle('nav-open'); }
+
     document.addEventListener('DOMContentLoaded', () => { loadTheme(); waitForDB().then(loadHistory); });
 
     function waitForDB() { return new Promise(r => { const c = setInterval(() => { if (DB && DB.db) { clearInterval(c); r(); } }, 100); }); }

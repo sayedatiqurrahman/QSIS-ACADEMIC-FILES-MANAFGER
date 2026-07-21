@@ -154,12 +154,11 @@ const Contributors = {
     if (!grid) return
 
     const [contributors, commits, mergedPRs] = await Promise.all([
-      this.fetchContributors(),
-      this.fetchCommits(),
-      this.fetchMergedPRs()
+      this.fetchContributors().catch(() => []),
+      this.fetchCommits().catch(() => []),
+      this.fetchMergedPRs().catch(() => [])
     ])
 
-    // Merge PR authors into contributors (deduplicate by login)
     const contribMap = {}
     contributors.forEach(c => { contribMap[c.login] = c })
     mergedPRs.forEach(pr => {

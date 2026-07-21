@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Routine | QSIS-ARMS</title>
   <link rel="icon" type="image/png" href="assets/arms-logo.png" />
+  <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#22c55e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="msvalidate.01" content="DD448DBC883F1B6109FDB70D65A3BB56" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -176,6 +180,8 @@
           <span class="footer-logo-plus"><i class="fas fa-plus"></i></span>
           <img src="assets/qsis-logo.jpg" alt="QSIS" class="footer-logo" />
         </div>
+        <p>Presented by <a href="https://programming-light.eu.cc" target="_blank">Programming Light</a> to the <strong>Qur'anic Sciences Club</strong></p>
+        <p>QSIS - IIUC &middot; Faculty of Shariah & Islamic Studies</p>
         <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="footer-star">
           <i class="fas fa-star"></i> <span id="footerStars">-</span> Stars on GitHub
         </a>
@@ -194,10 +200,12 @@
       const html = document.documentElement
       const theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
       html.setAttribute('data-theme', theme)
-      localStorage.setItem('theme', theme)
+      localStorage.setItem('qsis-theme', theme)
+      const i = document.querySelector('.theme-toggle i')
+      if (i) i.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun'
     }
     ;(function () {
-      const saved = localStorage.getItem('theme')
+      const saved = localStorage.getItem('qsis-theme')
       if (saved) document.documentElement.setAttribute('data-theme', saved)
     })()
 
