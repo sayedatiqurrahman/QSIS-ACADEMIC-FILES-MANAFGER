@@ -9,7 +9,23 @@ const ROUTINE = {
   saveData(data) { localStorage.setItem(this.storageKey, JSON.stringify(data)) },
 
   getRoutines(semId) {
-    return this.getData()[semId] || { entries: [] }
+    const raw = this.getData()[semId]
+    // Migrate old format (slots+classes) to new format (entries)
+    if (raw && raw.slots && raw.classes) {
+      const entries = raw.classes.map(c => ({
+        id: c.id || Date.now() + Math.random(),
+        day: c.day,
+        time: c.slot || c.room || '',
+        subject: c.subject,
+        code: '',
+        teacher: c.teacher || ''
+      }))
+      const data = this.getData()
+      data[semId] = { entries }
+      this.saveData(data)
+      return { entries }
+    }
+    return raw || { entries: [] }
   },
   saveRoutines(semId, routines) {
     const data = this.getData()
@@ -247,4 +263,14 @@ async function initRoutinePage() {
   })
 }
 
-initRoutinePage()
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('routineGrid')) {
+    const check = setInterval(() => {
+      if (typeof GITHUB !== 'undefined' && GITHUB.api) {
+        clearInterval(check)
+        initRoutinePage()
+      }
+    }, 100)
+    setTimeout(() => clearInterval(check), 10000)
+  }
+})
