@@ -28,12 +28,17 @@
           <i class="fas fa-bars"></i>
         </button>
         <div class="nav-actions" id="navActions">
-          <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="nav-star-badge" title="Star us on GitHub">
-            <i class="fas fa-star"></i> <span id="navStars">-</span>
-          </a>
-          <a href="contributors.html" class="nav-link"><i class="fas fa-users"></i> <span>Contributors</span></a>
+          <a href="contributors.html" class="nav-link"><i class="fas fa-users"></i> Contributors</a>
+          <button class="btn-icon theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+            <i class="fas fa-moon"></i>
+          </button>
+          <a href="cached.html" class="btn-icon" title="Downloads"><i class="fas fa-download"></i></a>
+          <a href="history.html" class="btn-icon" title="History"><i class="fas fa-clock"></i></a>
           <div class="nav-mobile-row">
-            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+            <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" title="Star us on GitHub">
+              <i class="fas fa-star"></i> <span id="navStars">-</span>
+            </a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Theme">
               <i class="fas fa-moon"></i> <span class="nav-label">Theme</span>
             </button>
             <a href="cached.html" title="Downloads"><i class="fas fa-download"></i> <span class="nav-label">Downloads</span></a>
@@ -281,6 +286,9 @@
         </div>
         <p>Presented by <a href="https://programming-light.eu.cc" target="_blank">Programming Light</a> to the <strong>Qur'anic Sciences Club</strong></p>
         <p>QSIS - IIUC &middot; Faculty of Shariah & Islamic Studies</p>
+        <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="footer-star">
+          <i class="fas fa-star"></i> <span id="footerStars">-</span> Stars on GitHub
+        </a>
       </div>
     </footer>
   </div>
@@ -296,7 +304,11 @@
       document.getElementById('navActions').classList.toggle('nav-open');
     }
     document.addEventListener('DOMContentLoaded', () => {
-      Contributors.renderStarBadge();
+      Contributors.renderStarBadge().then(() => {
+        const el = document.getElementById('footerStars');
+        const nav = document.getElementById('navStars');
+        if (el && nav) el.textContent = nav.textContent;
+      });
     });
   </script>
   <!-- Cloudflare Web Analytics -->
