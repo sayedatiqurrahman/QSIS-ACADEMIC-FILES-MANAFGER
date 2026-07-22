@@ -32,12 +32,8 @@ const AUTH = {
     return this.EMAIL_REGEX.test(email);
   },
 
-  _getRedirectUri() {
-    return window.location.origin + '/index.html#/callback';
-  },
-
   login() {
-    var redirect = this._getRedirectUri();
+    var redirect = window.location.origin + '/index.html#/callback';
     var url = 'https://github.com/login/oauth/authorize?client_id=' + CONFIG.clientId + '&scope=repo&redirect_uri=' + encodeURIComponent(redirect);
     window.location.href = url;
   },
@@ -143,45 +139,41 @@ const AUTH = {
       var user = this.getUser();
       if (this.isEmailVerified()) {
         body.innerHTML =
-          '<div class="text-center py-5">' +
-            '<img src="' + (user?.avatar_url || '') + '" alt="" class="w-16 h-16 rounded-full border-[3px] border-qsis mx-auto mb-3" />' +
-            '<h3 class="text-[1.1rem] mb-1.5">Welcome, ' + (user?.login || 'User') + '!</h3>' +
-            '<p class="text-[0.85rem] text-dark-text2 mb-1">Email verified: <strong>' + this.getVerifiedEmail() + '</strong></p>' +
-            '<p class="text-[0.85rem] text-dark-text2 mb-4">You can now upload academic files.</p>' +
-            '<button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none shadow-[0_0_16px_rgba(34,197,94,0.3)] cursor-pointer text-[0.85rem] font-semibold" onclick="AUTH.closeAuthModal(); Router.go(\'/\')">' +
+          '<div class="auth-step">' +
+            '<img src="' + (user?.avatar_url || '') + '" alt="" class="auth-success-avatar" />' +
+            '<h3 class="auth-success-title">Welcome, ' + (user?.login || 'User') + '!</h3>' +
+            '<p class="auth-success-text">Email verified: <strong>' + this.getVerifiedEmail() + '</strong></p>' +
+            '<p class="auth-success-text">You can now upload academic files.</p>' +
+            '<button class="auth-btn-primary" onclick="AUTH.closeAuthModal(); Router.go(\'/\')" style="margin-top:16px">' +
               '<i class="fas fa-upload"></i> Start Uploading' +
             '</button>' +
           '</div>';
       } else {
         body.innerHTML =
-          '<div class="text-center">' +
-            '<h3 class="text-[1rem] mb-2 flex items-center justify-center gap-2"><i class="fas fa-check-circle" style="color:#22c55e"></i> GitHub Connected</h3>' +
-            '<p class="text-[0.85rem] text-dark-text2 mb-3">Logged in as <strong>' + (user?.login || 'User') + '</strong></p>' +
-            '<div class="h-px bg-dark-border my-4"></div>' +
-            '<h4 class="text-[0.9rem] mb-1">Step 2: Verify University Email</h4>' +
-            '<p class="text-[0.82rem] text-dark-text2 mb-3">Enter your IIUC email to verify you\'re a student.</p>' +
-            '<div class="mb-3">' +
-              '<input type="email" id="authEmail" placeholder="q233099@ugrad.iiuc.ac.bd" class="w-full px-3.5 py-2.5 rounded-lg border border-dark-border bg-dark-bg text-dark-text text-[0.9rem] outline-none focus:border-qsis text-center" />' +
-            '</div>' +
-            '<button class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none shadow-[0_0_16px_rgba(34,197,94,0.3)] cursor-pointer text-[0.85rem] font-semibold" onclick="AUTH._requestCode()">' +
+          '<div class="auth-step">' +
+            '<h3 class="auth-connected-title"><i class="fas fa-check-circle" style="color:#22c55e"></i> GitHub Connected</h3>' +
+            '<p class="auth-subtitle">Logged in as <strong>' + (user?.login || 'User') + '</strong></p>' +
+            '<div class="auth-divider"></div>' +
+            '<h4 style="font-size:0.9rem;margin-bottom:4px;color:#e8edf5">Step 2: Verify University Email</h4>' +
+            '<p class="auth-hint" style="margin-top:0;margin-bottom:12px">Enter your IIUC email to verify you\'re a student.</p>' +
+            '<input type="email" id="authEmail" placeholder="q233099@ugrad.iiuc.ac.bd" class="auth-input" />' +
+            '<button class="auth-btn-primary" onclick="AUTH._requestCode()" style="margin-top:12px">' +
               '<i class="fas fa-paper-plane"></i> Send Verification Code' +
             '</button>' +
           '</div>';
       }
     } else {
       body.innerHTML =
-        '<div class="text-center">' +
-          '<div class="py-5">' +
-            '<i class="fab fa-github" style="font-size:2.5rem"></i>' +
-            '<h3 class="text-[1.1rem] mt-3 mb-1.5">Sign in with GitHub</h3>' +
-            '<p class="text-[0.85rem] text-dark-text2">Connect your GitHub account to upload files and contribute academic resources.</p>' +
+        '<div class="auth-step">' +
+          '<div class="auth-github-section">' +
+            '<i class="fab fa-github auth-github-icon"></i>' +
+            '<h3>Sign in with GitHub</h3>' +
+            '<p>Connect your GitHub account to upload files and contribute academic resources.</p>' +
           '</div>' +
-          '<button class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none shadow-[0_0_16px_rgba(34,197,94,0.3)] cursor-pointer text-[0.85rem] font-semibold" onclick="AUTH.login()">' +
+          '<button class="auth-btn-primary" onclick="AUTH.login()">' +
             '<i class="fab fa-github"></i> Continue with GitHub' +
           '</button>' +
-          '<p class="text-[0.75rem] text-dark-text2 mt-3 text-center">' +
-            'You\'ll be redirected to GitHub to authorize. Free account required.' +
-          '</p>' +
+          '<p class="auth-hint">You\'ll be redirected to GitHub to authorize. Free account required.</p>' +
         '</div>';
     }
   },
@@ -201,23 +193,21 @@ const AUTH = {
     try {
       var body = document.getElementById('authModalBody');
       body.innerHTML =
-        '<div class="text-center py-5">' +
-          '<h3 class="text-[1rem] flex items-center justify-center gap-2"><i class="fas fa-spinner fa-spin"></i> Sending code...</h3>' +
+        '<div class="auth-step">' +
+          '<h3 class="auth-title"><i class="fas fa-spinner fa-spin"></i> Sending code...</h3>' +
         '</div>';
 
       await this.requestVerificationCode(email);
 
       body.innerHTML =
-        '<div class="text-center">' +
-          '<h3 class="text-[1rem] mb-2 flex items-center justify-center gap-2"><i class="fas fa-envelope" style="color:#22c55e"></i> Enter Verification Code</h3>' +
-          '<p class="text-[0.85rem] text-dark-text2 mb-3">A 6-digit code was sent to <strong>' + email + '</strong></p>' +
-          '<div class="mb-3">' +
-            '<input type="text" id="authCode" placeholder="Enter 6-digit code" class="w-full px-3.5 py-2.5 rounded-lg border border-dark-border bg-dark-bg text-dark-text text-[0.9rem] outline-none focus:border-qsis text-center" maxlength="6" inputmode="numeric" pattern="[0-9]*" />' +
-          '</div>' +
-          '<button class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none shadow-[0_0_16px_rgba(34,197,94,0.3)] cursor-pointer text-[0.85rem] font-semibold" onclick="AUTH._confirmCode(\'' + email + '\')">' +
+        '<div class="auth-step">' +
+          '<h3 class="auth-title"><i class="fas fa-envelope" style="color:#22c55e"></i> Enter Verification Code</h3>' +
+          '<p class="auth-subtitle">A 6-digit code was sent to <strong>' + email + '</strong></p>' +
+          '<input type="text" id="authCode" placeholder="Enter 6-digit code" class="auth-input" maxlength="6" inputmode="numeric" pattern="[0-9]*" />' +
+          '<button class="auth-btn-primary" onclick="AUTH._confirmCode(\'' + email + '\')" style="margin-top:12px">' +
             '<i class="fas fa-check"></i> Verify Code' +
           '</button>' +
-          '<button class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold mt-2" onclick="AUTH._renderAuthStep1()">' +
+          '<button class="auth-btn-secondary" onclick="AUTH._renderAuthStep1()">' +
             '<i class="fas fa-arrow-left"></i> Back' +
           '</button>' +
         '</div>';
@@ -240,8 +230,8 @@ const AUTH = {
     try {
       var body = document.getElementById('authModalBody');
       body.innerHTML =
-        '<div class="text-center py-5">' +
-          '<h3 class="text-[1rem] flex items-center justify-center gap-2"><i class="fas fa-spinner fa-spin"></i> Verifying...</h3>' +
+        '<div class="auth-step">' +
+          '<h3 class="auth-title"><i class="fas fa-spinner fa-spin"></i> Verifying...</h3>' +
         '</div>';
 
       await this.confirmVerificationCode(email, code);

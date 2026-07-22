@@ -11,9 +11,39 @@
 /* Modal */
 .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center; padding:16px; }
 .modal.active { display:flex; }
-.modal-content { background:#111827; border-radius:12px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; box-shadow:0 4px 24px rgba(0,0,0,.3); }
+.modal-content { background:#111827; border-radius:12px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; box-shadow:0 4px 24px rgba(0,0,0,.3); border:1px solid #2a3a5c; }
+.modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #2a3a5c; }
+.modal-header h2 { font-size:1rem; font-weight:600; display:flex; align-items:center; gap:8px; color:#e8edf5; }
+.modal-close { background:none; border:none; color:#94a3b8; cursor:pointer; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem; transition:all .2s; }
+.modal-close:hover { background:#1a2236; color:#e8edf5; }
+.modal-body { padding:20px; }
+
+/* Auth Modal */
+.auth-step { text-align:center; }
+.auth-avatar { width:64px; height:64px; border-radius:50%; border:3px solid #22c55e; margin:0 auto 12px; display:block; object-fit:cover; }
+.auth-title { font-size:1.1rem; font-weight:600; margin-bottom:8px; color:#e8edf5; }
+.auth-subtitle { font-size:0.85rem; color:#94a3b8; margin-bottom:4px; }
+.auth-hint { font-size:0.75rem; color:#94a3b8; margin-top:8px; text-align:center; }
+.auth-divider { height:1px; background:#2a3a5c; margin:16px 0; }
+.auth-input { width:100%; padding:10px 14px; border-radius:8px; border:1px solid #2a3a5c; background:#0a0f1e; color:#e8edf5; font-size:0.9rem; outline:none; text-align:center; transition:border-color .2s; }
+.auth-input:focus { border-color:#22c55e; }
+.auth-github-icon { font-size:2.5rem; color:#e8edf5; }
+.auth-github-section { padding:20px 0 16px; text-align:center; }
+.auth-github-section h3 { font-size:1.1rem; margin:12px 0 6px; color:#e8edf5; }
+.auth-github-section p { font-size:0.85rem; color:#94a3b8; }
+
+/* Auth Buttons */
+.auth-btn-primary { width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 20px; border-radius:12px; background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; border:none; box-shadow:0 0 16px rgba(34,197,94,0.3); cursor:pointer; font-size:0.85rem; font-weight:600; transition:all .2s; }
+.auth-btn-primary:hover { box-shadow:0 0 24px rgba(34,197,94,0.4); transform:translateY(-1px); }
+.auth-btn-secondary { width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:8px 16px; border-radius:12px; background:#1a2236; color:#e8edf5; border:1px solid #2a3a5c; cursor:pointer; font-size:0.8rem; font-weight:600; transition:all .2s; margin-top:8px; }
+.auth-btn-secondary:hover { background:#2a3a5c; }
+.auth-success-avatar { width:64px; height:64px; border-radius:50%; border:3px solid #22c55e; margin:0 auto 12px; display:block; }
+.auth-success-title { font-size:1.1rem; font-weight:600; margin-bottom:6px; color:#e8edf5; }
+.auth-success-text { font-size:0.85rem; color:#94a3b8; margin-bottom:4px; }
+.auth-connected-title { font-size:1rem; font-weight:600; margin-bottom:8px; color:#e8edf5; display:flex; align-items:center; justify-content:center; gap:8px; }
 
 /* Toast */
+.toast { position:fixed; bottom:20px; right:20px; padding:12px 20px; border-radius:12px; color:#fff; font-weight:600; font-size:0.85rem; z-index:2000; transform:translateY(100px); opacity:0; transition:all .3s; }
 .toast.show { transform:translateY(0); opacity:1; }
 .toast.success { background:#22c55e; }
 .toast.error { background:#ef4444; }

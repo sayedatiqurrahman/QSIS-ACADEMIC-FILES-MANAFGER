@@ -226,16 +226,16 @@
     <!-- AUTH MODAL -->
     <div id="authModal" class="modal">
       <div class="modal-content">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-dark-border">
-          <h2 class="text-base font-semibold flex items-center gap-2"><i class="fas fa-user-shield"></i> Authentication</h2>
-          <button class="bg-transparent border-none text-dark-text2 cursor-pointer w-[34px] h-[34px] rounded-full flex items-center justify-center text-base hover:bg-dark-bg3 hover:text-dark-text transition-all" onclick="AUTH.closeAuthModal()"><i class="fas fa-times"></i></button>
+        <div class="modal-header">
+          <h2><i class="fas fa-user-shield"></i> Authentication</h2>
+          <button class="modal-close" onclick="AUTH.closeAuthModal()"><i class="fas fa-times"></i></button>
         </div>
-        <div class="p-5" id="authModalBody"></div>
+        <div class="modal-body" id="authModalBody"></div>
       </div>
     </div>
 
     <!-- TOAST -->
-    <div id="toast" class="fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-[0.85rem] z-[2000] translate-y-[100px] opacity-0 transition-all duration-300"></div>
+    <div id="toast" class="toast"></div>
 
     <!-- FOOTER -->
     <footer class="bg-dark-bg2 border-t border-dark-border py-5 text-center">
@@ -255,6 +255,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://documentcloud.adobe.com/viewer/main.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="js/config.js"></script>
