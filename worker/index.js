@@ -105,12 +105,10 @@ export default {
         const spaOrigin = getSpaOrigin(url);
 
         if (error) {
-          const dest = spaOrigin + '/#/callback?error=' + encodeURIComponent(error);
-          return new Response(null, { status: 302, headers: { Location: dest } });
+          return new Response(null, { status: 302, headers: { Location: spaOrigin + '/#/callback?error=' + encodeURIComponent(error) } });
         }
         if (!code) {
-          const dest = spaOrigin + '/#/callback?error=no_code';
-          return new Response(null, { status: 302, headers: { Location: dest } });
+          return new Response(null, { status: 302, headers: { Location: spaOrigin + '/#/callback?error=no_code' } });
         }
 
         try {
@@ -128,11 +126,9 @@ export default {
             user: result.user,
             session: sessionToken
           }));
-          const dest = spaOrigin + '/#/callback?data=' + payload;
-          return new Response(null, { status: 302, headers: { Location: dest } });
+          return new Response(null, { status: 302, headers: { Location: spaOrigin + '/#/callback?data=' + payload } });
         } catch (err) {
-          const dest = spaOrigin + '/#/callback?error=' + encodeURIComponent(err.message);
-          return new Response(null, { status: 302, headers: { Location: dest } });
+          return new Response(null, { status: 302, headers: { Location: spaOrigin + '/#/callback?error=' + encodeURIComponent(err.message) } });
         }
       }
 
@@ -140,50 +136,35 @@ export default {
         const body = await request.json();
         const { session } = body;
         if (!session) return jsonResponse(origin, env, { error: 'No session token' }, 401);
-
         const sessionData = await env.SESSIONS.get('session:' + session);
         if (!sessionData) return jsonResponse(origin, env, { error: 'Session expired' }, 401);
-
         const sess = JSON.parse(sessionData);
         await env.SESSIONS.put('session:' + session, sessionData, { expirationTtl: SESSION_TTL });
-
-        return jsonResponse(origin, env, {
-          valid: true,
-          user: sess.user,
-          access_token: sess.access_token,
-          created_at: sess.created_at
-        });
+        return jsonResponse(origin, env, { valid: true, user: sess.user, access_token: sess.access_token, created_at: sess.created_at });
       }
 
       if (url.pathname === '/api/logout' && request.method === 'POST') {
         const body = await request.json();
-        const { session } = body;
-        if (session) {
-          await env.SESSIONS.delete('session:' + session);
-        }
+        if (body.session) await env.SESSIONS.delete('session:' + body.session);
         return jsonResponse(origin, env, { success: true });
       }
 
       if (url.pathname === '/api/verify-email' && request.method === 'POST') {
         const body = await request.json();
-        const { email } = body;
-        if (!email) return jsonResponse(origin, env, { error: 'Missing email' }, 400);
-        if (!ALLOWED_EMAIL_REGEX.test(email)) {
-          return jsonResponse(origin, env, { error: 'Invalid email. Use q{number}@ugrad.iiuc.ac.bd' }, 400);
-        }
+        if (!body.email) return jsonResponse(origin, env, { error: 'Missing email' }, 400);
+        if (!ALLOWED_EMAIL_REGEX.test(body.email)) return jsonResponse(origin, env, { error: 'Invalid email' }, 400);
         const code = generateCode();
-        await env.SESSIONS.put('verify:' + email, code, { expirationTtl: 600 });
+        await env.SESSIONS.put('verify:' + body.email, code, { expirationTtl: 600 });
         return jsonResponse(origin, env, { success: true, _dev_code: code });
       }
 
       if (url.pathname === '/api/check-email' && request.method === 'POST') {
         const body = await request.json();
-        const { email, code } = body;
-        if (!email || !code) return jsonResponse(origin, env, { error: 'Missing email or code' }, 400);
-        const stored = await env.SESSIONS.get('verify:' + email);
-        if (!stored || stored !== code) return jsonResponse(origin, env, { error: 'Invalid or expired code' }, 400);
-        await env.SESSIONS.delete('verify:' + email);
-        return jsonResponse(origin, env, { success: true, email, verified: true });
+        if (!body.email || !body.code) return jsonResponse(origin, env, { error: 'Missing fields' }, 400);
+        const stored = await env.SESSIONS.get('verify:' + body.email);
+        if (stored !== body.code) return jsonResponse(origin, env, { error: 'Invalid code' }, 400);
+        await env.SESSIONS.delete('verify:' + body.email);
+        return jsonResponse(origin, env, { success: true, email: body.email, verified: true });
       }
 
       if (url.pathname === '/api/health') {
@@ -193,7 +174,7 @@ export default {
       return jsonResponse(origin, env, { error: 'Not found' }, 404);
 
     } catch (err) {
-      return jsonResponse(origin, env, { error: err.message }, 500);
+      return jsonResponse(origin, env, { error: err.message || 'Unknown error' }, 500);
     }
   }
 };

@@ -645,6 +645,11 @@ document.addEventListener('DOMContentLoaded', function() {
   loadTheme();
   registerSW();
 
+  if (localStorage.getItem(AUTH.TOKEN_KEY) && localStorage.getItem(AUTH.USER_KEY)) {
+    AUTH._sessionValid = true;
+    AUTH._sessionChecked = true;
+  }
+
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
       document.querySelectorAll('.modal.active').forEach(function(m) { m.classList.remove('active'); document.body.style.overflow = ''; });

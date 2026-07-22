@@ -32,6 +32,7 @@ const Router = {
 
       if (params.error) {
         showToast('Login failed: ' + decodeURIComponent(params.error), 'error');
+        updateAuthUI();
         this.handleRoute();
         return;
       }
@@ -51,13 +52,13 @@ const Router = {
             showToast('Login failed: invalid response', 'error');
           }
         } catch (e) {
-          console.error('Callback parse error:', e, 'raw:', params.data);
           showToast('Login failed. Try again.', 'error');
         }
       } else {
         showToast('Login failed: no data received', 'error');
       }
 
+      updateAuthUI();
       this.handleRoute();
       return;
     }

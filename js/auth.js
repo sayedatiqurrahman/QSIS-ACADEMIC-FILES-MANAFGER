@@ -58,41 +58,46 @@ const AUTH = {
   async checkSession() {
     var sessionToken = localStorage.getItem(this.SESSION_KEY);
     var token = localStorage.getItem(this.TOKEN_KEY);
-    if (!sessionToken && !token) {
+    var user = localStorage.getItem(this.USER_KEY);
+
+    if (!token || !user) {
       this._sessionValid = false;
       this._sessionChecked = true;
       return false;
     }
+
     if (!sessionToken) {
-      this._sessionValid = false;
+      this._sessionValid = true;
       this._sessionChecked = true;
-      return false;
+      return true;
     }
+
     try {
       var res = await fetch(CONFIG.oauthProxy + '/api/session-validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session: sessionToken })
       });
-      var data = await res.json();
-      if (data.error || !data.valid) {
-        this._sessionValid = false;
+      if (!res.ok) {
+        this._sessionValid = true;
         this._sessionChecked = true;
-        localStorage.removeItem(this.TOKEN_KEY);
-        localStorage.removeItem(this.USER_KEY);
-        localStorage.removeItem(this.SESSION_KEY);
-        return false;
+        return true;
+      }
+      var data = await res.json();
+      if (data.valid) {
+        this._sessionValid = true;
+        this._sessionChecked = true;
+        localStorage.setItem(this.TOKEN_KEY, data.access_token);
+        localStorage.setItem(this.USER_KEY, JSON.stringify(data.user));
+        return true;
       }
       this._sessionValid = true;
       this._sessionChecked = true;
-      localStorage.setItem(this.TOKEN_KEY, data.access_token);
-      localStorage.setItem(this.USER_KEY, JSON.stringify(data.user));
       return true;
     } catch (err) {
-      console.error('Session check failed:', err);
-      this._sessionValid = false;
+      this._sessionValid = true;
       this._sessionChecked = true;
-      return false;
+      return true;
     }
   },
 
