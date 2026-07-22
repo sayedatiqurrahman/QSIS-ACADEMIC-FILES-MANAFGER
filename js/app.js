@@ -451,8 +451,81 @@ function openDocViewer(url, container) {
   '</div>';
 }
 
+var uploadFileQueue = [];
+
+function onUploadFilePicked() {
+  var input = document.getElementById('uploadFileInput');
+  if (!input || !input.files) return;
+  var picked = Array.from(input.files);
+  var allowed = CONFIG.academicExtensions;
+  var rejected = [];
+
+  picked.forEach(function(f) {
+    var ext = f.name.split('.').pop().toLowerCase();
+    if (!allowed.includes(ext)) {
+      rejected.push(f.name);
+      return;
+    }
+    if (uploadFileQueue.length >= CONFIG.maxFilesPerUpload) return;
+    var duplicate = uploadFileQueue.some(function(q) { return q.name === f.name && q.size === f.size; });
+    if (!duplicate) uploadFileQueue.push(f);
+  });
+
+  input.value = '';
+  renderUploadQueue();
+
+  if (rejected.length > 0) {
+    showToast('Skipped: ' + rejected.join(', ') + ' (not allowed)', 'error');
+  }
+}
+
+function removeFromUploadQueue(index) {
+  uploadFileQueue.splice(index, 1);
+  renderUploadQueue();
+}
+
+function renderUploadQueue() {
+  var container = document.getElementById('uploadFileQueue');
+  var label = document.getElementById('uploadFileLabel');
+  var submitBtn = document.getElementById('uploadSubmitBtn');
+  if (!container) return;
+
+  if (uploadFileQueue.length === 0) {
+    container.innerHTML = '';
+    if (label) label.textContent = 'Tap to choose files';
+    if (submitBtn) submitBtn.disabled = true;
+    return;
+  }
+
+  if (submitBtn) submitBtn.disabled = false;
+  if (label) label.textContent = uploadFileQueue.length + ' file(s) selected — tap to add more';
+
+  var totalSize = 0;
+  var html = '<div class="flex flex-col gap-1.5">';
+  uploadFileQueue.forEach(function(f, i) {
+    totalSize += f.size;
+    var ext = f.name.split('.').pop().toLowerCase();
+    var icon = getFileIconByType(getMimeFromExt(ext));
+    var size = f.size > 1048576 ? (f.size / 1048576).toFixed(1) + ' MB' : (f.size / 1024).toFixed(0) + ' KB';
+    html += '<div class="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-dark-border bg-dark-bg3 text-[0.8rem]">' +
+      '<span class="text-[1rem]">' + icon + '</span>' +
+      '<span class="flex-1 min-w-0 truncate text-dark-text font-medium">' + esc(f.name) + '</span>' +
+      '<span class="text-dark-text2 text-[0.72rem] whitespace-nowrap">' + size + '</span>' +
+      '<button class="bg-transparent border-none text-dark-text2 cursor-pointer w-[24px] h-[24px] rounded-full flex items-center justify-center text-[0.75rem] hover:bg-danger hover:text-white transition-all" onclick="removeFromUploadQueue(' + i + ')" title="Remove"><i class="fas fa-times"></i></button>' +
+    '</div>';
+  });
+  html += '</div>';
+
+  var totalSizeLabel = totalSize > 1048576 ? (totalSize / 1048576).toFixed(1) + ' MB' : (totalSize / 1024).toFixed(0) + ' KB';
+  var overSize = totalSize > CONFIG.maxUploadSizeMB * 1024 * 1024;
+  html += '<p class="text-[0.72rem] mt-1.5 ' + (overSize ? 'text-danger' : 'text-dark-text2') + '">Total: ' + totalSizeLabel + ' / ' + CONFIG.maxUploadSizeMB + 'MB' + (overSize ? ' — exceeds limit' : '') + '</p>';
+
+  container.innerHTML = html;
+
+  if (submitBtn) submitBtn.disabled = overSize;
+}
+
 async function handleUpload() {
-  var fileInput = document.getElementById('uploadFiles');
   var semSelect = document.getElementById('uploadSemester');
   var catSelect = document.getElementById('uploadCategory');
   var nameInput = document.getElementById('uploadName');
@@ -462,9 +535,8 @@ async function handleUpload() {
   var progressFill = document.getElementById('uploadProgressFill');
   var statusText = document.getElementById('uploadStatus');
 
-  var files = fileInput?.files;
-  if (!files || files.length === 0) { showToast('Select files first', 'error'); return; }
-  if (files.length > CONFIG.maxFilesPerUpload) { showToast('Max ' + CONFIG.maxFilesPerUpload + ' files per upload', 'error'); return; }
+  if (uploadFileQueue.length === 0) { showToast('Add files first', 'error'); return; }
+  if (uploadFileQueue.length > CONFIG.maxFilesPerUpload) { showToast('Max ' + CONFIG.maxFilesPerUpload + ' files', 'error'); return; }
 
   var name = nameInput?.value?.trim();
   var qsId = qsIdInput?.value?.trim();
@@ -476,13 +548,13 @@ async function handleUpload() {
   if (!semester) { showToast('Select a semester', 'error'); return; }
 
   var totalSize = 0;
-  for (var i = 0; i < files.length; i++) totalSize += files[i].size;
+  uploadFileQueue.forEach(function(f) { totalSize += f.size; });
   if (totalSize > CONFIG.maxUploadSizeMB * 1024 * 1024) { showToast('Total size exceeds ' + CONFIG.maxUploadSizeMB + 'MB', 'error'); return; }
 
   var catLabel = CONFIG.categories[category]?.label || category || 'Other';
   var filesData = [];
-  for (var j = 0; j < files.length; j++) {
-    var file = files[j];
+  for (var j = 0; j < uploadFileQueue.length; j++) {
+    var file = uploadFileQueue[j];
     var ext = file.name.split('.').pop().toLowerCase();
     if (!CONFIG.academicExtensions.includes(ext)) {
       showToast('File type .' + ext + ' not allowed', 'error');
@@ -494,7 +566,7 @@ async function handleUpload() {
   }
 
   if (progress) progress.classList.remove('hidden');
-  if (statusText) statusText.textContent = 'Uploading ' + files.length + ' files...';
+  if (statusText) statusText.textContent = 'Uploading ' + filesData.length + ' files...';
 
   try {
     var pr = await GITHUB.uploadFilesViaFork(filesData, {
@@ -504,6 +576,8 @@ async function handleUpload() {
     if (statusText) statusText.textContent = 'Done! PR created.';
     if (progressFill) progressFill.style.width = '100%';
     showToast('Files submitted! PR #' + (pr.number || ''), 'success');
+    uploadFileQueue = [];
+    renderUploadQueue();
     setTimeout(function() { closeModal('uploadModal'); }, 2000);
   } catch (err) {
     if (statusText) statusText.textContent = 'Error: ' + err.message;

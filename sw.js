@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qsis-v12';
+const CACHE_NAME = 'qsis-v13';
 const SHELL = [
   './',
   './index.html',
@@ -42,6 +42,11 @@ self.addEventListener('activate', function(e) {
 
 self.addEventListener('fetch', function(e) {
   var url = new URL(e.request.url);
+
+  if (url.hostname.includes('workers.dev') || url.hostname === 'cloudflareinsights.com') {
+    return;
+  }
+
   if (url.hostname === 'api.github.com' || url.hostname === 'raw.githubusercontent.com') {
     e.respondWith(
       fetch(e.request).then(function(res) {
@@ -54,6 +59,7 @@ self.addEventListener('fetch', function(e) {
     );
     return;
   }
+
   e.respondWith(
     caches.match(e.request).then(function(cached) {
       return cached || fetch(e.request).then(function(res) {

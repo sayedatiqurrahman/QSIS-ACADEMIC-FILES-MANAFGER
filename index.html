@@ -191,10 +191,18 @@
                 <option value="other">Other</option>
               </select>
             </div>
+
             <div class="mb-2.5">
-              <label class="block text-[0.8rem] font-semibold mb-1 text-dark-text2">Select Files (max 10, max 50MB total)</label>
-              <input type="file" id="uploadFiles" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar" class="w-full p-4 border-2 border-dashed border-dark-border rounded-lg bg-dark-bg cursor-pointer text-[0.85rem] text-dark-text2 hover:border-qsis" />
+              <label class="block text-[0.8rem] font-semibold mb-1 text-dark-text2">Add Files (tap to add more, max 10)</label>
+              <label class="flex items-center justify-center gap-2 w-full p-4 border-2 border-dashed border-dark-border rounded-lg bg-dark-bg cursor-pointer text-[0.85rem] text-dark-text2 hover:border-qsis transition-colors">
+                <i class="fas fa-plus-circle text-qsis text-[1.1rem]"></i>
+                <span id="uploadFileLabel">Tap to choose files</span>
+                <input type="file" id="uploadFileInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar" class="hidden" onchange="onUploadFilePicked()" />
+              </label>
             </div>
+
+            <div id="uploadFileQueue" class="mb-2.5"></div>
+
             <div class="mb-2.5">
               <label class="block text-[0.8rem] font-semibold mb-1 text-dark-text2">Your Full Name</label>
               <input type="text" id="uploadName" placeholder="e.g. Ahmed Hassan" class="w-full px-3 py-2 rounded-lg border border-dark-border bg-dark-bg text-dark-text text-[0.85rem] outline-none focus:border-qsis" />
@@ -211,7 +219,7 @@
               <div class="h-[6px] bg-dark-bg3 rounded-[3px] overflow-hidden my-3"><div class="h-full bg-gradient-to-r from-qsis to-accent w-0 transition-all duration-300" id="uploadProgressFill"></div></div>
               <p id="uploadStatus" class="text-[0.8rem] text-dark-text2 mt-1"></p>
             </div>
-            <button class="w-full mt-3 inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none shadow-[0_0_16px_rgba(34,197,94,0.3)] cursor-pointer text-[0.8rem] font-semibold hover:shadow-[0_0_24px_rgba(34,197,94,0.3)] transition-all" onclick="handleUpload()">
+            <button id="uploadSubmitBtn" class="w-full mt-3 inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none shadow-[0_0_16px_rgba(34,197,94,0.3)] cursor-pointer text-[0.8rem] font-semibold hover:shadow-[0_0_24px_rgba(34,197,94,0.3)] transition-all disabled:opacity-40 disabled:cursor-not-allowed" onclick="handleUpload()" disabled>
               <i class="fas fa-paper-plane"></i> Submit Files
             </button>
           </div>
