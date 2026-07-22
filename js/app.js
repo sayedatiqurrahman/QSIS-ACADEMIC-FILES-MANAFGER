@@ -103,6 +103,7 @@ function showUploadTab(tab) {
 function updateAuthUI() {
   var authBtn = document.getElementById('authBtn');
   var uploadBtn = document.getElementById('uploadBtn');
+  var profileWrap = document.getElementById('profileWrap');
   var profileAvatar = document.getElementById('profileAvatar');
   var profileName = document.getElementById('profileName');
   var profileEmail = document.getElementById('profileEmail');
@@ -116,7 +117,8 @@ function updateAuthUI() {
     if (profileAvatar) profileAvatar.src = user?.avatar_url || '';
     if (profileName) profileName.textContent = user?.name || user?.login || 'User';
     if (profileEmail) profileEmail.textContent = user?.login ? '@' + user.login : '';
-    if (uploadBtn) uploadBtn.style.display = '';
+    if (uploadBtn) uploadBtn.style.display = 'none';
+    if (profileWrap) profileWrap.style.display = '';
     if (mobileAuthArea) {
       mobileAuthArea.innerHTML =
         '<button class="w-full inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold" onclick="AUTH.logout()">' +
@@ -127,6 +129,7 @@ function updateAuthUI() {
   } else {
     if (authBtn) authBtn.innerHTML = '<i class="fas fa-user"></i> Login';
     if (uploadBtn) uploadBtn.style.display = '';
+    if (profileWrap) profileWrap.style.display = 'none';
     if (mobileAuthArea) {
       mobileAuthArea.innerHTML = '<button class="w-full inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold" onclick="AUTH.showAuthModal()"><i class="fas fa-user"></i> Login</button>';
     }

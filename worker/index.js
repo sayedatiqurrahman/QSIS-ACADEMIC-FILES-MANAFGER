@@ -76,6 +76,10 @@ async function exchangeCode(code, env) {
     throw new Error(desc || 'GitHub login failed');
   }
 
+  if (!tokenData.access_token) {
+    throw new Error('No access token received from GitHub. Please try again.');
+  }
+
   const userRes = await fetch('https://api.github.com/user', {
     headers: {
       'Authorization': 'token ' + tokenData.access_token,
