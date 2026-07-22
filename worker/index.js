@@ -95,7 +95,7 @@ export default {
     }
 
     if (!checkRateLimit(ip)) {
-      return jsonResponse(origin, env, { error: 'Rate limit exceeded. Try again in 1 minute.' }, 429);
+      return jsonResponse(origin, env, { error: 'Rate limit exceeded' }, 429);
     }
 
     try {
@@ -105,10 +105,12 @@ export default {
         const spaOrigin = getSpaOrigin(url);
 
         if (error) {
-          return Response.redirect(spaOrigin + '/#/callback?error=' + encodeURIComponent(error), 302);
+          const dest = spaOrigin + '/#/callback?error=' + encodeURIComponent(error);
+          return new Response(null, { status: 302, headers: { Location: dest } });
         }
         if (!code) {
-          return Response.redirect(spaOrigin + '/#/callback?error=no_code', 302);
+          const dest = spaOrigin + '/#/callback?error=no_code';
+          return new Response(null, { status: 302, headers: { Location: dest } });
         }
 
         try {
@@ -126,9 +128,11 @@ export default {
             user: result.user,
             session: sessionToken
           }));
-          return Response.redirect(spaOrigin + '/#/callback?data=' + payload, 302);
+          const dest = spaOrigin + '/#/callback?data=' + payload;
+          return new Response(null, { status: 302, headers: { Location: dest } });
         } catch (err) {
-          return Response.redirect(spaOrigin + '/#/callback?error=' + encodeURIComponent(err.message), 302);
+          const dest = spaOrigin + '/#/callback?error=' + encodeURIComponent(err.message);
+          return new Response(null, { status: 302, headers: { Location: dest } });
         }
       }
 
@@ -160,24 +164,16 @@ export default {
         return jsonResponse(origin, env, { success: true });
       }
 
-      if (url.pathname === '/api/exchange-token' && request.method === 'POST') {
-        const body = await request.json();
-        const { code } = body;
-        if (!code) return jsonResponse(origin, env, { error: 'Missing code parameter' }, 400);
-        const result = await exchangeCode(code, env);
-        return jsonResponse(origin, env, { access_token: result.access_token, user: result.user });
-      }
-
       if (url.pathname === '/api/verify-email' && request.method === 'POST') {
         const body = await request.json();
         const { email } = body;
         if (!email) return jsonResponse(origin, env, { error: 'Missing email' }, 400);
         if (!ALLOWED_EMAIL_REGEX.test(email)) {
-          return jsonResponse(origin, env, { error: 'Invalid email. Only IIUC university emails (q{number}@ugrad.iiuc.ac.bd) are allowed.' }, 400);
+          return jsonResponse(origin, env, { error: 'Invalid email. Use q{number}@ugrad.iiuc.ac.bd' }, 400);
         }
         const code = generateCode();
         await env.SESSIONS.put('verify:' + email, code, { expirationTtl: 600 });
-        return jsonResponse(origin, env, { success: true, message: 'Code sent to ' + email, _dev_code: code });
+        return jsonResponse(origin, env, { success: true, _dev_code: code });
       }
 
       if (url.pathname === '/api/check-email' && request.method === 'POST') {
@@ -185,19 +181,19 @@ export default {
         const { email, code } = body;
         if (!email || !code) return jsonResponse(origin, env, { error: 'Missing email or code' }, 400);
         const stored = await env.SESSIONS.get('verify:' + email);
-        if (!stored || stored !== code) return jsonResponse(origin, env, { error: 'Invalid or expired code.' }, 400);
+        if (!stored || stored !== code) return jsonResponse(origin, env, { error: 'Invalid or expired code' }, 400);
         await env.SESSIONS.delete('verify:' + email);
-        return jsonResponse(origin, env, { success: true, email: email, verified: true });
+        return jsonResponse(origin, env, { success: true, email, verified: true });
       }
 
       if (url.pathname === '/api/health') {
-        return jsonResponse(origin, env, { status: 'ok', timestamp: Date.now() });
+        return jsonResponse(origin, env, { status: 'ok' });
       }
 
       return jsonResponse(origin, env, { error: 'Not found' }, 404);
 
     } catch (err) {
-      return jsonResponse(origin, env, { error: 'Internal server error: ' + err.message }, 500);
+      return jsonResponse(origin, env, { error: err.message }, 500);
     }
   }
 };

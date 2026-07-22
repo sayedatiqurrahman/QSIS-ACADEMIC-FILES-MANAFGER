@@ -38,17 +38,24 @@ const Router = {
 
       if (params.data) {
         try {
-          var data = JSON.parse(decodeURIComponent(params.data));
-          localStorage.setItem(AUTH.TOKEN_KEY, data.access_token);
-          localStorage.setItem(AUTH.USER_KEY, JSON.stringify(data.user));
-          localStorage.setItem(AUTH.SESSION_KEY, data.session);
-          AUTH._sessionValid = true;
-          AUTH._sessionChecked = true;
-          this._pendingLoginToast = true;
+          var raw = decodeURIComponent(params.data);
+          var data = JSON.parse(raw);
+          if (data.access_token && data.user) {
+            localStorage.setItem(AUTH.TOKEN_KEY, data.access_token);
+            localStorage.setItem(AUTH.USER_KEY, JSON.stringify(data.user));
+            if (data.session) localStorage.setItem(AUTH.SESSION_KEY, data.session);
+            AUTH._sessionValid = true;
+            AUTH._sessionChecked = true;
+            this._pendingLoginToast = true;
+          } else {
+            showToast('Login failed: invalid response', 'error');
+          }
         } catch (e) {
-          console.error('Callback parse error:', e);
+          console.error('Callback parse error:', e, 'raw:', params.data);
           showToast('Login failed. Try again.', 'error');
         }
+      } else {
+        showToast('Login failed: no data received', 'error');
       }
 
       this.handleRoute();

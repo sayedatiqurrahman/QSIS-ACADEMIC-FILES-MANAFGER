@@ -226,9 +226,11 @@ const HomeView = {
       document.getElementById('statsYears').textContent = semFolders.reduce((sum, s) => sum + s.yearCount, 0);
     } catch (err) {
       console.error(err);
+      var isRateLimit = err.message && err.message.includes('rate limit');
       grid.innerHTML = `<div class="text-center py-10 text-dark-text2 col-span-full">
         <i class="fas fa-exclamation-triangle text-warning text-2xl mb-2 block"></i>
-        <p>Could not load from GitHub. Check connection.</p>
+        <p>${isRateLimit ? 'GitHub API rate limit reached. Login for higher limits.' : 'Could not load files. Check connection.'}</p>
+        ${isRateLimit ? '<p class="text-[0.75rem] mt-1">Or wait 1 hour for limit reset.</p>' : ''}
         <button class="inline-flex items-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold mt-3" onclick="HomeView.loadSemesters()"><i class="fas fa-sync"></i> Retry</button>
       </div>`;
     }

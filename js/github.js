@@ -18,6 +18,12 @@ const GITHUB = {
   async getTree(recursive = true) {
     const url = `${this.api}/repos/${CONFIG.owner}/${CONFIG.repo}/git/trees/${CONFIG.branch}?recursive=${recursive ? 1 : 0}`;
     const res = await fetch(url, { headers: this.headers() });
+    if (res.status === 403) {
+      var errData = await res.json().catch(function() { return {}; });
+      if (errData.message && errData.message.includes('rate limit')) {
+        throw new Error('GitHub API rate limit. Login for higher limits, or wait 1 hour.');
+      }
+    }
     if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
     return res.json();
   },
