@@ -9,7 +9,6 @@ function corsHeaders(origin, env, extra = {}) {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Max-Age': '86400',
     ...extra
   };
@@ -42,21 +41,6 @@ function generateSessionToken() {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function parseCookie(cookieHeader, name) {
-  if (!cookieHeader) return null;
-  const match = cookieHeader.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='));
-  return match ? decodeURIComponent(match.split('=').slice(1).join('=')) : null;
-}
-
-function setCookie(response, name, value, maxAge) {
-  const cookie = name + '=' + encodeURIComponent(value) + '; Path=/; HttpOnly; SameSite=Lax; Max-Age=' + maxAge;
-  response.headers.append('Set-Cookie', cookie);
-}
-
-function clearCookie(response, name) {
-  response.headers.append('Set-Cookie', name + '=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
 }
 
 async function exchangeCode(code, env) {
@@ -137,56 +121,51 @@ export default {
             created_at: Date.now()
           }), { expirationTtl: SESSION_TTL });
 
-          const res = Response.redirect(spaOrigin + '/#/callback?login=success', 302);
-          setCookie(res, 'qsis_session', sessionToken, SESSION_TTL);
-          return res;
+          var payload = encodeURIComponent(JSON.stringify({
+            access_token: result.access_token,
+            user: result.user,
+            session: sessionToken
+          }));
+          return Response.redirect(spaOrigin + '/#/callback?data=' + payload, 302);
         } catch (err) {
           return Response.redirect(spaOrigin + '/#/callback?error=' + encodeURIComponent(err.message), 302);
         }
       }
 
-      if (url.pathname === '/api/session' && request.method === 'GET') {
-        const sessionToken = parseCookie(request.headers.get('Cookie'), 'qsis_session');
-        if (!sessionToken) {
-          return jsonResponse(origin, env, { error: 'No session' }, 401);
-        }
+      if (url.pathname === '/api/session-validate' && request.method === 'POST') {
+        const body = await request.json();
+        const { session } = body;
+        if (!session) return jsonResponse(origin, env, { error: 'No session token' }, 401);
 
-        const sessionData = await env.SESSIONS.get('session:' + sessionToken);
-        if (!sessionData) {
-          return jsonResponse(origin, env, { error: 'Session expired' }, 401);
-        }
+        const sessionData = await env.SESSIONS.get('session:' + session);
+        if (!sessionData) return jsonResponse(origin, env, { error: 'Session expired' }, 401);
 
-        const session = JSON.parse(sessionData);
-
-        await env.SESSIONS.put('session:' + sessionToken, sessionData, { expirationTtl: SESSION_TTL });
+        const sess = JSON.parse(sessionData);
+        await env.SESSIONS.put('session:' + session, sessionData, { expirationTtl: SESSION_TTL });
 
         return jsonResponse(origin, env, {
-          user: session.user,
-          access_token: session.access_token,
-          created_at: session.created_at
+          valid: true,
+          user: sess.user,
+          access_token: sess.access_token,
+          created_at: sess.created_at
         });
       }
 
       if (url.pathname === '/api/logout' && request.method === 'POST') {
-        const sessionToken = parseCookie(request.headers.get('Cookie'), 'qsis_session');
-        if (sessionToken) {
-          await env.SESSIONS.delete('session:' + sessionToken);
+        const body = await request.json();
+        const { session } = body;
+        if (session) {
+          await env.SESSIONS.delete('session:' + session);
         }
-        const res = jsonResponse(origin, env, { success: true });
-        clearCookie(res, 'qsis_session');
-        return res;
+        return jsonResponse(origin, env, { success: true });
       }
 
       if (url.pathname === '/api/exchange-token' && request.method === 'POST') {
         const body = await request.json();
         const { code } = body;
         if (!code) return jsonResponse(origin, env, { error: 'Missing code parameter' }, 400);
-
         const result = await exchangeCode(code, env);
-        return jsonResponse(origin, env, {
-          access_token: result.access_token,
-          user: result.user
-        });
+        return jsonResponse(origin, env, { access_token: result.access_token, user: result.user });
       }
 
       if (url.pathname === '/api/verify-email' && request.method === 'POST') {
@@ -194,38 +173,21 @@ export default {
         const { email } = body;
         if (!email) return jsonResponse(origin, env, { error: 'Missing email' }, 400);
         if (!ALLOWED_EMAIL_REGEX.test(email)) {
-          return jsonResponse(origin, env, {
-            error: 'Invalid email. Only IIUC university emails (q{number}@ugrad.iiuc.ac.bd) are allowed.'
-          }, 400);
+          return jsonResponse(origin, env, { error: 'Invalid email. Only IIUC university emails (q{number}@ugrad.iiuc.ac.bd) are allowed.' }, 400);
         }
-
         const code = generateCode();
         await env.SESSIONS.put('verify:' + email, code, { expirationTtl: 600 });
-
-        return jsonResponse(origin, env, {
-          success: true,
-          message: 'Verification code sent to ' + email + '. Code expires in 10 minutes.',
-          _dev_code: code
-        });
+        return jsonResponse(origin, env, { success: true, message: 'Code sent to ' + email, _dev_code: code });
       }
 
       if (url.pathname === '/api/check-email' && request.method === 'POST') {
         const body = await request.json();
         const { email, code } = body;
         if (!email || !code) return jsonResponse(origin, env, { error: 'Missing email or code' }, 400);
-
         const stored = await env.SESSIONS.get('verify:' + email);
-        if (!stored || stored !== code) {
-          return jsonResponse(origin, env, { error: 'Invalid or expired verification code.' }, 400);
-        }
-
+        if (!stored || stored !== code) return jsonResponse(origin, env, { error: 'Invalid or expired code.' }, 400);
         await env.SESSIONS.delete('verify:' + email);
-
-        return jsonResponse(origin, env, {
-          success: true,
-          email: email,
-          verified: true
-        });
+        return jsonResponse(origin, env, { success: true, email: email, verified: true });
       }
 
       if (url.pathname === '/api/health') {

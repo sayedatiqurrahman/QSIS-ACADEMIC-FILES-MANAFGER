@@ -1,6 +1,7 @@
 const AUTH = {
   TOKEN_KEY: 'qsis_gh_token',
   USER_KEY: 'qsis_gh_user',
+  SESSION_KEY: 'qsis_session',
   EMAIL_KEY: 'qsis_verified_email',
   PROFILE_KEY: 'qsis_profile',
   EMAIL_REGEX: /^q\d{5,8}@ugrad\.iiuc\.ac\.bd$/i,
@@ -55,23 +56,25 @@ const AUTH = {
   },
 
   async checkSession() {
+    var sessionToken = localStorage.getItem(this.SESSION_KEY);
+    if (!sessionToken) {
+      this._sessionValid = false;
+      this._sessionChecked = true;
+      return false;
+    }
     try {
-      var res = await fetch(CONFIG.oauthProxy + '/api/session', {
-        credentials: 'include'
+      var res = await fetch(CONFIG.oauthProxy + '/api/session-validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session: sessionToken })
       });
-      if (!res.ok) {
-        this._sessionValid = false;
-        this._sessionChecked = true;
-        localStorage.removeItem(this.TOKEN_KEY);
-        localStorage.removeItem(this.USER_KEY);
-        return false;
-      }
       var data = await res.json();
-      if (data.error) {
+      if (data.error || !data.valid) {
         this._sessionValid = false;
         this._sessionChecked = true;
         localStorage.removeItem(this.TOKEN_KEY);
         localStorage.removeItem(this.USER_KEY);
+        localStorage.removeItem(this.SESSION_KEY);
         return false;
       }
       this._sessionValid = true;
@@ -88,16 +91,19 @@ const AUTH = {
   },
 
   async logout() {
+    var sessionToken = localStorage.getItem(this.SESSION_KEY);
     try {
       await fetch(CONFIG.oauthProxy + '/api/logout', {
         method: 'POST',
-        credentials: 'include'
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session: sessionToken })
       });
     } catch (e) {}
     this._sessionValid = false;
     this._sessionChecked = false;
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem(this.SESSION_KEY);
     localStorage.removeItem(this.EMAIL_KEY);
     updateAuthUI();
     Router.go('/');

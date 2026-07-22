@@ -32,10 +32,23 @@ const Router = {
 
       if (params.error) {
         showToast('Login failed: ' + decodeURIComponent(params.error), 'error');
+        this.handleRoute();
+        return;
       }
 
-      await this._finalizeSession();
-      if (!params.error) this._pendingLoginToast = true;
+      if (params.data) {
+        try {
+          var data = JSON.parse(decodeURIComponent(params.data));
+          localStorage.setItem(AUTH.TOKEN_KEY, data.access_token);
+          localStorage.setItem(AUTH.USER_KEY, JSON.stringify(data.user));
+          localStorage.setItem(AUTH.SESSION_KEY, data.session);
+          this._pendingLoginToast = true;
+        } catch (e) {
+          console.error('Callback parse error:', e);
+          showToast('Login failed. Try again.', 'error');
+        }
+      }
+
       this.handleRoute();
       return;
     }
@@ -75,11 +88,6 @@ const Router = {
       this._pendingLoginToast = false;
       showToast('Logged in successfully!', 'success');
     }
-  },
-
-  async _finalizeSession() {
-    await AUTH.checkSession();
-    updateAuthUI();
   },
 
   updateNav(path) {
