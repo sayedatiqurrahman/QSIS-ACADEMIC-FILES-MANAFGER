@@ -265,9 +265,12 @@ function closeViewer() {
   if (viewer) viewer.classList.remove('active');
   document.body.style.overflow = '';
   pdfFilePath = '';
+  _currentViewerItem = null;
   if (document.fullscreenElement) document.exitFullscreen();
   var body = document.getElementById('viewerBody');
   if (body) body.innerHTML = '';
+  var viewerHeader = document.querySelector('#fileViewer .flex.items-center.justify-between');
+  if (viewerHeader) viewerHeader.classList.remove('hidden');
 }
 
 var pdfFilePath = '';
@@ -275,12 +278,16 @@ var pdfFilePath = '';
 function openPdfViewer(url, container, filePath) {
   pdfFilePath = filePath || '';
   var fileName = filePath ? filePath.split('/').pop() : 'document.pdf';
+  var viewerHeader = document.querySelector('#fileViewer .flex.items-center.justify-between');
 
   if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+    if (viewerHeader) viewerHeader.classList.add('hidden');
     openAdobePdf(url, container, filePath, fileName);
   } else if (typeof pdfjsLib !== 'undefined') {
+    if (viewerHeader) viewerHeader.classList.remove('hidden');
     openPdfJs(url, container, filePath, fileName);
   } else {
+    if (viewerHeader) viewerHeader.classList.remove('hidden');
     container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file-pdf" style="font-size:3rem;color:#ef4444;margin-bottom:16px"></i><p>Loading PDF viewer...</p><p style="font-size:0.8rem;color:#94a3b8;margin-top:8px">If it doesn\'t load, <a href="' + url + '" target="_blank" style="color:#22c55e">open in new tab</a></p></div>';
     var s = document.createElement('script');
     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
@@ -306,9 +313,11 @@ function openAdobePdf(url, container, filePath, fileName) {
     }, {
       embedMode: 'SIZED_CONTAINER',
       defaultViewMode: 'FIT_PAGE',
-      showDownloadPDF: false,
-      showPrintPDF: false,
-      showAnnotationTools: false
+      showAnnotationTools: true,
+      showDownloadPDF: true,
+      showPrintPDF: true,
+      showFormFill: true,
+      enableAnnotationEditing: true
     });
 
     adobeDCView.registerCallback(
@@ -510,7 +519,9 @@ function applyImgTransform() {
 }
 
 function openDocViewer(url, name, container) {
+  var viewerHeader = document.querySelector('#fileViewer .flex.items-center.justify-between');
   if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+    if (viewerHeader) viewerHeader.classList.add('hidden');
     openAdobePdf(url, container, '', name);
   } else {
     container.innerHTML = '<div class="doc-viewer-container">' +
@@ -524,7 +535,9 @@ function openDocViewer(url, name, container) {
 }
 
 function openSheetViewer(url, name, container) {
+  var viewerHeader = document.querySelector('#fileViewer .flex.items-center.justify-between');
   if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+    if (viewerHeader) viewerHeader.classList.add('hidden');
     openAdobePdf(url, container, '', name);
   } else {
     container.innerHTML = '<div class="doc-viewer-container">' +
@@ -538,7 +551,9 @@ function openSheetViewer(url, name, container) {
 }
 
 function openOfficeViewer(url, name, type, container) {
+  var viewerHeader = document.querySelector('#fileViewer .flex.items-center.justify-between');
   if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+    if (viewerHeader) viewerHeader.classList.add('hidden');
     openAdobePdf(url, container, '', name);
   } else {
     var icon = 'fa-file';
