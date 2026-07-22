@@ -74,15 +74,6 @@ function toggleNav() {
 }
 
 function showUploadModal() {
-  if (!AUTH.isLoggedIn()) {
-    AUTH.showAuthModal();
-    return;
-  }
-  if (!AUTH.isEmailVerified()) {
-    AUTH.showAuthModal();
-    showToast('Verify your university email first', 'info');
-    return;
-  }
   document.getElementById('uploadModal').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
@@ -118,7 +109,7 @@ function updateAuthUI() {
     if (profileName) profileName.textContent = user?.name || user?.login || 'User';
     if (profileEmail) profileEmail.textContent = user?.login ? '@' + user.login : '';
     if (uploadBtn) uploadBtn.style.display = '';
-    if (profileWrap) profileWrap.style.display = '';
+    if (profileWrap) { profileWrap.style.display = ''; authBtn.style.display = ''; }
     if (mobileAuthArea) {
       mobileAuthArea.innerHTML =
         '<div class="flex gap-2">' +
@@ -127,14 +118,17 @@ function updateAuthUI() {
         '</div>';
     }
   } else {
-    if (authBtn) authBtn.innerHTML = '<i class="fas fa-user"></i> Login';
+    if (authBtn) {
+      authBtn.innerHTML = '<i class="fas fa-user"></i> Login';
+      authBtn.style.display = '';
+    }
     if (uploadBtn) uploadBtn.style.display = '';
-    if (profileWrap) profileWrap.style.display = 'none';
+    if (profileWrap) profileWrap.style.display = '';
     if (mobileAuthArea) {
       mobileAuthArea.innerHTML =
         '<div class="flex gap-2">' +
           '<button class="flex-1 inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none cursor-pointer text-[0.8rem] font-semibold" onclick="showUploadModal()"><i class="fas fa-upload"></i> Upload</button>' +
-          '<button class="inline-flex items-center justify-center gap-[6px] px-3 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold" onclick="AUTH.showAuthModal()"><i class="fas fa-user"></i></button>' +
+          '<button class="inline-flex items-center justify-center gap-[6px] px-3 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold" onclick="AUTH.showAuthModal()"><i class="fas fa-user"></i> Login</button>' +
         '</div>';
     }
   }
@@ -749,6 +743,19 @@ async function handleUpload() {
   var progress = document.getElementById('uploadProgress');
   var progressFill = document.getElementById('uploadProgressFill');
   var statusText = document.getElementById('uploadStatus');
+
+  if (!AUTH.isLoggedIn()) {
+    closeModal('uploadModal');
+    AUTH.showAuthModal();
+    showToast('Login required to upload files', 'info');
+    return;
+  }
+  if (!AUTH.isEmailVerified()) {
+    closeModal('uploadModal');
+    AUTH.showAuthModal();
+    showToast('Verify your university email first', 'info');
+    return;
+  }
 
   if (uploadFileQueue.length === 0) { showToast('Add files first', 'error'); return; }
   if (uploadFileQueue.length > CONFIG.maxFilesPerUpload) { showToast('Max ' + CONFIG.maxFilesPerUpload + ' files', 'error'); return; }
