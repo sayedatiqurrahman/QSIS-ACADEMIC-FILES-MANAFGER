@@ -103,9 +103,26 @@
           <button class="inline-flex items-center gap-[6px] px-4 py-2 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none shadow-[0_0_16px_rgba(34,197,94,0.3)] cursor-pointer text-[0.8rem] font-semibold hover:shadow-[0_0_24px_rgba(34,197,94,0.3)] hover:-translate-y-px transition-all" id="uploadBtn" onclick="showUploadModal()">
             <i class="fas fa-upload"></i> Upload
           </button>
-          <button class="inline-flex items-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold hover:bg-dark-bg3/80 transition-all" id="authBtn" onclick="AUTH.showAuthModal()">
-            <i class="fas fa-user"></i> Login
-          </button>
+          <div class="relative" id="profileWrap">
+            <button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold hover:bg-dark-bg3/80 transition-all" id="authBtn" onclick="AUTH.showAuthModal()">
+              <i class="fas fa-user"></i> Login
+            </button>
+            <div class="profile-dropdown hidden" id="profileDropdown">
+              <div class="profile-dropdown-header">
+                <img id="profileAvatar" src="" alt="" class="w-9 h-9 rounded-full border-2 border-qsis" />
+                <div>
+                  <div id="profileName" class="text-[0.85rem] font-bold text-dark-text"></div>
+                  <div id="profileEmail" class="text-[0.7rem] text-dark-text2"></div>
+                </div>
+              </div>
+              <div class="profile-dropdown-divider"></div>
+              <a href="#/" class="profile-dropdown-item" onclick="closeProfileDropdown()"><i class="fas fa-home"></i> Dashboard</a>
+              <a href="#/" class="profile-dropdown-item" onclick="closeProfileDropdown(); showUploadModal()"><i class="fas fa-upload"></i> Upload Files</a>
+              <a href="#/settings" class="profile-dropdown-item" onclick="closeProfileDropdown()"><i class="fas fa-cog"></i> Settings</a>
+              <div class="profile-dropdown-divider"></div>
+              <button class="profile-dropdown-item profile-dropdown-logout" onclick="closeProfileDropdown(); AUTH.logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
@@ -121,7 +138,7 @@
         <a href="#/history" class="flex-1 text-center py-2.5 px-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text2 no-underline text-[0.75rem] font-semibold hover:bg-dark-bg3/80 hover:text-qsis hover:border-qsis transition-all flex items-center justify-center gap-2"><i class="fas fa-clock text-[0.85rem]"></i> History</a>
       </div>
       <button class="w-full mt-1 inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none shadow-[0_0_16px_rgba(34,197,94,0.3)] cursor-pointer text-[0.8rem] font-semibold" onclick="showUploadModal()"><i class="fas fa-upload"></i> Upload</button>
-      <button class="w-full inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold" onclick="AUTH.showAuthModal()"><i class="fas fa-user"></i> Login</button>
+      <div id="mobileAuthArea"></div>
     </div>
 
     <!-- MAIN CONTENT -->
@@ -270,6 +287,7 @@
   <script src="js/views/routine.js"></script>
   <script src="js/views/history.js"></script>
   <script src="js/views/downloads.js"></script>
+  <script src="js/views/settings.js"></script>
   <script src="js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -278,7 +296,36 @@
         var nav = document.getElementById('navStars');
         if (el && nav) el.textContent = nav.textContent;
       });
+
+      var profileWrap = document.getElementById('profileWrap');
+      if (profileWrap) {
+        profileWrap.addEventListener('click', function(e) {
+          if (e.target.closest('#authBtn') && AUTH.isLoggedIn()) {
+            e.stopPropagation();
+            toggleProfileDropdown();
+          }
+        });
+      }
+
+      document.addEventListener('click', function(e) {
+        var dd = document.getElementById('profileDropdown');
+        if (dd && !dd.classList.contains('hidden')) {
+          if (!e.target.closest('#profileWrap')) {
+            dd.classList.add('hidden');
+          }
+        }
+      });
     });
+
+    function toggleProfileDropdown() {
+      var dd = document.getElementById('profileDropdown');
+      if (dd) dd.classList.toggle('hidden');
+    }
+
+    function closeProfileDropdown() {
+      var dd = document.getElementById('profileDropdown');
+      if (dd) dd.classList.add('hidden');
+    }
 
     function populateUploadSemesters() {
       var sel = document.getElementById('uploadSemester');

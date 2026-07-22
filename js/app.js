@@ -98,15 +98,33 @@ function showUploadTab(tab) {
 function updateAuthUI() {
   var authBtn = document.getElementById('authBtn');
   var uploadBtn = document.getElementById('uploadBtn');
+  var profileAvatar = document.getElementById('profileAvatar');
+  var profileName = document.getElementById('profileName');
+  var profileEmail = document.getElementById('profileEmail');
+  var mobileAuthArea = document.getElementById('mobileAuthArea');
+
   if (AUTH.isLoggedIn()) {
     var user = AUTH.getUser();
     if (authBtn) {
-      authBtn.innerHTML = '<img src="' + (user?.avatar_url || '') + '" alt="" style="width:20px;height:20px;border-radius:50%;vertical-align:middle" /> ' + (user?.login || 'Account');
+      authBtn.innerHTML = '<img src="' + (user?.avatar_url || '') + '" alt="" style="width:22px;height:22px;border-radius:50%" /> ' + (user?.login || 'Account');
     }
+    if (profileAvatar) profileAvatar.src = user?.avatar_url || '';
+    if (profileName) profileName.textContent = user?.name || user?.login || 'User';
+    if (profileEmail) profileEmail.textContent = user?.login ? '@' + user.login : '';
     if (uploadBtn) uploadBtn.style.display = '';
+    if (mobileAuthArea) {
+      mobileAuthArea.innerHTML =
+        '<button class="w-full inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold" onclick="AUTH.logout()">' +
+          '<img src="' + (user?.avatar_url || '') + '" alt="" style="width:18px;height:18px;border-radius:50%" /> ' + (user?.login || 'Account') +
+          ' <i class="fas fa-sign-out-alt ml-auto"></i>' +
+        '</button>';
+    }
   } else {
     if (authBtn) authBtn.innerHTML = '<i class="fas fa-user"></i> Login';
     if (uploadBtn) uploadBtn.style.display = 'none';
+    if (mobileAuthArea) {
+      mobileAuthArea.innerHTML = '<button class="w-full inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold" onclick="AUTH.showAuthModal()"><i class="fas fa-user"></i> Login</button>';
+    }
   }
 }
 
@@ -515,5 +533,6 @@ document.addEventListener('DOMContentLoaded', function() {
   Router.register('/routine', RoutineView);
   Router.register('/history', HistoryView);
   Router.register('/downloads', DownloadsView);
+  Router.register('/settings', SettingsView);
   Router.start();
 });

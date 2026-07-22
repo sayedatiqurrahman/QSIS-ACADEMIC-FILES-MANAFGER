@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qsis-v11';
+const CACHE_NAME = 'qsis-v12';
 const SHELL = [
   './',
   './index.html',
@@ -15,6 +15,7 @@ const SHELL = [
   './js/views/routine.js',
   './js/views/history.js',
   './js/views/downloads.js',
+  './js/views/settings.js',
   './js/app.js',
   './assets/arms-logo.png',
   './assets/qsis-logo.jpg',

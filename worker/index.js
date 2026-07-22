@@ -1,22 +1,24 @@
 const ALLOWED_EMAIL_REGEX = /^q\d{5,8}@ugrad\.iiuc\.ac\.bd$/i;
 const RATE_LIMIT = new Map();
+const SESSION_TTL = 15 * 24 * 60 * 60;
 
-function corsHeaders(origin, extra = {}) {
-  const allowed = (ALLOWED_ORIGINS || '').split(',').map(s => s.trim());
+function corsHeaders(origin, env, extra = {}) {
+  const allowed = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim());
   const allowOrigin = allowed.includes(origin) ? origin : allowed[0] || '*';
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Max-Age': '86400',
     ...extra
   };
 }
 
-function jsonResponse(origin, data, status = 200) {
+function jsonResponse(origin, env, data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
+    headers: { 'Content-Type': 'application/json', ...corsHeaders(origin, env) }
   });
 }
 
@@ -36,6 +38,68 @@ function generateCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
+function generateSessionToken() {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function parseCookie(cookieHeader, name) {
+  if (!cookieHeader) return null;
+  const match = cookieHeader.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='));
+  return match ? decodeURIComponent(match.split('=').slice(1).join('=')) : null;
+}
+
+function setCookie(response, name, value, maxAge) {
+  const cookie = name + '=' + encodeURIComponent(value) + '; Path=/; HttpOnly; SameSite=Lax; Max-Age=' + maxAge;
+  response.headers.append('Set-Cookie', cookie);
+}
+
+function clearCookie(response, name) {
+  response.headers.append('Set-Cookie', name + '=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
+}
+
+async function exchangeCode(code, env) {
+  const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      client_id: env.GITHUBCLIENTID,
+      client_secret: env.GITHUBCLIENTSECRET,
+      code: code
+    })
+  });
+  const tokenData = await tokenRes.json();
+  if (tokenData.error) throw new Error(tokenData.error_description || tokenData.error);
+
+  const userRes = await fetch('https://api.github.com/user', {
+    headers: {
+      'Authorization': 'token ' + tokenData.access_token,
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  });
+  const user = await userRes.json();
+  return {
+    access_token: tokenData.access_token,
+    user: {
+      login: user.login,
+      avatar_url: user.avatar_url,
+      html_url: user.html_url,
+      name: user.name,
+      id: user.id,
+      bio: user.bio,
+      company: user.company,
+      location: user.location,
+      email: user.email,
+      created_at: user.created_at
+    }
+  };
+}
+
+function getSpaOrigin(url) {
+  return url.searchParams.get('origin') || 'http://localhost:5500';
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -43,73 +107,104 @@ export default {
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders(origin) });
+      return new Response(null, { status: 204, headers: corsHeaders(origin, env) });
     }
 
     if (!checkRateLimit(ip)) {
-      return jsonResponse(origin, { error: 'Rate limit exceeded. Try again in 1 minute.' }, 429);
+      return jsonResponse(origin, env, { error: 'Rate limit exceeded. Try again in 1 minute.' }, 429);
     }
 
     try {
+      if (url.pathname === '/callback' && request.method === 'GET') {
+        const code = url.searchParams.get('code');
+        const error = url.searchParams.get('error');
+        const spaOrigin = getSpaOrigin(url);
+
+        if (error) {
+          return Response.redirect(spaOrigin + '/#/callback?error=' + encodeURIComponent(error), 302);
+        }
+        if (!code) {
+          return Response.redirect(spaOrigin + '/#/callback?error=no_code', 302);
+        }
+
+        try {
+          const result = await exchangeCode(code, env);
+          const sessionToken = generateSessionToken();
+
+          await env.SESSIONS.put('session:' + sessionToken, JSON.stringify({
+            access_token: result.access_token,
+            user: result.user,
+            created_at: Date.now()
+          }), { expirationTtl: SESSION_TTL });
+
+          const res = Response.redirect(spaOrigin + '/#/callback?login=success', 302);
+          setCookie(res, 'qsis_session', sessionToken, SESSION_TTL);
+          return res;
+        } catch (err) {
+          return Response.redirect(spaOrigin + '/#/callback?error=' + encodeURIComponent(err.message), 302);
+        }
+      }
+
+      if (url.pathname === '/api/session' && request.method === 'GET') {
+        const sessionToken = parseCookie(request.headers.get('Cookie'), 'qsis_session');
+        if (!sessionToken) {
+          return jsonResponse(origin, env, { error: 'No session' }, 401);
+        }
+
+        const sessionData = await env.SESSIONS.get('session:' + sessionToken);
+        if (!sessionData) {
+          return jsonResponse(origin, env, { error: 'Session expired' }, 401);
+        }
+
+        const session = JSON.parse(sessionData);
+
+        await env.SESSIONS.put('session:' + sessionToken, sessionData, { expirationTtl: SESSION_TTL });
+
+        return jsonResponse(origin, env, {
+          user: session.user,
+          access_token: session.access_token,
+          created_at: session.created_at
+        });
+      }
+
+      if (url.pathname === '/api/logout' && request.method === 'POST') {
+        const sessionToken = parseCookie(request.headers.get('Cookie'), 'qsis_session');
+        if (sessionToken) {
+          await env.SESSIONS.delete('session:' + sessionToken);
+        }
+        const res = jsonResponse(origin, env, { success: true });
+        clearCookie(res, 'qsis_session');
+        return res;
+      }
+
       if (url.pathname === '/api/exchange-token' && request.method === 'POST') {
         const body = await request.json();
         const { code } = body;
-        if (!code) return jsonResponse(origin, { error: 'Missing code parameter' }, 400);
+        if (!code) return jsonResponse(origin, env, { error: 'Missing code parameter' }, 400);
 
-        const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            client_id: env.GITHUBCLIENTID,
-            client_secret: env.GITHUBCLIENTSECRET,
-            code: code
-          })
-        });
-
-        const tokenData = await tokenRes.json();
-        if (tokenData.error) {
-          return jsonResponse(origin, { error: tokenData.error_description || tokenData.error }, 400);
-        }
-
-        const userRes = await fetch('https://api.github.com/user', {
-          headers: {
-            'Authorization': `token ${tokenData.access_token}`,
-            'Accept': 'application/vnd.github.v3+json'
-          }
-        });
-        const user = await userRes.json();
-
-        return jsonResponse(origin, {
-          access_token: tokenData.access_token,
-          user: {
-            login: user.login,
-            avatar_url: user.avatar_url,
-            html_url: user.html_url,
-            name: user.name,
-            id: user.id
-          }
+        const result = await exchangeCode(code, env);
+        return jsonResponse(origin, env, {
+          access_token: result.access_token,
+          user: result.user
         });
       }
 
       if (url.pathname === '/api/verify-email' && request.method === 'POST') {
         const body = await request.json();
         const { email } = body;
-        if (!email) return jsonResponse(origin, { error: 'Missing email' }, 400);
+        if (!email) return jsonResponse(origin, env, { error: 'Missing email' }, 400);
         if (!ALLOWED_EMAIL_REGEX.test(email)) {
-          return jsonResponse(origin, {
+          return jsonResponse(origin, env, {
             error: 'Invalid email. Only IIUC university emails (q{number}@ugrad.iiuc.ac.bd) are allowed.'
           }, 400);
         }
 
         const code = generateCode();
-        await env.put(`verify:${email}`, code, { expirationTtl: 600 });
+        await env.SESSIONS.put('verify:' + email, code, { expirationTtl: 600 });
 
-        return jsonResponse(origin, {
+        return jsonResponse(origin, env, {
           success: true,
-          message: `Verification code sent to ${email}. Code expires in 10 minutes.`,
+          message: 'Verification code sent to ' + email + '. Code expires in 10 minutes.',
           _dev_code: code
         });
       }
@@ -117,16 +212,16 @@ export default {
       if (url.pathname === '/api/check-email' && request.method === 'POST') {
         const body = await request.json();
         const { email, code } = body;
-        if (!email || !code) return jsonResponse(origin, { error: 'Missing email or code' }, 400);
+        if (!email || !code) return jsonResponse(origin, env, { error: 'Missing email or code' }, 400);
 
-        const stored = await env.get(`verify:${email}`);
+        const stored = await env.SESSIONS.get('verify:' + email);
         if (!stored || stored !== code) {
-          return jsonResponse(origin, { error: 'Invalid or expired verification code.' }, 400);
+          return jsonResponse(origin, env, { error: 'Invalid or expired verification code.' }, 400);
         }
 
-        await env.delete(`verify:${email}`);
+        await env.SESSIONS.delete('verify:' + email);
 
-        return jsonResponse(origin, {
+        return jsonResponse(origin, env, {
           success: true,
           email: email,
           verified: true
@@ -134,13 +229,13 @@ export default {
       }
 
       if (url.pathname === '/api/health') {
-        return jsonResponse(origin, { status: 'ok', timestamp: Date.now() });
+        return jsonResponse(origin, env, { status: 'ok', timestamp: Date.now() });
       }
 
-      return jsonResponse(origin, { error: 'Not found' }, 404);
+      return jsonResponse(origin, env, { error: 'Not found' }, 404);
 
     } catch (err) {
-      return jsonResponse(origin, { error: 'Internal server error: ' + err.message }, 500);
+      return jsonResponse(origin, env, { error: 'Internal server error: ' + err.message }, 500);
     }
   }
 };

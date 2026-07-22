@@ -15,20 +15,39 @@ const Router = {
     return window.location.hash.slice(1) || this.defaultRoute;
   },
 
+  parseHashParams() {
+    var hashStr = window.location.hash || '';
+    var queryPart = hashStr.split('?')[1] || '';
+    if (!queryPart) return {};
+    return Object.fromEntries(new URLSearchParams(queryPart));
+  },
+
   async handleRoute() {
     const hash = this.getCurrentHash();
 
     if (hash.startsWith('/callback')) {
-      const ok = await AUTH.handleCallback();
-      if (ok) {
-        showToast('Logged in successfully!', 'success');
-        this.go('/');
-        setTimeout(function() { AUTH.showAuthModal(); updateAuthUI(); }, 400);
-      } else {
-        showToast('Login failed. Try again.', 'error');
-        this.go('/');
+      const params = this.parseHashParams();
+
+      if (params.error) {
+        showToast('Login failed: ' + decodeURIComponent(params.error), 'error');
+        window.history.replaceState(null, '', window.location.pathname + '#/');
+        await this._finalizeSession();
+        return;
       }
+
+      if (params.login === 'success') {
+        window.history.replaceState(null, '', window.location.pathname + '#/');
+        await this._finalizeSession();
+        return;
+      }
+
+      window.history.replaceState(null, '', window.location.pathname + '#/');
+      await this._finalizeSession();
       return;
+    }
+
+    if (!AUTH._sessionChecked) {
+      await AUTH.checkSession();
     }
 
     if (this.current?.destroy) {
@@ -37,20 +56,17 @@ const Router = {
 
     const view = this.routes[hash] || this.routes[this.defaultRoute];
     if (!view) {
-      document.getElementById('app-main').innerHTML = `
-        <div class="empty-state" style="padding:80px 20px">
-          <i class="fas fa-question-circle"></i>
-          <p>Page not found</p>
-          <a href="#/" class="btn btn-glow btn-sm" style="margin-top:12px"><i class="fas fa-home"></i> Go Home</a>
-        </div>`;
+      document.getElementById('app-main').innerHTML =
+        '<div style="text-align:center;padding:80px 20px;color:#94a3b8">' +
+          '<i class="fas fa-question-circle" style="font-size:2.5rem;margin-bottom:12px;display:block"></i>' +
+          '<p>Page not found</p>' +
+          '<a href="#/" style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:8px 16px;border-radius:12px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;text-decoration:none;font-size:0.8rem;font-weight:600"><i class="fas fa-home"></i> Go Home</a>' +
+        '</div>';
       return;
     }
 
     const main = document.getElementById('app-main');
-    if (view.render) {
-      main.innerHTML = view.render();
-    }
-
+    if (view.render) main.innerHTML = view.render();
     this.current = view;
     if (view.init) {
       try { await view.init(); } catch(e) { console.error('View init error:', e); }
@@ -59,6 +75,14 @@ const Router = {
     this.updateNav(hash);
     this.updateSubtitle(hash);
     window.scrollTo(0, 0);
+    updateAuthUI();
+  },
+
+  async _finalizeSession() {
+    await AUTH.checkSession();
+    updateAuthUI();
+    showToast('Logged in successfully!', 'success');
+    this.updateNav(this.getCurrentHash());
   },
 
   updateNav(path) {
@@ -76,7 +100,8 @@ const Router = {
       '/contributors': 'Contributors',
       '/routine': 'Routine Manager',
       '/history': 'Read History',
-      '/downloads': 'Downloads'
+      '/downloads': 'Downloads',
+      '/settings': 'Settings'
     };
     sub.textContent = titles[path] || 'Academic Resource System';
   },
@@ -87,7 +112,8 @@ const Router = {
       '/contributors': 'Contributors - QSIS-ARMS',
       '/routine': 'Routine - QSIS-ARMS',
       '/history': 'Read History - QSIS-ARMS',
-      '/downloads': 'Downloads - QSIS-ARMS'
+      '/downloads': 'Downloads - QSIS-ARMS',
+      '/settings': 'Settings - QSIS-ARMS'
     };
     document.title = titles[path] || 'QSIS-ARMS';
   },

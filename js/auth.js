@@ -2,10 +2,13 @@ const AUTH = {
   TOKEN_KEY: 'qsis_gh_token',
   USER_KEY: 'qsis_gh_user',
   EMAIL_KEY: 'qsis_verified_email',
+  PROFILE_KEY: 'qsis_profile',
   EMAIL_REGEX: /^q\d{5,8}@ugrad\.iiuc\.ac\.bd$/i,
+  _sessionChecked: false,
+  _sessionValid: false,
 
   isLoggedIn() {
-    return !!localStorage.getItem(this.TOKEN_KEY);
+    return this._sessionValid && !!localStorage.getItem(this.TOKEN_KEY);
   },
 
   getToken() {
@@ -15,9 +18,7 @@ const AUTH = {
   getUser() {
     try {
       return JSON.parse(localStorage.getItem(this.USER_KEY));
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   },
 
   isEmailVerified() {
@@ -28,58 +29,84 @@ const AUTH = {
     return localStorage.getItem(this.EMAIL_KEY);
   },
 
+  getProfile() {
+    try {
+      var p = JSON.parse(localStorage.getItem(this.PROFILE_KEY));
+      return p || {};
+    } catch { return {}; }
+  },
+
+  saveProfile(data) {
+    var current = this.getProfile();
+    var merged = Object.assign({}, current, data);
+    localStorage.setItem(this.PROFILE_KEY, JSON.stringify(merged));
+  },
+
   isValidUniversityEmail(email) {
     return this.EMAIL_REGEX.test(email);
   },
 
   login() {
-    var redirect = window.location.origin + '/index.html#/callback';
-    var url = 'https://github.com/login/oauth/authorize?client_id=' + CONFIG.clientId + '&scope=repo&redirect_uri=' + encodeURIComponent(redirect);
+    var workerBase = CONFIG.oauthProxy;
+    var spaOrigin = window.location.origin;
+    var url = 'https://github.com/login/oauth/authorize?client_id=' + CONFIG.clientId +
+      '&scope=repo&redirect_uri=' + encodeURIComponent(workerBase + '/callback?origin=' + encodeURIComponent(spaOrigin));
     window.location.href = url;
   },
 
-  async handleCallback() {
-    var code = null;
-    var searchStr = window.location.search;
-    if (searchStr) {
-      var searchParams = new URLSearchParams(searchStr);
-      code = searchParams.get('code');
-    }
-    if (!code) {
-      var hashStr = window.location.hash || '';
-      var hashQuery = hashStr.split('?')[1] || '';
-      if (hashQuery) {
-        var hashParams = new URLSearchParams(hashQuery);
-        code = hashParams.get('code');
-      }
-    }
-    if (!code) return false;
-
+  async checkSession() {
     try {
-      var res = await fetch(CONFIG.oauthProxy + '/api/exchange-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code })
+      var res = await fetch(CONFIG.oauthProxy + '/api/session', {
+        credentials: 'include'
       });
+      if (!res.ok) {
+        this._sessionValid = false;
+        this._sessionChecked = true;
+        localStorage.removeItem(this.TOKEN_KEY);
+        localStorage.removeItem(this.USER_KEY);
+        return false;
+      }
       var data = await res.json();
-      if (data.error) throw new Error(data.error);
-
+      if (data.error) {
+        this._sessionValid = false;
+        this._sessionChecked = true;
+        localStorage.removeItem(this.TOKEN_KEY);
+        localStorage.removeItem(this.USER_KEY);
+        return false;
+      }
+      this._sessionValid = true;
+      this._sessionChecked = true;
       localStorage.setItem(this.TOKEN_KEY, data.access_token);
       localStorage.setItem(this.USER_KEY, JSON.stringify(data.user));
-
-      window.history.replaceState(null, '', window.location.pathname + '#/');
       return true;
     } catch (err) {
-      console.error('OAuth callback error:', err);
+      console.error('Session check failed:', err);
+      this._sessionValid = false;
+      this._sessionChecked = true;
       return false;
     }
+  },
+
+  async logout() {
+    try {
+      await fetch(CONFIG.oauthProxy + '/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (e) {}
+    this._sessionValid = false;
+    this._sessionChecked = false;
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem(this.EMAIL_KEY);
+    updateAuthUI();
+    Router.go('/');
   },
 
   async requestVerificationCode(email) {
     if (!this.isValidUniversityEmail(email)) {
       throw new Error('Invalid email format. Use your IIUC email: q{number}@ugrad.iiuc.ac.bd');
     }
-
     var res = await fetch(CONFIG.oauthProxy + '/api/verify-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -100,14 +127,9 @@ const AUTH = {
     if (data.error) throw new Error(data.error);
     if (data.verified) {
       localStorage.setItem(this.EMAIL_KEY, email);
+      this.saveProfile({ email: email, emailVerified: true });
     }
     return data;
-  },
-
-  logout() {
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.USER_KEY);
-    localStorage.removeItem(this.EMAIL_KEY);
   },
 
   canUpload() {
@@ -137,6 +159,7 @@ const AUTH = {
 
     if (this.isLoggedIn()) {
       var user = this.getUser();
+      var profile = this.getProfile();
       if (this.isEmailVerified()) {
         body.innerHTML =
           '<div class="auth-step">' +
@@ -144,9 +167,14 @@ const AUTH = {
             '<h3 class="auth-success-title">Welcome, ' + (user?.login || 'User') + '!</h3>' +
             '<p class="auth-success-text">Email verified: <strong>' + this.getVerifiedEmail() + '</strong></p>' +
             '<p class="auth-success-text">You can now upload academic files.</p>' +
-            '<button class="auth-btn-primary" onclick="AUTH.closeAuthModal(); Router.go(\'/\')" style="margin-top:16px">' +
-              '<i class="fas fa-upload"></i> Start Uploading' +
-            '</button>' +
+            '<div style="display:flex;gap:8px;margin-top:16px">' +
+              '<button class="auth-btn-primary" onclick="AUTH.closeAuthModal(); Router.go(\'/\')" style="flex:1">' +
+                '<i class="fas fa-upload"></i> Start Uploading' +
+              '</button>' +
+              '<button class="auth-btn-secondary" onclick="AUTH.closeAuthModal(); Router.go(\'/settings\')" style="flex:1">' +
+                '<i class="fas fa-cog"></i> Settings' +
+              '</button>' +
+            '</div>' +
           '</div>';
       } else {
         body.innerHTML =
@@ -155,7 +183,7 @@ const AUTH = {
             '<p class="auth-subtitle">Logged in as <strong>' + (user?.login || 'User') + '</strong></p>' +
             '<div class="auth-divider"></div>' +
             '<h4 style="font-size:0.9rem;margin-bottom:4px;color:#e8edf5">Step 2: Verify University Email</h4>' +
-            '<p class="auth-hint" style="margin-top:0;margin-bottom:12px">Enter your IIUC email to verify you\'re a student.</p>' +
+            '<p class="auth-hint" style="margin-top:0;margin-bottom:12px">Enter your IIUC QSIS email (q{number}@ugrad.iiuc.ac.bd)</p>' +
             '<input type="email" id="authEmail" placeholder="q233099@ugrad.iiuc.ac.bd" class="auth-input" />' +
             '<button class="auth-btn-primary" onclick="AUTH._requestCode()" style="margin-top:12px">' +
               '<i class="fas fa-paper-plane"></i> Send Verification Code' +
@@ -181,24 +209,15 @@ const AUTH = {
   async _requestCode() {
     var emailInput = document.getElementById('authEmail');
     var email = emailInput?.value?.trim();
-    if (!email) {
-      showToast('Please enter your email', 'error');
-      return;
-    }
+    if (!email) { showToast('Please enter your email', 'error'); return; }
     if (!this.isValidUniversityEmail(email)) {
-      showToast('Invalid email. Use format: q{number}@ugrad.iiuc.ac.bd', 'error');
-      return;
+      showToast('Invalid email. Use format: q{number}@ugrad.iiuc.ac.bd', 'error'); return;
     }
 
     try {
       var body = document.getElementById('authModalBody');
-      body.innerHTML =
-        '<div class="auth-step">' +
-          '<h3 class="auth-title"><i class="fas fa-spinner fa-spin"></i> Sending code...</h3>' +
-        '</div>';
-
+      body.innerHTML = '<div class="auth-step"><h3 class="auth-title"><i class="fas fa-spinner fa-spin"></i> Sending code...</h3></div>';
       await this.requestVerificationCode(email);
-
       body.innerHTML =
         '<div class="auth-step">' +
           '<h3 class="auth-title"><i class="fas fa-envelope" style="color:#22c55e"></i> Enter Verification Code</h3>' +
@@ -211,7 +230,6 @@ const AUTH = {
             '<i class="fas fa-arrow-left"></i> Back' +
           '</button>' +
         '</div>';
-
       document.getElementById('authCode')?.focus();
     } catch (err) {
       showToast(err.message, 'error');
@@ -222,21 +240,14 @@ const AUTH = {
   async _confirmCode(email) {
     var codeInput = document.getElementById('authCode');
     var code = codeInput?.value?.trim();
-    if (!code || code.length !== 6) {
-      showToast('Enter the 6-digit code', 'error');
-      return;
-    }
+    if (!code || code.length !== 6) { showToast('Enter the 6-digit code', 'error'); return; }
 
     try {
       var body = document.getElementById('authModalBody');
-      body.innerHTML =
-        '<div class="auth-step">' +
-          '<h3 class="auth-title"><i class="fas fa-spinner fa-spin"></i> Verifying...</h3>' +
-        '</div>';
-
+      body.innerHTML = '<div class="auth-step"><h3 class="auth-title"><i class="fas fa-spinner fa-spin"></i> Verifying...</h3></div>';
       await this.confirmVerificationCode(email, code);
-
       showToast('Email verified successfully!', 'success');
+      updateAuthUI();
       this._renderAuthStep1();
     } catch (err) {
       showToast(err.message, 'error');
