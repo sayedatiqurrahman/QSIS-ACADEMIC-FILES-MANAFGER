@@ -281,14 +281,9 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
-    window._adobeFailed = false;
     var adobeScript = document.createElement('script');
     adobeScript.src = 'https://documentcloud.adobe.com/viewer/main.js';
     adobeScript.async = true;
-    adobeScript.onerror = function() { window._adobeFailed = true; };
-    adobeScript.onload = function() {
-      if (typeof AdobeDC === 'undefined') window._adobeFailed = true;
-    };
     document.head.appendChild(adobeScript);
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>

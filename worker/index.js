@@ -44,17 +44,37 @@ function generateSessionToken() {
 }
 
 async function exchangeCode(code, env) {
-  const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify({
-      client_id: env.GITHUBCLIENTID,
-      client_secret: env.GITHUBCLIENTSECRET,
-      code: code
-    })
-  });
-  const tokenData = await tokenRes.json();
-  if (tokenData.error) throw new Error(tokenData.error_description || tokenData.error);
+  let tokenData;
+  try {
+    const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        client_id: env.GITHUBCLIENTID,
+        client_secret: env.GITHUBCLIENTSECRET,
+        code: code
+      })
+    });
+    const text = await tokenRes.text();
+    try {
+      tokenData = JSON.parse(text);
+    } catch (e) {
+      throw new Error('GitHub returned an invalid response. Try again.');
+    }
+  } catch (e) {
+    throw new Error('Could not reach GitHub. Check your connection.');
+  }
+
+  if (tokenData.error) {
+    var desc = tokenData.error_description || tokenData.error;
+    if (desc.includes('code') && desc.includes('expir')) {
+      throw new Error('Login code expired. Please try again.');
+    }
+    if (desc.includes('incorrect')) {
+      throw new Error('Login failed. Please try again.');
+    }
+    throw new Error(desc || 'GitHub login failed');
+  }
 
   const userRes = await fetch('https://api.github.com/user', {
     headers: {
@@ -128,7 +148,11 @@ export default {
           }));
           return new Response(null, { status: 302, headers: { Location: spaOrigin + '/#/callback?data=' + payload } });
         } catch (err) {
-          return new Response(null, { status: 302, headers: { Location: spaOrigin + '/#/callback?error=' + encodeURIComponent(err.message) } });
+          var errMsg = err.message || 'Unknown error';
+          if (errMsg.includes('Request') || errMsg.includes('fetch')) {
+            errMsg = 'Network error. Check connection and try again.';
+          }
+          return new Response(null, { status: 302, headers: { Location: spaOrigin + '/#/callback?error=' + encodeURIComponent(errMsg) } });
         }
       }
 

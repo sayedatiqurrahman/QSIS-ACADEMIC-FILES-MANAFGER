@@ -69,8 +69,8 @@ footer { margin-top:auto; }
 /* Image viewer */
 .image-viewer-container { display:flex; flex-direction:column; height:100%; }
 .image-toolbar { display:flex; align-items:center; gap:6px; padding:8px 12px; background:#1a2236; border-bottom:1px solid #2a3a5c; flex-wrap:wrap; }
-.image-scroll-area { flex:1; overflow:auto; display:flex; justify-content:center; align-items:center; padding:12px; background:#0a0f1e; }
-.image-scroll-area img { max-width:100%; max-height:100%; object-fit:contain; border-radius:4px; transition:transform .2s; }
+.image-scroll-area { flex:1; overflow:hidden; display:flex; justify-content:center; align-items:center; padding:12px; background:#0a0f1e; touch-action:none; }
+.image-scroll-area img { max-width:100%; max-height:100%; object-fit:contain; border-radius:4px; transition:transform .15s ease-out; user-select:none; -webkit-user-drag:none; }
 
 /* Doc viewer */
 .doc-viewer-container { display:flex; flex-direction:column; height:100%; }

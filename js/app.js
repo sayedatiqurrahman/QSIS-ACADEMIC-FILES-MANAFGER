@@ -276,7 +276,7 @@ function openPdfViewer(url, container, filePath) {
   pdfFilePath = filePath || '';
   var fileName = filePath ? filePath.split('/').pop() : 'document.pdf';
 
-  if (!window._adobeFailed && typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+  if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
     openAdobePdf(url, container, filePath, fileName);
   } else if (typeof pdfjsLib !== 'undefined') {
     openPdfJs(url, container, filePath, fileName);
@@ -324,12 +324,11 @@ function openAdobePdf(url, container, filePath, fileName) {
       { listenOn: ['PDF_VIEWER_LOADED'] }
     );
   } catch (err) {
-    console.warn('Adobe viewer failed, falling back:', err);
-    window._adobeFailed = true;
-    if (fileName.endsWith('.pdf') && typeof pdfjsLib !== 'undefined') {
+    console.warn('Adobe viewer failed, falling back to pdf.js:', err);
+    if (typeof pdfjsLib !== 'undefined') {
       openPdfJs(url, container, filePath, fileName);
     } else {
-      openOfficeViewer(url, fileName, 'office', container);
+      container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file-pdf" style="font-size:3rem;color:#ef4444;margin-bottom:16px"></i><p>PDF viewer unavailable.</p><a href="' + url + '" target="_blank" class="auth-btn-primary" style="display:inline-flex;width:auto;margin-top:12px;text-decoration:none"><i class="fas fa-external-link-alt"></i> Open in new tab</a></div>';
     }
   }
 }
@@ -444,9 +443,9 @@ function openPdfJs(url, container, filePath, fileName) {
   });
 }
 
-var imgZoom = 100, imgRotation = 0;
+var imgZoom = 100, imgRotation = 0, imgPanX = 0, imgPanY = 0, imgDragging = false, imgDragStart = {x:0,y:0};
 function openImageViewer(url, name, container) {
-  imgZoom = 100; imgRotation = 0;
+  imgZoom = 100; imgRotation = 0; imgPanX = 0; imgPanY = 0;
   container.innerHTML = '<div class="image-viewer-container">' +
     '<div class="image-toolbar">' +
       '<button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold" onclick="imgZoomOut()"><i class="fas fa-minus"></i></button>' +
@@ -454,25 +453,64 @@ function openImageViewer(url, name, container) {
       '<button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold" onclick="imgZoomIn()"><i class="fas fa-plus"></i></button>' +
       '<button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold" onclick="imgFit()"><i class="fas fa-expand"></i> Fit</button>' +
       '<button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold" onclick="imgRotate()"><i class="fas fa-redo"></i></button>' +
+      '<button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold" id="imgHandBtn" onclick="imgToggleHand()"><i class="fas fa-hand-paper"></i></button>' +
     '</div>' +
-    '<div class="image-scroll-area" id="imageScrollArea">' +
-      '<img id="viewerImage" src="' + url + '" alt="' + esc(name) + '" />' +
+    '<div class="image-scroll-area" id="imageScrollArea" style="cursor:default">' +
+      '<img id="viewerImage" src="' + url + '" alt="' + esc(name) + '" draggable="false" />' +
     '</div>' +
   '</div>';
+
+  var scrollArea = document.getElementById('imageScrollArea');
+  scrollArea.addEventListener('mousedown', function(e) {
+    if (imgZoom <= 100) return;
+    e.preventDefault();
+    imgDragging = true;
+    imgDragStart = { x: e.clientX - imgPanX, y: e.clientY - imgPanY };
+    scrollArea.style.cursor = 'grabbing';
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (!imgDragging) return;
+    imgPanX = e.clientX - imgDragStart.x;
+    imgPanY = e.clientY - imgDragStart.y;
+    applyImgTransform();
+  });
+  document.addEventListener('mouseup', function() {
+    if (imgDragging) {
+      imgDragging = false;
+      var scrollArea = document.getElementById('imageScrollArea');
+      if (scrollArea) scrollArea.style.cursor = imgZoom > 100 ? 'grab' : 'default';
+    }
+  });
+
+  scrollArea.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    if (e.deltaY < 0) imgZoomIn(); else imgZoomOut();
+  }, { passive: false });
 }
-function imgZoomIn() { imgZoom = Math.min(imgZoom + 15, 300); applyImgTransform(); }
-function imgZoomOut() { imgZoom = Math.max(imgZoom - 15, 20); applyImgTransform(); }
-function imgFit() { imgZoom = 100; imgRotation = 0; applyImgTransform(); }
+function imgZoomIn() { imgZoom = Math.min(imgZoom + 15, 400); applyImgTransform(); }
+function imgZoomOut() { imgZoom = Math.max(imgZoom - 15, 20); if (imgZoom <= 100) { imgPanX = 0; imgPanY = 0; } applyImgTransform(); }
+function imgFit() { imgZoom = 100; imgRotation = 0; imgPanX = 0; imgPanY = 0; applyImgTransform(); }
 function imgRotate() { imgRotation = (imgRotation + 90) % 360; applyImgTransform(); }
+function imgToggleHand() {
+  var scrollArea = document.getElementById('imageScrollArea');
+  var btn = document.getElementById('imgHandBtn');
+  if (!scrollArea || !btn) return;
+  if (imgZoom <= 100) { imgZoom = 150; }
+  applyImgTransform();
+}
 function applyImgTransform() {
   var img = document.getElementById('viewerImage');
-  if (img) img.style.transform = 'scale(' + (imgZoom / 100) + ') rotate(' + imgRotation + 'deg)';
+  if (img) img.style.transform = 'translate(' + imgPanX + 'px,' + imgPanY + 'px) scale(' + (imgZoom / 100) + ') rotate(' + imgRotation + 'deg)';
   var info = document.getElementById('imgZoomInfo');
   if (info) info.textContent = Math.round(imgZoom) + '%';
+  var scrollArea = document.getElementById('imageScrollArea');
+  if (scrollArea) {
+    scrollArea.style.cursor = imgZoom > 100 ? 'grab' : 'default';
+  }
 }
 
 function openDocViewer(url, name, container) {
-  if (!window._adobeFailed && typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+  if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
     openAdobePdf(url, container, '', name);
   } else {
     container.innerHTML = '<div class="doc-viewer-container">' +
@@ -486,7 +524,7 @@ function openDocViewer(url, name, container) {
 }
 
 function openSheetViewer(url, name, container) {
-  if (!window._adobeFailed && typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+  if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
     openAdobePdf(url, container, '', name);
   } else {
     container.innerHTML = '<div class="doc-viewer-container">' +
@@ -500,7 +538,7 @@ function openSheetViewer(url, name, container) {
 }
 
 function openOfficeViewer(url, name, type, container) {
-  if (!window._adobeFailed && typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+  if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
     openAdobePdf(url, container, '', name);
   } else {
     var icon = 'fa-file';
