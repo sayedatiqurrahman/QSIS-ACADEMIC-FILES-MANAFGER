@@ -217,6 +217,44 @@ function getSavedPdfPage(filePath) {
   try { return parseInt(localStorage.getItem(getPdfPageKey(filePath))) || 1; } catch(e) { return 1; }
 }
 
+function saveViewerState(item) {
+  if (!item || item.mimeType !== 'pdf') return;
+  try {
+    localStorage.setItem('qsis_viewer_state', JSON.stringify({
+      path: item.path,
+      name: item.name,
+      mimeType: item.mimeType,
+      rawUrl: item.rawUrl,
+      savedAt: Date.now()
+    }));
+  } catch(e) {}
+}
+
+function getViewerState() {
+  try {
+    var raw = localStorage.getItem('qsis_viewer_state');
+    if (!raw) return null;
+    var state = JSON.parse(raw);
+    if (Date.now() - state.savedAt > 3600000) {
+      localStorage.removeItem('qsis_viewer_state');
+      return null;
+    }
+    return state;
+  } catch(e) { return null; }
+}
+
+function clearViewerState() {
+  localStorage.removeItem('qsis_viewer_state');
+}
+
+function restorePdfViewer() {
+  var state = getViewerState();
+  if (!state) return;
+  clearViewerState();
+  var item = { path: state.path, name: state.name, mimeType: state.mimeType, rawUrl: state.rawUrl };
+  setTimeout(function() { openViewer(item); }, 500);
+}
+
 function openViewer(item) {
   if (!item) return;
   _currentViewerItem = item;
@@ -250,6 +288,7 @@ function openViewer(item) {
   viewer.classList.add('active');
   document.body.style.overflow = 'hidden';
   DB.historyAdd(item);
+  if (item.mimeType === 'pdf') saveViewerState(item);
 }
 
 function openViewerFromBlob(item, blob) {
@@ -272,6 +311,7 @@ function openViewerFromBlob(item, blob) {
   }
   viewer.classList.add('active');
   document.body.style.overflow = 'hidden';
+  if (item.mimeType === 'pdf') saveViewerState(item);
 }
 
 function closeViewer() {
@@ -280,6 +320,7 @@ function closeViewer() {
   document.body.style.overflow = '';
   pdfFilePath = '';
   _currentViewerItem = null;
+  clearViewerState();
   if (document.fullscreenElement) document.exitFullscreen();
   var body = document.getElementById('viewerBody');
   if (body) body.innerHTML = '';
@@ -781,4 +822,10 @@ document.addEventListener('DOMContentLoaded', function() {
   Router.register('/downloads', DownloadsView);
   Router.register('/settings', SettingsView);
   Router.start();
+
+  window.addEventListener('popstate', function() {
+    clearViewerState();
+  });
+
+  restorePdfViewer();
 });
