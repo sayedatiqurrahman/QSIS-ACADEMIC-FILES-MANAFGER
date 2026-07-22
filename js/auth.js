@@ -50,8 +50,9 @@ const AUTH = {
   login() {
     var workerBase = CONFIG.oauthProxy;
     var spaOrigin = window.location.origin;
+    var state = encodeURIComponent(JSON.stringify({ origin: spaOrigin }));
     var url = 'https://github.com/login/oauth/authorize?client_id=' + CONFIG.clientId +
-      '&scope=repo&redirect_uri=' + encodeURIComponent(workerBase + '/callback?origin=' + encodeURIComponent(spaOrigin));
+      '&scope=repo&state=' + state;
     window.location.href = url;
   },
 

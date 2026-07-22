@@ -126,7 +126,12 @@ export default {
       if (url.pathname === '/callback' && request.method === 'GET') {
         const code = url.searchParams.get('code');
         const error = url.searchParams.get('error');
-        const spaOrigin = getSpaOrigin(url);
+        const stateStr = url.searchParams.get('state') || '';
+        var spaOrigin = 'https://qsis-arms.eu.cc';
+        try {
+          const state = JSON.parse(decodeURIComponent(stateStr));
+          if (state.origin) spaOrigin = state.origin;
+        } catch(e) {}
 
         if (error) {
           return new Response(null, { status: 302, headers: { Location: spaOrigin + '/#/callback?error=' + encodeURIComponent(error) } });

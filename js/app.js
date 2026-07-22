@@ -112,26 +112,30 @@ function updateAuthUI() {
   if (AUTH.isLoggedIn()) {
     var user = AUTH.getUser();
     if (authBtn) {
-      authBtn.innerHTML = '<img src="' + (user?.avatar_url || '') + '" alt="" style="width:22px;height:22px;border-radius:50%" /> ' + (user?.login || 'Account');
+      authBtn.innerHTML = '<img src="' + (user?.avatar_url || '') + '" alt="" style="width:22px;height:22px;border-radius:50%" />';
     }
     if (profileAvatar) profileAvatar.src = user?.avatar_url || '';
     if (profileName) profileName.textContent = user?.name || user?.login || 'User';
     if (profileEmail) profileEmail.textContent = user?.login ? '@' + user.login : '';
-    if (uploadBtn) uploadBtn.style.display = 'none';
+    if (uploadBtn) uploadBtn.style.display = '';
     if (profileWrap) profileWrap.style.display = '';
     if (mobileAuthArea) {
       mobileAuthArea.innerHTML =
-        '<button class="w-full inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold" onclick="AUTH.logout()">' +
-          '<img src="' + (user?.avatar_url || '') + '" alt="" style="width:18px;height:18px;border-radius:50%" /> ' + (user?.login || 'Account') +
-          ' <i class="fas fa-sign-out-alt ml-auto"></i>' +
-        '</button>';
+        '<div class="flex gap-2">' +
+          '<button class="flex-1 inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none cursor-pointer text-[0.8rem] font-semibold" onclick="showUploadModal()"><i class="fas fa-upload"></i> Upload</button>' +
+          '<button class="inline-flex items-center justify-center px-3 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer" onclick="toggleProfileDropdown()"><img src="' + (user?.avatar_url || '') + '" alt="" style="width:22px;height:22px;border-radius:50%" /></button>' +
+        '</div>';
     }
   } else {
     if (authBtn) authBtn.innerHTML = '<i class="fas fa-user"></i> Login';
     if (uploadBtn) uploadBtn.style.display = '';
     if (profileWrap) profileWrap.style.display = 'none';
     if (mobileAuthArea) {
-      mobileAuthArea.innerHTML = '<button class="w-full inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold" onclick="AUTH.showAuthModal()"><i class="fas fa-user"></i> Login</button>';
+      mobileAuthArea.innerHTML =
+        '<div class="flex gap-2">' +
+          '<button class="flex-1 inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none cursor-pointer text-[0.8rem] font-semibold" onclick="showUploadModal()"><i class="fas fa-upload"></i> Upload</button>' +
+          '<button class="inline-flex items-center justify-center gap-[6px] px-3 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold" onclick="AUTH.showAuthModal()"><i class="fas fa-user"></i></button>' +
+        '</div>';
     }
   }
 }
