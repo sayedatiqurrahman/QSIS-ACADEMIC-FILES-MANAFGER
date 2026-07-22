@@ -1,0 +1,656 @@
+const HomeView = {
+  allTreeItems: [],
+  currentPath: '',
+  currentSemester: '',
+  currentCategory: '',
+  currentCourse: '',
+  breadcrumb: [],
+  semesterFolders: {},
+  semesterLabels: {},
+
+  render() {
+    return `
+      <main class="main-content">
+        <section class="hero-section">
+          <div class="hero-content">
+            <div class="hero-logos">
+              <div class="logo-circle">
+                <i class="fas fa-graduation-cap"></i>
+              </div>
+              <div class="logo-circle secondary">
+                <i class="fas fa-book-open"></i>
+              </div>
+            </div>
+            <h2 class="hero-title">QSIS-ARMS</h2>
+            <p class="hero-subtitle">QSIS Academic Resource Management System</p>
+            <p class="hero-credits">
+              Developed by <strong>Sayed Atiqur Rahman</strong> &mdash; CSE, IIUC
+            </p>
+          </div>
+        </section>
+
+        <section class="stats-bar">
+          <div class="stat-item">
+            <span class="stat-number" id="statsSemesters">0</span>
+            <span class="stat-label">Semesters</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="statsCourses">0</span>
+            <span class="stat-label">Courses</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="statsFiles">0</span>
+            <span class="stat-label">Files</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="statsYears">0</span>
+            <span class="stat-label">Years</span>
+          </div>
+        </section>
+
+        <section class="recent-section">
+          <div class="section-header">
+            <h3><i class="fas fa-clock"></i> Recent Reads</h3>
+            <a href="#/history" id="recentMore" class="link-more" style="display:none">View All <i class="fas fa-arrow-right"></i></a>
+          </div>
+          <div id="recentReads" class="recent-grid">
+            <div class="recent-empty"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+          </div>
+        </section>
+
+        <section class="search-section">
+          <div class="search-bar">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search files, courses, semesters..." oninput="HomeView.searchFiles()" />
+          </div>
+          <div class="search-filters">
+            <select id="searchSemester" class="filter-select" onchange="HomeView.searchFiles()">
+              <option value="">All Semesters</option>
+            </select>
+            <select id="searchType" class="filter-select" onchange="HomeView.searchFiles()">
+              <option value="">All Types</option>
+              <option value="pdf">PDF</option>
+              <option value="image">Image</option>
+              <option value="doc">Document</option>
+              <option value="sheet">Sheet (XLS)</option>
+              <option value="ppt">Presentation</option>
+            </select>
+            <select id="searchYear" class="filter-select" onchange="HomeView.searchFiles()">
+              <option value="">All Years</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="semester-section" id="semesterSection">
+          <div class="section-header">
+            <h3 id="sectionTitle"><i class="fas fa-book"></i> Select Semester</h3>
+          </div>
+          <div id="semesterGrid" class="semester-grid">
+            <div class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Loading semesters...</div>
+          </div>
+        </section>
+
+        <section class="file-section" id="fileSection" style="display:none">
+          <div class="section-header">
+            <h3 id="sectionTitle2"><i class="fas fa-folder-open"></i> Files</h3>
+            <button class="btn btn-sm btn-outline" onclick="HomeView.goHome()" style="margin-left:auto">
+              <i class="fas fa-arrow-left"></i> Back to Semesters
+            </button>
+          </div>
+          <div id="breadcrumb" class="breadcrumb"></div>
+          <div id="fileGrid" class="file-grid"></div>
+        </section>
+      </main>`;
+  },
+
+  async init() {
+    await waitForDB();
+    this.loadRecentReads();
+    this.loadSemesters().then(() => this.populateYearSelect());
+  },
+
+  destroy() {},
+
+  async loadRecentReads() {
+    const container = document.getElementById('recentReads');
+    if (!container) return;
+    try {
+      const items = await DB.historyGetRecent(7);
+      if (!items || items.length === 0) {
+        container.innerHTML = `<div class="recent-empty"><i class="fas fa-clock"></i> No recent reads yet. Open a file to get started.</div>`;
+        return;
+      }
+      container.innerHTML = items.map(item => {
+        const icon = getFileIconByType(item.mimeType);
+        const time = timeAgo(item.lastRead);
+        return `<div class="recent-card" onclick="HomeView.openRecentFile('${esc(item.path)}', '${esc(item.mimeType)}')">
+          <div class="recent-icon">${icon}</div>
+          <div class="recent-info">
+            <div class="recent-name">${esc(item.name)}</div>
+            <div class="recent-time">${time}</div>
+          </div>
+        </div>`;
+      }).join('');
+
+      const moreBtn = document.getElementById('recentMore');
+      if (moreBtn && items.length >= 7) moreBtn.style.display = '';
+      else if (moreBtn) moreBtn.style.display = 'none';
+    } catch (err) {
+      container.innerHTML = `<div class="recent-empty"><i class="fas fa-clock"></i> No recent reads yet.</div>`;
+    }
+  },
+
+  async openRecentFile(path, mimeType) {
+    const id = DB.makeId(path);
+    const cached = await DB.cacheGet(id);
+    const item = {
+      path, name: path.split('/').pop(), mimeType,
+      rawUrl: `https://raw.githubusercontent.com/${GITHUB.owner}/${GITHUB.repo}/${GITHUB.branch}/${CONFIG.uploadPath}/${path}`
+    };
+    if (cached && cached.blob) {
+      openViewerFromBlob(item, cached.blob);
+    } else {
+      openViewer(item);
+    }
+    await DB.historyAdd(item);
+  },
+
+  async loadSemesters() {
+    const grid = document.getElementById('semesterGrid');
+    grid.innerHTML = `<div class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Loading semesters...</div>`;
+    try {
+      const tree = await GITHUB.getUploadTree(true);
+      this.allTreeItems = tree.tree.filter(item => {
+        const parts = item.path.split('/');
+        const fileName = parts[parts.length - 1];
+        const ext = fileName.split('.').pop().toLowerCase();
+        if (item.type === 'blob') {
+          if (CONFIG.ignoredFiles.includes(fileName)) return false;
+          if (CONFIG.ignoredExtensions.includes(ext)) return false;
+          if (!CONFIG.academicExtensions.includes(ext)) return false;
+        }
+        return true;
+      });
+
+      const detectedSemIds = [...new Set(this.allTreeItems.map(i => i.path.split('/')[0]).filter(Boolean))];
+      detectedSemIds.sort();
+      const semFolders = detectedSemIds.map(semId => {
+        const numMatch = semId.match(/^(\d+)/);
+        const num = numMatch ? numMatch[1] : '';
+        const suffix = num === '1' ? 'st' : num === '2' ? 'nd' : num === '3' ? 'rd' : 'th';
+        const label = num ? num + suffix + ' Semester' : semId.replace(/-/g, ' ');
+        const items = this.allTreeItems.filter(i => i.path.startsWith(semId + '/'));
+        const fileCount = items.filter(i => i.type === 'blob').length;
+        const courseSet = new Set();
+        items.forEach(i => {
+          const parts = i.path.split('/');
+          if (parts.length < 3) return;
+          const f2 = (parts[2] || '').toLowerCase();
+          if (parts[2] && !/^\d{4}$/.test(parts[2]) && !f2.startsWith('mid') && !f2.startsWith('final') && !f2.startsWith('note') && !f2.startsWith('readme') && !f2.startsWith('.gitkeep') && !parts[2].match(/\.\w{1,5}$/)) {
+            courseSet.add(parts[2]);
+          } else if (parts.length >= 4 && parts[3]) {
+            const f3 = (parts[3] || '').toLowerCase();
+            if (parts[3] && !/^\d{4}$/.test(parts[3]) && !f3.startsWith('mid') && !f3.startsWith('final') && !f3.startsWith('note') && !parts[3].match(/\.\w{1,5}$/)) {
+              courseSet.add(parts[3]);
+            }
+          }
+        });
+        const courseCount = courseSet.size;
+        const years = new Set();
+        items.forEach(i => {
+          const m = i.path.match(/\/(\d{4})\//);
+          if (m) years.add(m[1]);
+        });
+        return { id: semId, label, icon: 'fa-book', fileCount, courseCount, yearCount: years.size };
+      });
+      this.semesterLabels = {};
+      semFolders.forEach(s => this.semesterLabels[s.id] = s.label);
+
+      const semSelect = document.getElementById('searchSemester');
+      if (semSelect) {
+        semSelect.innerHTML = '<option value="">All Semesters</option>' +
+          semFolders.map(s => `<option value="${s.id}">${s.label}</option>`).join('');
+      }
+
+      grid.innerHTML = semFolders.map(s => `
+        <div class="semester-card" onclick="HomeView.openSemester('${s.id}')">
+          <div class="semester-icon"><i class="fas fa-book"></i></div>
+          <div class="semester-label">${s.label}</div>
+          <div class="semester-meta">${s.courseCount || 0} courses &middot; ${s.fileCount} files</div>
+        </div>
+      `).join('');
+
+      document.getElementById('statsSemesters').textContent = semFolders.length;
+      document.getElementById('statsCourses').textContent = semFolders.reduce((sum, s) => sum + s.courseCount, 0);
+      document.getElementById('statsFiles').textContent = this.allTreeItems.filter(i => i.type === 'blob').length;
+      document.getElementById('statsYears').textContent = semFolders.reduce((sum, s) => sum + s.yearCount, 0);
+    } catch (err) {
+      console.error(err);
+      grid.innerHTML = `<div class="loading-cell" style="grid-column:1/-1">
+        <i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i>
+        <p>Could not load from GitHub. Check connection.</p>
+        <button class="btn btn-sm" onclick="HomeView.loadSemesters()" style="margin-top:12px"><i class="fas fa-sync"></i> Retry</button>
+      </div>`;
+    }
+  },
+
+  semLabel(semId) {
+    return this.semesterLabels[semId] || semId.replace(/-/g, ' ');
+  },
+
+  openSemester(semId) {
+    this.currentSemester = semId;
+    this.currentCategory = '';
+    this.currentCourse = '';
+    this.currentPath = semId;
+    this.breadcrumb = [{ label: 'Home', action: 'HomeView.goHome()' }, { label: this.semLabel(semId), action: `HomeView.openSemester('${semId}')` }];
+    this.renderBreadcrumb();
+    this.renderCategories(semId);
+    document.getElementById('fileSection').style.display = '';
+    document.getElementById('semesterSection').style.display = 'none';
+    document.getElementById('sectionTitle2').innerHTML = `<i class="fas fa-book"></i> ${this.semLabel(semId)}`;
+  },
+
+  openCategory(semId, catKey) {
+    this.currentCategory = catKey;
+    this.currentCourse = '';
+    const actualFolder = this.semesterFolders[semId]?.[catKey] || catKey;
+    this.currentPath = semId + '/' + actualFolder;
+    this.breadcrumb = [
+      { label: 'Home', action: 'HomeView.goHome()' },
+      { label: this.semLabel(semId), action: `HomeView.openSemester('${semId}')` },
+      { label: CONFIG.categories[catKey]?.label || catKey, action: `HomeView.openCategory('${semId}','${catKey}')` }
+    ];
+    this.renderBreadcrumb();
+    this.renderCourses(semId, catKey);
+    document.getElementById('sectionTitle2').innerHTML = `<i class="fas ${CONFIG.categories[catKey]?.icon || 'fa-folder'}"></i> ${CONFIG.categories[catKey]?.label || catKey}`;
+  },
+
+  openCourse(semId, catKey, coursePath) {
+    this.currentCourse = coursePath;
+    this.currentPath = coursePath;
+
+    const actualFolder = this.semesterFolders[semId]?.[catKey] || catKey;
+    const prefix = semId + '/' + actualFolder + '/';
+    const relPath = coursePath.startsWith(prefix) ? coursePath.substring(prefix.length) : coursePath.split('/').pop();
+    const parts = relPath.split('/').filter(Boolean);
+
+    this.breadcrumb = [
+      { label: 'Home', action: 'HomeView.goHome()' },
+      { label: this.semLabel(semId), action: `HomeView.openSemester('${semId}')` },
+      { label: CONFIG.categories[catKey]?.label || catKey, action: `HomeView.openCategory('${semId}','${catKey}')` }
+    ];
+
+    let builtPath = prefix;
+    parts.forEach((part, i) => {
+      builtPath += part;
+      if (i < parts.length - 1) {
+        const p = builtPath;
+        this.breadcrumb.push({ label: part, action: `HomeView.openCourse('${semId}','${catKey}','${p}')` });
+      } else {
+        this.breadcrumb.push({ label: part });
+      }
+      builtPath += '/';
+    });
+
+    this.renderBreadcrumb();
+    this.renderFilesInPath(coursePath);
+    const lastPart = parts[parts.length - 1] || coursePath.split('/').pop();
+    document.getElementById('sectionTitle2').innerHTML = `<i class="fas fa-folder-open"></i> ${esc(lastPart)}`;
+  },
+
+  goHome() {
+    this.currentSemester = '';
+    this.currentCategory = '';
+    this.currentCourse = '';
+    this.currentPath = '';
+    this.breadcrumb = [];
+    this.renderBreadcrumb();
+    document.getElementById('fileSection').style.display = 'none';
+    document.getElementById('semesterSection').style.display = '';
+    document.getElementById('sectionTitle').innerHTML = `<i class="fas fa-book"></i> Select Semester`;
+    this.loadRecentReads();
+  },
+
+  renderBreadcrumb() {
+    const el = document.getElementById('breadcrumb');
+    if (!this.breadcrumb.length) { el.innerHTML = ''; return; }
+    el.innerHTML = this.breadcrumb.map((b, i) => {
+      if (b.action) return `<span class="bc-item" onclick="${b.action}">${b.label}</span><span class="bc-sep"><i class="fas fa-chevron-right"></i></span>`;
+      return `<span class="bc-item bc-active">${b.label}</span>`;
+    }).join('');
+  },
+
+  detectCatFromFolder(folderName) {
+    const lower = folderName.toLowerCase();
+    if (lower === 'sheet' || lower.includes('sheet')) return 'sheet';
+    if (lower.includes('previous question') || lower.includes('question')) return 'question';
+    if (lower === 'notes' || lower.toLowerCase() === 'note') return 'note';
+    if (lower.includes('syllabus')) return 'syllabus';
+    return 'other';
+  },
+
+  renderCategories(semId) {
+    const grid = document.getElementById('fileGrid');
+
+    const topFolders = {};
+    this.allTreeItems.forEach(item => {
+      if (!item.path.startsWith(semId + '/')) return;
+      const rel = item.path.substring(semId.length + 1);
+      const firstPart = rel.split('/')[0];
+      if (!firstPart) return;
+      if (!topFolders[firstPart]) topFolders[firstPart] = { name: firstPart, blobCount: 0, treeCount: 0 };
+      if (item.type === 'blob') topFolders[firstPart].blobCount++;
+      else topFolders[firstPart].treeCount++;
+    });
+
+    this.semesterFolders[semId] = {};
+    const catEntries = [];
+
+    Object.values(topFolders).forEach(folder => {
+      const cat = this.detectCatFromFolder(folder.name);
+      this.semesterFolders[semId][cat] = folder.name;
+      const existing = catEntries.find(e => e.cat === cat);
+      if (existing) {
+        existing.count += folder.blobCount;
+        existing.folders.push(folder.name);
+      } else {
+        catEntries.push({ cat, count: folder.blobCount, folders: [folder.name] });
+      }
+    });
+
+    if (catEntries.length === 0) {
+      grid.innerHTML = `<div class="loading-cell" id="setupSemesterCell">
+        <i class="fas fa-folder-open" style="font-size:2rem;color:var(--text2);margin-bottom:8px"></i>
+        <p>No files found in this semester.</p>
+        <p style="font-size:.78rem;color:var(--text2);margin-top:6px">Add folders like <code>sheet/</code>, <code>Notes/</code>, <code>Previous Questions/</code>, <code>Syllabus/</code> under <strong>${semId}/</strong> in the repo.</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = catEntries.map(ce => {
+      const cat = CONFIG.categories[ce.cat] || CONFIG.categories.other;
+      return `<div class="category-card" onclick="HomeView.openCategory('${semId}','${ce.cat}')">
+        <div class="cat-icon" style="color:${cat.color}"><i class="fas ${cat.icon}"></i></div>
+        <div class="cat-label">${cat.label}</div>
+        <div class="cat-count">${ce.count} files</div>
+      </div>`;
+    }).join('');
+  },
+
+  renderCourses(semId, catKey) {
+    const grid = document.getElementById('fileGrid');
+    const actualFolder = this.semesterFolders[semId]?.[catKey] || catKey;
+    const prefix = semId + '/' + actualFolder + '/';
+    const items = this.allTreeItems.filter(i => i.path.startsWith(prefix) && i.path !== prefix);
+
+    const directFiles = [];
+    const courseMap = {};
+
+    items.forEach(item => {
+      const rel = item.path.substring(prefix.length);
+      const parts = rel.split('/');
+      if (!rel || parts.length === 0) return;
+      if (item.type === 'blob') {
+        if (parts.length <= 1) {
+          directFiles.push(item);
+        } else {
+          const courseName = parts[0];
+          if (!courseMap[courseName]) courseMap[courseName] = [];
+          courseMap[courseName].push(item);
+        }
+      } else if (item.type === 'tree') {
+        const folderName = parts[0];
+        if (!courseMap[folderName]) courseMap[folderName] = [];
+      }
+    });
+
+    const courses = Object.entries(courseMap).sort((a, b) => a[0].localeCompare(b[0]));
+
+    if (courses.length === 0 && directFiles.length === 0) {
+      grid.innerHTML = `<div class="loading-cell"><i class="fas fa-folder-open"></i> No files found.</div>`;
+      return;
+    }
+
+    let html = '';
+
+    if (courses.length > 0) {
+      html += courses.map(([name, files]) => {
+        const pdfCount = files.filter(f => f.path.toLowerCase().endsWith('.pdf')).length;
+        const docCount = files.filter(f => /\.(doc|docx)$/i.test(f.path)).length;
+        const xlsCount = files.filter(f => /\.(xls|xlsx)$/i.test(f.path)).length;
+        const pptCount = files.filter(f => /\.(ppt|pptx)$/i.test(f.path)).length;
+        const imgCount = files.filter(f => /\.(jpg|jpeg|png|gif|webp)$/i.test(f.path)).length;
+        const isEmpty = files.length === 0;
+        const iconClass = isEmpty ? 'fa-folder' : 'fa-book-open';
+        const iconColor = isEmpty ? 'var(--text2)' : '';
+        return `<div class="course-card" onclick="HomeView.openCourse('${semId}','${catKey}','${prefix}${name}')">
+          <div class="course-icon"><i class="fas ${iconClass}" ${iconColor ? `style="color:${iconColor}"` : ''}></i></div>
+          <div class="course-info">
+            <div class="course-name">${esc(name)}</div>
+            <div class="course-meta">
+              ${pdfCount ? `<span><i class="fas fa-file-pdf" style="color:#ef4444"></i> ${pdfCount}</span>` : ''}
+              ${docCount ? `<span><i class="fas fa-file-word" style="color:#3b82f6"></i> ${docCount}</span>` : ''}
+              ${xlsCount ? `<span><i class="fas fa-file-excel" style="color:#22c55e"></i> ${xlsCount}</span>` : ''}
+              ${pptCount ? `<span><i class="fas fa-file-powerpoint" style="color:#f97316"></i> ${pptCount}</span>` : ''}
+              ${imgCount ? `<span><i class="fas fa-file-image" style="color:#34d399"></i> ${imgCount}</span>` : ''}
+              ${isEmpty ? '<span><i class="fas fa-inbox"></i> Empty</span>' : `<span><i class="fas fa-file"></i> ${files.length} total</span>`}
+            </div>
+          </div>
+          <i class="fas fa-chevron-right course-arrow"></i>
+        </div>`;
+      }).join('');
+    }
+
+    if (directFiles.length > 0) {
+      html += directFiles.map(item => {
+        const name = item.path.split('/').pop();
+        const ext = name.split('.').pop().toLowerCase();
+        const mime = getMimeFromExt(ext);
+        const id = DB.makeId(item.path);
+        return `<div class="file-card" id="file-${id}">
+          <div class="file-card-main" onclick="HomeView.clickFile('${esc(item.path)}','${mime}')">
+            <div class="file-icon">${getFileIconByType(mime)}</div>
+            <div class="file-info">
+              <div class="file-name">${esc(name)}</div>
+              <div class="file-path">${esc(item.path)}</div>
+            </div>
+          </div>
+          <div class="file-actions">
+            <button class="btn-action btn-view" title="View" onclick="event.stopPropagation();HomeView.clickFile('${esc(item.path)}','${mime}')"><i class="fas fa-eye"></i></button>
+            <button class="btn-action btn-download" id="dl-${id}" title="Download" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')"><i class="fas fa-download"></i></button>
+            <button class="btn-action btn-saveas" id="sv-${id}" title="Save as" style="display:none" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')"><i class="fas fa-share-alt"></i></button>
+          </div>
+        </div>`;
+      }).join('');
+      checkCachedButtons();
+    }
+
+    grid.innerHTML = html;
+  },
+
+  renderFilesInPath(folderPath) {
+    const grid = document.getElementById('fileGrid');
+    const prefix = folderPath.endsWith('/') ? folderPath : folderPath + '/';
+    const items = this.allTreeItems.filter(i => {
+      if (i.type !== 'blob') return false;
+      if (!i.path.startsWith(prefix)) return false;
+      const rel = i.path.substring(prefix.length);
+      return rel && !rel.includes('/');
+    });
+    const subFolders = new Set();
+    this.allTreeItems.forEach(i => {
+      if (!i.path.startsWith(prefix)) return;
+      const rel = i.path.substring(prefix.length);
+      if (!rel) return;
+      if (i.type === 'tree') {
+        if (!rel.includes('/')) subFolders.add(rel);
+      } else if (i.type === 'blob') {
+        const slashIdx = rel.indexOf('/');
+        if (slashIdx > 0) subFolders.add(rel.substring(0, slashIdx));
+      }
+    });
+
+    let html = '';
+    if (subFolders.size > 0) {
+      html += [...subFolders].sort().map(f => {
+        return `<div class="course-card" onclick="HomeView.openCourse('${this.currentSemester}','${this.currentCategory}','${prefix}${f}')">
+          <div class="course-icon"><i class="fas fa-folder" style="color:var(--accent)"></i></div>
+          <div class="course-info"><div class="course-name">${esc(f)}</div></div>
+          <i class="fas fa-chevron-right course-arrow"></i>
+        </div>`;
+      }).join('');
+    }
+
+    if (items.length === 0 && !subFolders.size) {
+      grid.innerHTML = `<div class="loading-cell"><i class="fas fa-folder-open"></i> No files here yet.</div>`;
+      return;
+    }
+
+    const fileCards = items.map((item) => {
+      const name = item.path.split('/').pop();
+      const ext = name.split('.').pop().toLowerCase();
+      const mime = getMimeFromExt(ext);
+      const icon = getFileIconByType(mime);
+      const id = DB.makeId(item.path);
+      return `<div class="file-card" id="file-${id}">
+        <div class="file-card-main" onclick="HomeView.clickFile('${esc(item.path)}','${mime}')">
+          <div class="file-icon">${icon}</div>
+          <div class="file-info">
+            <div class="file-name">${esc(name)}</div>
+            <div class="file-path">${esc(item.path)}</div>
+          </div>
+        </div>
+        <div class="file-actions">
+          <button class="btn-action btn-view" title="View" onclick="event.stopPropagation();HomeView.clickFile('${esc(item.path)}','${mime}')">
+            <i class="fas fa-eye"></i>
+          </button>
+          <button class="btn-action btn-download" id="dl-${id}" title="Download" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')">
+            <i class="fas fa-download"></i>
+          </button>
+          <button class="btn-action btn-saveas" id="sv-${id}" title="Save as" style="display:none" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')">
+            <i class="fas fa-share-alt"></i>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+
+    grid.innerHTML = html + fileCards;
+    checkCachedButtons();
+  },
+
+  searchFiles() {
+    const query = document.getElementById('searchInput')?.value.toLowerCase().trim();
+    const semFilter = document.getElementById('searchSemester')?.value || '';
+    const typeFilter = document.getElementById('searchType')?.value || '';
+    const yearFilter = document.getElementById('searchYear')?.value || '';
+
+    const hasFilter = query || semFilter || typeFilter || yearFilter;
+    if (!hasFilter) {
+      if (this.currentPath) return;
+      document.getElementById('fileSection').style.display = 'none';
+      document.getElementById('semesterSection').style.display = '';
+      return;
+    }
+
+    const results = this.allTreeItems.filter(i => {
+      if (i.type !== 'blob') return false;
+      const name = i.path.split('/').pop().toLowerCase();
+      const ext = name.split('.').pop().toLowerCase();
+
+      if (query && !name.includes(query) && !i.path.toLowerCase().includes(query)) return false;
+
+      if (semFilter && !i.path.startsWith(semFilter + '/')) return false;
+
+      if (typeFilter === 'pdf' && ext !== 'pdf') return false;
+      if (typeFilter === 'image' && !['jpg','jpeg','png','gif','webp'].includes(ext)) return false;
+      if (typeFilter === 'doc' && !['doc','docx'].includes(ext)) return false;
+      if (typeFilter === 'sheet' && !['xls','xlsx','csv'].includes(ext)) return false;
+      if (typeFilter === 'ppt' && !['ppt','pptx'].includes(ext)) return false;
+
+      if (yearFilter && !i.path.includes('/' + yearFilter + '/')) return false;
+
+      return true;
+    });
+
+    if (!this.currentPath) {
+      document.getElementById('fileSection').style.display = '';
+      document.getElementById('semesterSection').style.display = 'none';
+      const filterParts = [];
+      if (query) filterParts.push(`"${query}"`);
+      if (semFilter) filterParts.push(this.semLabel(semFilter));
+      if (typeFilter) filterParts.push(typeFilter);
+      if (yearFilter) filterParts.push(yearFilter);
+      const filterLabel = filterParts.length ? filterParts.join(', ') : 'All';
+      document.getElementById('sectionTitle2').innerHTML = `<i class="fas fa-search"></i> Search: ${esc(filterLabel)}`;
+      this.breadcrumb = [{ label: 'Home', action: 'HomeView.goHome()' }, { label: 'Search Results' }];
+      this.renderBreadcrumb();
+    }
+
+    const grid = document.getElementById('fileGrid');
+    if (results.length === 0) {
+      grid.innerHTML = `<div class="loading-cell"><i class="fas fa-search"></i> No results for "${esc(query)}"</div>`;
+      return;
+    }
+
+    grid.innerHTML = results.slice(0, 50).map(item => {
+      const name = item.path.split('/').pop();
+      const ext = name.split('.').pop().toLowerCase();
+      const mime = getMimeFromExt(ext);
+      const id = DB.makeId(item.path);
+      return `<div class="file-card" id="file-${id}">
+        <div class="file-card-main" onclick="HomeView.clickFile('${esc(item.path)}','${mime}')">
+          <div class="file-icon">${getFileIconByType(mime)}</div>
+          <div class="file-info">
+            <div class="file-name">${esc(name)}</div>
+            <div class="file-path">${esc(item.path)}</div>
+          </div>
+        </div>
+        <div class="file-actions">
+          <button class="btn-action btn-view" title="View" onclick="event.stopPropagation();HomeView.clickFile('${esc(item.path)}','${mime}')"><i class="fas fa-eye"></i></button>
+          <button class="btn-action btn-download" id="dl-${id}" title="Download" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')"><i class="fas fa-download"></i></button>
+          <button class="btn-action btn-saveas" id="sv-${id}" title="Save as" style="display:none" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')"><i class="fas fa-share-alt"></i></button>
+        </div>
+      </div>`;
+    }).join('');
+    checkCachedButtons();
+  },
+
+  clickFile(path, mime) {
+    const name = path.split('/').pop();
+    const rawUrl = `https://raw.githubusercontent.com/${GITHUB.owner}/${GITHUB.repo}/${GITHUB.branch}/${CONFIG.uploadPath}/${path}`;
+    const item = { path, name, mimeType: mime, rawUrl };
+    openViewer(item);
+    DB.historyAdd(item).then(() => this.loadRecentReads());
+  },
+
+  populateYearSelect() {
+    const sel = document.getElementById('searchYear');
+    if (!sel) return;
+    const years = new Set();
+    this.allTreeItems.forEach(i => {
+      const match = i.path.match(/\/(\d{4})(?:\/|$)/);
+      if (match) years.add(match[1]);
+    });
+    const sorted = [...years].sort();
+    if (sorted.length === 0) return;
+    const current = sel.value;
+    sel.innerHTML = '<option value="">All Years</option>' +
+      sorted.map(y => `<option value="${y}" ${y === current ? 'selected' : ''}>${y}</option>`).join('');
+  },
+
+  refreshFiles() {
+    if (this.currentSemester) this.openSemester(this.currentSemester);
+    else this.loadSemesters();
+  }
+};
+
+function getMimeFromExt(ext) {
+  const e = ext.toLowerCase();
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(e)) return 'image';
+  if (e === 'pdf') return 'pdf';
+  if (['doc', 'docx'].includes(e)) return 'doc';
+  if (['xls', 'xlsx', 'csv'].includes(e)) return 'sheet';
+  if (['ppt', 'pptx'].includes(e)) return 'ppt';
+  return 'other';
+}

@@ -1,0 +1,7 @@
+name = "qsis-oauth-proxy"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+GITHUB_CLIENT_ID = "Iv23li6TQdbFhb4yXe5O"
+ALLOWED_ORIGINS = "https://qsis-arms.eu.cc,https://sayedatiqurrahman.github.io"

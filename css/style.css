@@ -440,3 +440,38 @@ body { font-family:var(--font); background:var(--bg); color:var(--text); min-hei
   .slot-manager { flex-wrap:wrap; }
   .routine-tabs { flex-direction:column; }
 }
+
+/* SPA ROUTER */
+.nav-active { color:var(--primary) !important; }
+.view-enter { animation: fadeIn 0.2s ease-out; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+/* AUTH MODAL */
+.auth-success { text-align:center; padding:20px 0; }
+.auth-success img { width:64px; height:64px; border-radius:50%; border:3px solid var(--primary); margin-bottom:12px; }
+.auth-success h3 { font-size:1.1rem; margin-bottom:6px; }
+.auth-success p { font-size:.85rem; color:var(--text2); margin-bottom:4px; }
+.auth-step { text-align:center; }
+.auth-step h3 { font-size:1rem; margin-bottom:8px; display:flex; align-items:center; justify-content:center; gap:8px; }
+.auth-step h4 { font-size:.9rem; margin-bottom:4px; }
+.auth-step p { font-size:.82rem; color:var(--text2); }
+.auth-github-promo { padding:20px 0 16px; text-align:center; }
+.auth-github-promo h3 { font-size:1.1rem; margin:12px 0 6px; }
+.auth-github-promo p { font-size:.85rem; color:var(--text2); }
+.auth-input { width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:.9rem; outline:none; margin:8px 0; text-align:center; }
+.auth-input:focus { border-color:var(--primary); }
+.auth-hint { font-size:.75rem; color:var(--text2); margin-top:8px; }
+.auth-divider { height:1px; background:var(--border); margin:16px 0; }
+
+/* UPLOAD FORM FIX */
+.upload-tab .form-group { margin-bottom:10px; }
+.upload-tab .form-group label { display:block; font-size:.8rem; font-weight:600; margin-bottom:4px; color:var(--text2); }
+.upload-tab input[type="text"], .upload-tab select { width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:.85rem; outline:none; }
+.upload-tab input[type="text"]:focus, .upload-tab select:focus { border-color:var(--primary); }
+.upload-tab input[type="file"] { width:100%; padding:16px; border:2px dashed var(--border); border-radius:8px; background:var(--bg); cursor:pointer; font-size:.85rem; color:var(--text2); }
+.upload-tab input[type="file"]:hover { border-color:var(--primary); }
+
+/* PAGE NAV (for sub-pages if needed) */
+.page-nav { display:flex; gap:8px; margin-bottom:16px; }
+.page-nav .nav-link { padding:6px 12px; border-radius:8px; text-decoration:none; color:var(--text2); font-size:.8rem; }
+.page-nav .nav-link.active { color:var(--primary); background:var(--bg3); }

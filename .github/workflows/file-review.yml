@@ -83,7 +83,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `## ✅ Thanks ${name}!\n\n| Field | Value |\n|-------|-------|\n| **Name** | ${name} |\n| **QSIS ID** | ${qsId} |\n\nYour files will be reviewed and merged. Credit will appear on the [QSIS-ARMS contributors page](https://qsis-arms.eu.cc/contributors.html).`
+              body: `## ✅ Thanks ${name}!\n\n| Field | Value |\n|-------|-------|\n| **Name** | ${name} |\n| **QSIS ID** | ${qsId} |\n\nYour files will be reviewed and merged. Credit will appear on the [QSIS-ARMS contributors page](https://qsis-arms.eu.cc/#/contributors).`
             });
 
       - name: Validate File Structure
@@ -110,7 +110,7 @@ jobs:
 
             EXT="${file##*.}"
             case "$EXT" in
-              pdf|doc|docx|jpg|jpeg|png|gif)
+              pdf|doc|docx|xls|xlsx|ppt|pptx|jpg|jpeg|png|gif|webp|csv|txt|zip|rar)
                 echo "  ✅ Valid format: .$EXT" >> report.md
                 ;;
               *)
