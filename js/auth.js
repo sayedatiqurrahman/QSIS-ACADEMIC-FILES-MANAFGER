@@ -57,6 +57,12 @@ const AUTH = {
 
   async checkSession() {
     var sessionToken = localStorage.getItem(this.SESSION_KEY);
+    var token = localStorage.getItem(this.TOKEN_KEY);
+    if (!sessionToken && !token) {
+      this._sessionValid = false;
+      this._sessionChecked = true;
+      return false;
+    }
     if (!sessionToken) {
       this._sessionValid = false;
       this._sessionChecked = true;

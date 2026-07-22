@@ -3,6 +3,11 @@
 ::-webkit-scrollbar-track { background:#111827; }
 ::-webkit-scrollbar-thumb { background:#2a3a5c; border-radius:3px; }
 
+html, body { height:100%; margin:0; background:#0a0f1e; }
+#app { min-height:100vh; display:flex; flex-direction:column; }
+#app-main { flex:1; }
+footer { margin-top:auto; }
+
 /* Viewer overlay */
 .viewer-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:1500; align-items:center; justify-content:center; }
 .viewer-overlay.active { display:flex; }

@@ -42,6 +42,8 @@ const Router = {
           localStorage.setItem(AUTH.TOKEN_KEY, data.access_token);
           localStorage.setItem(AUTH.USER_KEY, JSON.stringify(data.user));
           localStorage.setItem(AUTH.SESSION_KEY, data.session);
+          AUTH._sessionValid = true;
+          AUTH._sessionChecked = true;
           this._pendingLoginToast = true;
         } catch (e) {
           console.error('Callback parse error:', e);

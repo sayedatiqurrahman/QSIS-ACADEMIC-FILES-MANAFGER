@@ -106,21 +106,6 @@ const HomeView = {
   async init() {
     await waitForDB();
     this.loadRecentReads();
-    if (!AUTH.isLoggedIn()) {
-      const grid = document.getElementById('semesterGrid');
-      if (grid) {
-        grid.innerHTML =
-          '<div class="text-center py-12 col-span-full">' +
-            '<div class="w-[60px] h-[60px] rounded-full bg-dark-bg3 border border-dark-border flex items-center justify-center mx-auto mb-4 text-[1.5rem]"><i class="fas fa-lock text-dark-text2"></i></div>' +
-            '<h3 class="text-[1rem] font-bold mb-2">Login Required</h3>' +
-            '<p class="text-[0.82rem] text-dark-text2 mb-4 max-w-[300px] mx-auto">Sign in with GitHub to browse and download academic files.</p>' +
-            '<button onclick="AUTH.showAuthModal()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none shadow-[0_0_16px_rgba(34,197,94,0.3)] cursor-pointer text-[0.82rem] font-semibold hover:shadow-[0_0_24px_rgba(34,197,94,0.3)] transition-all">' +
-              '<i class="fab fa-github"></i> Login with GitHub' +
-            '</button>' +
-          '</div>';
-      }
-      return;
-    }
     this.loadSemesters().then(() => this.populateYearSelect());
   },
 
