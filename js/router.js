@@ -2,6 +2,7 @@ const Router = {
   routes: {},
   current: null,
   defaultRoute: '/',
+  _pendingLoginToast: false,
 
   register(hash, view) {
     this.routes[hash] = view;
@@ -27,22 +28,15 @@ const Router = {
 
     if (hash.startsWith('/callback')) {
       const params = this.parseHashParams();
+      window.history.replaceState(null, '', window.location.pathname + '#/');
 
       if (params.error) {
         showToast('Login failed: ' + decodeURIComponent(params.error), 'error');
-        window.history.replaceState(null, '', window.location.pathname + '#/');
-        await this._finalizeSession();
-        return;
       }
 
-      if (params.login === 'success') {
-        window.history.replaceState(null, '', window.location.pathname + '#/');
-        await this._finalizeSession();
-        return;
-      }
-
-      window.history.replaceState(null, '', window.location.pathname + '#/');
       await this._finalizeSession();
+      if (!params.error) this._pendingLoginToast = true;
+      this.handleRoute();
       return;
     }
 
@@ -76,13 +70,16 @@ const Router = {
     this.updateSubtitle(hash);
     window.scrollTo(0, 0);
     updateAuthUI();
+
+    if (this._pendingLoginToast) {
+      this._pendingLoginToast = false;
+      showToast('Logged in successfully!', 'success');
+    }
   },
 
   async _finalizeSession() {
     await AUTH.checkSession();
     updateAuthUI();
-    showToast('Logged in successfully!', 'success');
-    this.updateNav(this.getCurrentHash());
   },
 
   updateNav(path) {

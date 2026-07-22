@@ -104,7 +104,7 @@
             <i class="fas fa-upload"></i> Upload
           </button>
           <div class="relative" id="profileWrap">
-            <button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold hover:bg-dark-bg3/80 transition-all" id="authBtn" onclick="AUTH.showAuthModal()">
+            <button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold hover:bg-dark-bg3/80 transition-all" id="authBtn" onclick="if(AUTH.isLoggedIn()){toggleProfileDropdown()}else{AUTH.showAuthModal()}">
               <i class="fas fa-user"></i> Login
             </button>
             <div class="profile-dropdown hidden" id="profileDropdown">
@@ -296,16 +296,6 @@
         var nav = document.getElementById('navStars');
         if (el && nav) el.textContent = nav.textContent;
       });
-
-      var profileWrap = document.getElementById('profileWrap');
-      if (profileWrap) {
-        profileWrap.addEventListener('click', function(e) {
-          if (e.target.closest('#authBtn') && AUTH.isLoggedIn()) {
-            e.stopPropagation();
-            toggleProfileDropdown();
-          }
-        });
-      }
 
       document.addEventListener('click', function(e) {
         var dd = document.getElementById('profileDropdown');
