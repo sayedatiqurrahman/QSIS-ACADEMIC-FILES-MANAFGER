@@ -152,8 +152,8 @@
         <div class="flex items-center justify-between px-4 py-2.5 border-b border-dark-border bg-dark-bg3 min-h-[48px]">
           <div class="flex items-center gap-2 font-semibold text-[0.9rem] min-w-0 flex-1"><i class="fas fa-file"></i><span id="viewerTitle" class="whitespace-nowrap overflow-hidden text-ellipsis">File Viewer</span></div>
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            <button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold" id="viewerDownloadBtn" title="Download to cache"><i class="fas fa-download"></i> Download</button>
-            <button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl bg-accent text-white border-none cursor-pointer text-[0.75rem] font-semibold" id="viewerSaveAsBtn" title="Save to device" style="display:none"><i class="fas fa-share-alt"></i> Save as</button>
+            <button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold" id="viewerDownloadBtn" title="Download to cache" onclick="viewerDownloadAction()"><i class="fas fa-download"></i> Cache</button>
+            <button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-accent bg-transparent text-accent cursor-pointer text-[0.75rem] font-semibold" id="viewerSaveAsBtn" title="Save to device" onclick="viewerSaveAction()"><i class="fas fa-share-alt"></i> Save</button>
             <button class="bg-transparent border-none text-dark-text2 cursor-pointer w-[30px] h-[30px] rounded-full flex items-center justify-center text-[0.9rem] hover:bg-danger hover:text-white transition-all" onclick="closeViewer()" title="Close"><i class="fas fa-times"></i></button>
           </div>
         </div>

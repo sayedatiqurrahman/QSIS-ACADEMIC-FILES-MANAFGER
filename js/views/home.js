@@ -145,7 +145,7 @@ const HomeView = {
     const cached = await DB.cacheGet(id);
     const item = {
       path, name: path.split('/').pop(), mimeType,
-      rawUrl: `https://raw.githubusercontent.com/${GITHUB.owner}/${GITHUB.repo}/${GITHUB.branch}/${CONFIG.uploadPath}/${path}`
+      rawUrl: `https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/${CONFIG.branch}/${CONFIG.uploadPath}/${path}`
     };
     if (cached && cached.blob) {
       openViewerFromBlob(item, cached.blob);
@@ -608,11 +608,17 @@ const HomeView = {
     checkCachedButtons();
   },
 
-  clickFile(path, mime) {
+  async clickFile(path, mime) {
     const name = path.split('/').pop();
-    const rawUrl = `https://raw.githubusercontent.com/${GITHUB.owner}/${GITHUB.repo}/${GITHUB.branch}/${CONFIG.uploadPath}/${path}`;
+    const rawUrl = `https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/${CONFIG.branch}/${CONFIG.uploadPath}/${path}`;
     const item = { path, name, mimeType: mime, rawUrl };
-    openViewer(item);
+    const id = DB.makeId(path);
+    const cached = await DB.cacheGet(id);
+    if (cached && cached.blob) {
+      openViewerFromBlob(item, cached.blob);
+    } else {
+      openViewer(item);
+    }
     DB.historyAdd(item).then(() => this.loadRecentReads());
   },
 

@@ -191,25 +191,36 @@ async function saveAsFile(path, name) {
   showToast('Saving: ' + name, 'info');
 }
 
+var _currentViewerItem = null;
+
+function viewerDownloadAction() {
+  if (!_currentViewerItem) return;
+  downloadToCache(_currentViewerItem.path, _currentViewerItem.name, _currentViewerItem.mimeType);
+}
+
+function viewerSaveAction() {
+  if (!_currentViewerItem) return;
+  saveAsFile(_currentViewerItem.path, _currentViewerItem.name);
+}
+
 function openViewer(item) {
   if (!item) return;
+  _currentViewerItem = item;
   var viewer = document.getElementById('fileViewer');
   var viewerTitle = document.getElementById('viewerTitle');
   var viewerBody = document.getElementById('viewerBody');
   if (!viewer) return;
 
   viewerTitle.textContent = item.name;
-  document.getElementById('viewerDownloadBtn').onclick = function() { downloadToCache(item.path, item.name, item.mimeType); };
-  document.getElementById('viewerSaveAsBtn').onclick = function() { saveAsFile(item.path, item.name); };
 
   var id = DB.makeId(item.path);
   DB.cacheGet(id).then(function(cached) {
     if (cached && cached.blob) {
-      document.getElementById('viewerDownloadBtn').style.display = 'none';
-      document.getElementById('viewerSaveAsBtn').style.display = '';
+      document.getElementById('viewerDownloadBtn').classList.add('hidden');
+      document.getElementById('viewerSaveAsBtn').classList.remove('hidden');
     } else {
-      document.getElementById('viewerDownloadBtn').style.display = '';
-      document.getElementById('viewerSaveAsBtn').style.display = 'none';
+      document.getElementById('viewerDownloadBtn').classList.remove('hidden');
+      document.getElementById('viewerSaveAsBtn').classList.add('hidden');
     }
   });
 
@@ -229,21 +240,21 @@ function openViewer(item) {
 
 function openViewerFromBlob(item, blob) {
   if (!item || !blob) return;
+  _currentViewerItem = item;
   var viewer = document.getElementById('fileViewer');
   var viewerTitle = document.getElementById('viewerTitle');
   var viewerBody = document.getElementById('viewerBody');
   if (!viewer) return;
 
   viewerTitle.textContent = item.name;
-  document.getElementById('viewerDownloadBtn').style.display = 'none';
-  document.getElementById('viewerSaveAsBtn').style.display = '';
-  document.getElementById('viewerSaveAsBtn').onclick = function() { saveAsFile(item.path, item.name); };
+  document.getElementById('viewerDownloadBtn').classList.add('hidden');
+  document.getElementById('viewerSaveAsBtn').classList.remove('hidden');
 
   var url = URL.createObjectURL(blob);
   if (item.mimeType === 'pdf') openPdfViewer(url, viewerBody, item.path);
   else if (item.mimeType === 'image') openImageViewer(url, item.name, viewerBody);
   else {
-    viewerBody.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file" style="font-size:3rem;color:#94a3b8;margin-bottom:16px"></i><p>File cached. Use "Save as" to save to device.</p></div>';
+    viewerBody.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file" style="font-size:3rem;color:#94a3b8;margin-bottom:16px"></i><p>File cached. Use "Save" to save to device.</p></div>';
   }
   viewer.classList.add('active');
   document.body.style.overflow = 'hidden';
@@ -412,16 +423,14 @@ function openPdfJs(url, container, filePath, fileName) {
   document.getElementById('pdfFullscreenBtn').onclick = function() { var el = container; if (el && el.requestFullscreen) el.requestFullscreen(); };
   document.getElementById('pdfDownloadBtn').onclick = function() {
     downloadToCache(filePath, fileName, 'pdf');
-    document.getElementById('pdfDownloadBtn').style.display = 'none';
-    document.getElementById('pdfSaveAsBtn').style.display = '';
   };
   document.getElementById('pdfSaveAsBtn').onclick = function() { saveAsFile(filePath, fileName); };
 
   var id = DB.makeId(filePath);
   DB.cacheGet(id).then(function(cached) {
     if (cached && cached.blob) {
-      document.getElementById('pdfDownloadBtn').style.display = 'none';
-      document.getElementById('pdfSaveAsBtn').style.display = '';
+      document.getElementById('pdfDownloadBtn').classList.add('hidden');
+      document.getElementById('pdfSaveAsBtn').classList.remove('hidden');
     }
   });
 
