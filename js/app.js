@@ -203,6 +203,20 @@ function viewerSaveAction() {
   saveAsFile(_currentViewerItem.path, _currentViewerItem.name);
 }
 
+function getPdfPageKey(filePath) {
+  return 'pdf_page_' + btoa(unescape(encodeURIComponent(filePath))).replace(/[=+/]/g, '');
+}
+
+function savePdfPage(filePath, pageNum) {
+  if (!filePath || !pageNum) return;
+  try { localStorage.setItem(getPdfPageKey(filePath), String(pageNum)); } catch(e) {}
+}
+
+function getSavedPdfPage(filePath) {
+  if (!filePath) return 1;
+  try { return parseInt(localStorage.getItem(getPdfPageKey(filePath))) || 1; } catch(e) { return 1; }
+}
+
 function openViewer(item) {
   if (!item) return;
   _currentViewerItem = item;
@@ -287,7 +301,7 @@ function openPdfViewer(url, container, filePath) {
   }
 
   if (viewerHeader) viewerHeader.classList.add('hidden');
-  container.innerHTML = '<div class="flex flex-col items-center justify-center h-full gap-3" style="color:#94a3b8"><i class="fas fa-spinner fa-spin text-2xl"></i><p style="font-size:0.85rem">Loading Adobe PDF viewer...</p></div>';
+  container.innerHTML = '<div class="flex flex-col items-center justify-center h-full gap-3" style="color:#94a3b8"><i class="fas fa-spinner fa-spin text-2xl"></i><p style="font-size:0.85rem">Loading PDF viewer...</p></div>';
 
   function onAdobeReady() {
     if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
@@ -326,6 +340,8 @@ function openAdobePdf(url, container, filePath, fileName) {
     '<div id="' + divId + '" style="width:100%;height:100%;position:relative"></div>' +
     '<button onclick="closeViewer()" title="Close PDF" style="position:fixed;top:9px;left:19px;z-index:2147483647;width:27px;height:27px;border-radius:7px;background:#eb0e00;color:rgb(255,256,255);border:2px solid rgb(255,255,255);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.85rem;box-shadow:rgba(0,0,0,0.5) 0px 4px 16px;transition:0.15s;transform:scale(1)" onmouseover="this.style.background=\'#dc2626\';this.style.transform=\'scale(1.15)\'" onmouseout="this.style.background=\'#ef4444\';this.style.transform=\'scale(1)\'"><i class="fas fa-times" style="font-size:0.75rem"></i></button>';
 
+  var savedPage = getSavedPdfPage(filePath);
+
   try {
     var adobeDCView = new AdobeDC.View({ clientId: CONFIG.adobeClientId, divId: divId });
     adobeDCView.previewFile({
@@ -335,6 +351,22 @@ function openAdobePdf(url, container, filePath, fileName) {
       if (filePath) {
         var item = { path: filePath, name: fileName, mimeType: 'pdf', rawUrl: url };
         DB.historyAdd(item);
+
+        adobeViewer.getAPIs().then(function(apis) {
+          if (savedPage > 1) {
+            apis.gotoLocation(savedPage).catch(function() {});
+          }
+
+          var lastSavedPage = savedPage;
+          setInterval(function() {
+            apis.getCurrentPage().then(function(page) {
+              if (page && page !== lastSavedPage) {
+                lastSavedPage = page;
+                savePdfPage(filePath, page);
+              }
+            }).catch(function() {});
+          }, 2000);
+        }).catch(function() {});
       }
     }).catch(function(err) {
       console.warn('Adobe preview failed:', err);
@@ -357,7 +389,8 @@ function fallbackToPdfJs(url, container, filePath, fileName) {
 }
 
 function openPdfJs(url, container, filePath, fileName) {
-  var pdfPageNum = 1;
+  var savedPage = getSavedPdfPage(filePath);
+  var pdfPageNum = savedPage;
   var pdfScale = 1.0;
   var pdfRotation = 0;
   var pdfDoc = null;
@@ -405,6 +438,7 @@ function openPdfJs(url, container, filePath, fileName) {
   function renderPage(num) {
     pdfPageRendering = true;
     pdfPageNum = num;
+    savePdfPage(filePath, num);
     pdfDoc.getPage(num).then(function(page) {
       var viewport = page.getViewport({ scale: pdfScale, rotation: pdfRotation });
       pdfCanvas.height = viewport.height;
@@ -458,8 +492,9 @@ function openPdfJs(url, container, filePath, fileName) {
 
   pdfjsLib.getDocument(url).promise.then(function(doc) {
     pdfDoc = doc;
-    document.getElementById('pdfPageInfo').textContent = '1 / ' + doc.numPages;
-    renderPage(1);
+    var startPage = Math.min(savedPage, doc.numPages);
+    document.getElementById('pdfPageInfo').textContent = startPage + ' / ' + doc.numPages;
+    renderPage(startPage);
   }).catch(function(err) {
     console.error('PDF.js error:', err);
     container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-exclamation-triangle" style="font-size:2rem;color:#f59e0b;margin-bottom:12px"></i><p>Could not load PDF.</p><a href="' + url + '" target="_blank" class="auth-btn-primary" style="display:inline-flex;width:auto;margin-top:12px;text-decoration:none"><i class="fas fa-external-link-alt"></i> Open in new tab</a></div>';
