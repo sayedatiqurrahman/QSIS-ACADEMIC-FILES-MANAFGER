@@ -215,9 +215,11 @@ function openViewer(item) {
 
   if (item.mimeType === 'pdf') openPdfViewer(item.rawUrl, viewerBody, item.path);
   else if (item.mimeType === 'image') openImageViewer(item.rawUrl, item.name, viewerBody);
-  else if (item.mimeType === 'doc') openDocViewer(item.rawUrl, viewerBody);
+  else if (item.mimeType === 'doc') openDocViewer(item.rawUrl, item.name, viewerBody);
+  else if (item.mimeType === 'sheet') openSheetViewer(item.rawUrl, item.name, viewerBody);
+  else if (item.mimeType === 'ppt') openOfficeViewer(item.rawUrl, item.name, 'powerpoint', viewerBody);
   else {
-    viewerBody.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file" style="font-size:3rem;color:#94a3b8;margin-bottom:16px"></i><p>Preview not available for this file type.</p><p style="font-size:0.85rem;color:#94a3b8">Use download button to save offline.</p></div>';
+    openOfficeViewer(item.rawUrl, item.name, 'office', viewerBody);
   }
 
   viewer.classList.add('active');
@@ -268,7 +270,13 @@ function openPdfViewer(url, container, filePath) {
   } else if (typeof pdfjsLib !== 'undefined') {
     openPdfJs(url, container, filePath, fileName);
   } else {
-    container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file-pdf" style="font-size:3rem;color:#ef4444;margin-bottom:16px"></i><p>No PDF viewer available.</p><a href="' + url + '" target="_blank" class="auth-btn-primary" style="display:inline-flex;width:auto;margin-top:12px;text-decoration:none"><i class="fas fa-external-link-alt"></i> Open in new tab</a></div>';
+    container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file-pdf" style="font-size:3rem;color:#ef4444;margin-bottom:16px"></i><p>Loading PDF viewer...</p><p style="font-size:0.8rem;color:#94a3b8;margin-top:8px">If it doesn\'t load, <a href="' + url + '" target="_blank" style="color:#22c55e">open in new tab</a></p></div>';
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = function() {
+      if (typeof pdfjsLib !== 'undefined') openPdfJs(url, container, filePath, fileName);
+    };
+    document.head.appendChild(s);
   }
 }
 
@@ -279,7 +287,10 @@ function openAdobePdf(url, container, filePath, fileName) {
   try {
     var adobeDCView = new AdobeDC.Viewer({ clientId: CONFIG.adobeClientId, divId: divId });
     adobeDCView.previewFile({
-      content: { promise: fetch(url).then(function(r) { return r.arrayBuffer(); }) },
+      content: { promise: fetch(url).then(function(r) {
+        if (!r.ok) throw new Error('Failed to load file');
+        return r.arrayBuffer();
+      }) },
       metaData: { fileName: fileName }
     }, {
       embedMode: 'SIZED_CONTAINER',
@@ -302,8 +313,13 @@ function openAdobePdf(url, container, filePath, fileName) {
       { listenOn: ['PDF_VIEWER_LOADED'] }
     );
   } catch (err) {
-    console.warn('Adobe PDF Embed failed, falling back to pdf.js:', err);
-    openPdfJs(url, container, filePath, fileName);
+    console.warn('Adobe viewer failed, falling back:', err);
+    window._adobeFailed = true;
+    if (fileName.endsWith('.pdf') && typeof pdfjsLib !== 'undefined') {
+      openPdfJs(url, container, filePath, fileName);
+    } else {
+      openOfficeViewer(url, fileName, 'office', container);
+    }
   }
 }
 
@@ -446,14 +462,49 @@ function applyImgTransform() {
   if (info) info.textContent = Math.round(imgZoom) + '%';
 }
 
-function openDocViewer(url, container) {
-  container.innerHTML = '<div class="doc-viewer-container">' +
-    '<div class="doc-toolbar">' +
-      '<span><i class="fas fa-file-word" style="color:#3b82f6"></i> Word Document</span>' +
-      '<a href="https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url) + '" target="_blank" class="inline-flex items-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-transparent text-dark-text cursor-pointer text-[0.75rem] font-semibold no-underline"><i class="fas fa-external-link-alt"></i> Open in Office Online</a>' +
-    '</div>' +
-    '<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url) + '" style="width:100%;height:calc(100vh - 140px);border:none;border-radius:0 0 8px 8px"></iframe>' +
-  '</div>';
+function openDocViewer(url, name, container) {
+  if (!window._adobeFailed && typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+    openAdobePdf(url, container, '', name);
+  } else {
+    container.innerHTML = '<div class="doc-viewer-container">' +
+      '<div class="doc-toolbar">' +
+        '<span><i class="fas fa-file-word" style="color:#3b82f6"></i> ' + esc(name) + '</span>' +
+        '<a href="https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url) + '" target="_blank" class="inline-flex items-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-transparent text-dark-text cursor-pointer text-[0.75rem] font-semibold no-underline"><i class="fas fa-external-link-alt"></i> Open in Office Online</a>' +
+      '</div>' +
+      '<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url) + '" style="width:100%;height:calc(100vh - 140px);border:none;border-radius:0 0 8px 8px"></iframe>' +
+    '</div>';
+  }
+}
+
+function openSheetViewer(url, name, container) {
+  if (!window._adobeFailed && typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+    openAdobePdf(url, container, '', name);
+  } else {
+    container.innerHTML = '<div class="doc-viewer-container">' +
+      '<div class="doc-toolbar">' +
+        '<span><i class="fas fa-file-excel" style="color:#22c55e"></i> ' + esc(name) + '</span>' +
+        '<a href="https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url) + '" target="_blank" class="inline-flex items-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-transparent text-dark-text cursor-pointer text-[0.75rem] font-semibold no-underline"><i class="fas fa-external-link-alt"></i> Open in Office Online</a>' +
+      '</div>' +
+      '<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url) + '" style="width:100%;height:calc(100vh - 140px);border:none;border-radius:0 0 8px 8px"></iframe>' +
+    '</div>';
+  }
+}
+
+function openOfficeViewer(url, name, type, container) {
+  if (!window._adobeFailed && typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+    openAdobePdf(url, container, '', name);
+  } else {
+    var icon = 'fa-file';
+    var color = '#94a3b8';
+    if (type === 'powerpoint') { icon = 'fa-file-powerpoint'; color = '#f59e0b'; }
+    container.innerHTML = '<div class="doc-viewer-container">' +
+      '<div class="doc-toolbar">' +
+        '<span><i class="fas ' + icon + '" style="color:' + color + '"></i> ' + esc(name) + '</span>' +
+        '<a href="https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url) + '" target="_blank" class="inline-flex items-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-transparent text-dark-text cursor-pointer text-[0.75rem] font-semibold no-underline"><i class="fas fa-external-link-alt"></i> Open in Office Online</a>' +
+      '</div>' +
+      '<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url) + '" style="width:100%;height:calc(100vh - 140px);border:none;border-radius:0 0 8px 8px"></iframe>' +
+    '</div>';
+  }
 }
 
 var uploadFileQueue = [];
