@@ -18,12 +18,14 @@ const Contributors = {
 
   async fetchStarCount() {
     try {
-      const res = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}`);
-      if (!res.ok) throw new Error('Failed to fetch repo info');
+      const headers = { Accept: 'application/vnd.github.v3+json' };
+      const token = AUTH.getToken();
+      if (token) headers.Authorization = 'token ' + token;
+      const res = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}`, { headers });
+      if (!res.ok) return 0;
       const data = await res.json();
       return data.stargazers_count || 0;
     } catch (err) {
-      console.error('Star count fetch error:', err);
       return 0;
     }
   },
