@@ -33,7 +33,7 @@ const AUTH = {
   },
 
   login() {
-    const redirect = window.location.origin + window.location.pathname + '#/callback';
+    const redirect = window.location.origin + '/#/callback';
     const url = `https://github.com/login/oauth/authorize?client_id=${CONFIG.clientId}&scope=repo&redirect_uri=${encodeURIComponent(redirect)}`;
     window.location.href = url;
   },

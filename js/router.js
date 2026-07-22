@@ -23,6 +23,7 @@ const Router = {
       if (ok) {
         showToast('Logged in successfully!', 'success');
         this.go('/');
+        setTimeout(function() { AUTH.showAuthModal(); updateAuthUI(); }, 400);
       } else {
         showToast('Login failed. Try again.', 'error');
         this.go('/');

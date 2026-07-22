@@ -10,95 +10,95 @@ const HomeView = {
 
   render() {
     return `
-      <main class="main-content">
-        <section class="hero-section">
-          <div class="hero-content">
-            <div class="hero-logos">
-              <div class="logo-circle">
-                <i class="fas fa-graduation-cap"></i>
-              </div>
-              <div class="logo-circle secondary">
-                <i class="fas fa-book-open"></i>
-              </div>
+      <main class="min-h-[60vh]">
+        <section class="py-7 px-5 text-center bg-gradient-to-b from-dark-bg2 to-transparent">
+          <div class="flex items-center justify-center gap-5 mb-3.5">
+            <div class="w-[72px] h-[72px] rounded-[14px] bg-gradient-to-br from-qsis to-accent flex items-center justify-center text-white text-[1.8rem] border-[3px] border-qsis">
+              <i class="fas fa-graduation-cap"></i>
             </div>
-            <h2 class="hero-title">QSIS-ARMS</h2>
-            <p class="hero-subtitle">QSIS Academic Resource Management System</p>
-            <p class="hero-credits">
-              Developed by <strong>Sayed Atiqur Rahman</strong> &mdash; CSE, IIUC
-            </p>
+            <div class="w-[72px] h-[72px] rounded-[14px] bg-dark-bg2 flex items-center justify-center text-[1.8rem] border-[3px] border-qsis">
+              <i class="fas fa-book-open text-qsis"></i>
+            </div>
+          </div>
+          <h2 class="text-[1.7rem] font-extrabold bg-gradient-to-br from-qsis to-accent bg-clip-text text-transparent mb-1.5">QSIS-ARMS</h2>
+          <p class="text-dark-text2 text-[0.95rem]">QSIS Academic Resource Management System</p>
+          <div class="flex items-center justify-center gap-2 mt-2.5 flex-wrap">
+            <span class="text-[0.78rem] text-dark-text2">Developed by <strong class="text-qsis">Sayed Atiqur Rahman</strong> &mdash; CSE, IIUC</span>
           </div>
         </section>
 
-        <section class="stats-bar">
-          <div class="stat-item">
-            <span class="stat-number" id="statsSemesters">0</span>
-            <span class="stat-label">Semesters</span>
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-[700px] mx-auto px-5 my-4">
+          <div class="bg-dark-bg2 border border-dark-border rounded-xl p-3.5 text-center">
+            <span class="block text-[1.5rem] font-extrabold text-qsis" id="statsSemesters">0</span>
+            <span class="text-[0.75rem] text-dark-text2">Semesters</span>
           </div>
-          <div class="stat-item">
-            <span class="stat-number" id="statsCourses">0</span>
-            <span class="stat-label">Courses</span>
+          <div class="bg-dark-bg2 border border-dark-border rounded-xl p-3.5 text-center">
+            <span class="block text-[1.5rem] font-extrabold text-qsis" id="statsCourses">0</span>
+            <span class="text-[0.75rem] text-dark-text2">Courses</span>
           </div>
-          <div class="stat-item">
-            <span class="stat-number" id="statsFiles">0</span>
-            <span class="stat-label">Files</span>
+          <div class="bg-dark-bg2 border border-dark-border rounded-xl p-3.5 text-center">
+            <span class="block text-[1.5rem] font-extrabold text-qsis" id="statsFiles">0</span>
+            <span class="text-[0.75rem] text-dark-text2">Files</span>
           </div>
-          <div class="stat-item">
-            <span class="stat-number" id="statsYears">0</span>
-            <span class="stat-label">Years</span>
-          </div>
-        </section>
-
-        <section class="recent-section">
-          <div class="section-header">
-            <h3><i class="fas fa-clock"></i> Recent Reads</h3>
-            <a href="#/history" id="recentMore" class="link-more" style="display:none">View All <i class="fas fa-arrow-right"></i></a>
-          </div>
-          <div id="recentReads" class="recent-grid">
-            <div class="recent-empty"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+          <div class="bg-dark-bg2 border border-dark-border rounded-xl p-3.5 text-center">
+            <span class="block text-[1.5rem] font-extrabold text-qsis" id="statsYears">0</span>
+            <span class="text-[0.75rem] text-dark-text2">Years</span>
           </div>
         </section>
 
-        <section class="search-section">
-          <div class="search-bar">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search files, courses, semesters..." oninput="HomeView.searchFiles()" />
+        <section class="max-w-[1200px] mx-auto mb-5 px-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-base font-semibold flex items-center gap-2"><i class="fas fa-clock"></i> Recent Reads</h3>
+            <a href="#/history" id="recentMore" class="text-qsis text-[0.8rem] font-semibold no-underline hover:underline hidden">View All <i class="fas fa-arrow-right"></i></a>
           </div>
-          <div class="search-filters">
-            <select id="searchSemester" class="filter-select" onchange="HomeView.searchFiles()">
-              <option value="">All Semesters</option>
-            </select>
-            <select id="searchType" class="filter-select" onchange="HomeView.searchFiles()">
-              <option value="">All Types</option>
-              <option value="pdf">PDF</option>
-              <option value="image">Image</option>
-              <option value="doc">Document</option>
-              <option value="sheet">Sheet (XLS)</option>
-              <option value="ppt">Presentation</option>
-            </select>
-            <select id="searchYear" class="filter-select" onchange="HomeView.searchFiles()">
-              <option value="">All Years</option>
-            </select>
+          <div id="recentReads" class="grid grid-cols-1 md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-2.5">
+            <div class="text-center py-5 text-dark-text2 text-[0.85rem]"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
           </div>
         </section>
 
-        <section class="semester-section" id="semesterSection">
-          <div class="section-header">
-            <h3 id="sectionTitle"><i class="fas fa-book"></i> Select Semester</h3>
-          </div>
-          <div id="semesterGrid" class="semester-grid">
-            <div class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Loading semesters...</div>
+        <section class="max-w-[700px] mx-auto mb-4 px-5">
+          <div class="bg-dark-bg2 border border-dark-border rounded-xl p-1">
+            <div class="flex items-center gap-2.5 bg-dark-bg border border-dark-border rounded-lg px-3.5">
+              <i class="fas fa-search text-dark-text2"></i>
+              <input type="text" id="searchInput" class="flex-1 bg-transparent border-none text-dark-text py-2.5 text-[0.9rem] outline-none placeholder:text-dark-text2" placeholder="Search files, courses, semesters..." oninput="HomeView.searchFiles()" />
+            </div>
+            <div class="flex gap-2 p-2 flex-wrap">
+              <select id="searchSemester" class="bg-dark-bg border border-dark-border text-dark-text py-1.5 px-2.5 rounded-md text-[0.78rem] outline-none cursor-pointer focus:border-qsis" onchange="HomeView.searchFiles()">
+                <option value="">All Semesters</option>
+              </select>
+              <select id="searchType" class="bg-dark-bg border border-dark-border text-dark-text py-1.5 px-2.5 rounded-md text-[0.78rem] outline-none cursor-pointer focus:border-qsis" onchange="HomeView.searchFiles()">
+                <option value="">All Types</option>
+                <option value="pdf">PDF</option>
+                <option value="image">Image</option>
+                <option value="doc">Document</option>
+                <option value="sheet">Sheet (XLS)</option>
+                <option value="ppt">Presentation</option>
+              </select>
+              <select id="searchYear" class="bg-dark-bg border border-dark-border text-dark-text py-1.5 px-2.5 rounded-md text-[0.78rem] outline-none cursor-pointer focus:border-qsis" onchange="HomeView.searchFiles()">
+                <option value="">All Years</option>
+              </select>
+            </div>
           </div>
         </section>
 
-        <section class="file-section" id="fileSection" style="display:none">
-          <div class="section-header">
-            <h3 id="sectionTitle2"><i class="fas fa-folder-open"></i> Files</h3>
-            <button class="btn btn-sm btn-outline" onclick="HomeView.goHome()" style="margin-left:auto">
+        <section class="max-w-[1200px] mx-auto mb-5 px-5" id="semesterSection">
+          <div class="flex items-center justify-between mb-3">
+            <h3 id="sectionTitle" class="text-base font-semibold flex items-center gap-2"><i class="fas fa-book"></i> Select Semester</h3>
+          </div>
+          <div id="semesterGrid" class="flex flex-col gap-2">
+            <div class="text-center py-10 text-dark-text2 text-[0.9rem]"><i class="fas fa-spinner fa-spin"></i> Loading semesters...</div>
+          </div>
+        </section>
+
+        <section class="max-w-[1200px] mx-auto mb-[30px] px-5 hidden" id="fileSection">
+          <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <h3 id="sectionTitle2" class="text-[1.05rem] font-semibold flex items-center gap-2"><i class="fas fa-folder-open"></i> Files</h3>
+            <button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold ml-auto" onclick="HomeView.goHome()">
               <i class="fas fa-arrow-left"></i> Back to Semesters
             </button>
           </div>
-          <div id="breadcrumb" class="breadcrumb"></div>
-          <div id="fileGrid" class="file-grid"></div>
+          <div id="breadcrumb" class="flex items-center gap-2 text-[0.8rem] flex-wrap mb-3.5"></div>
+          <div id="fileGrid" class="flex flex-col gap-2"></div>
         </section>
       </main>`;
   },
@@ -117,26 +117,26 @@ const HomeView = {
     try {
       const items = await DB.historyGetRecent(7);
       if (!items || items.length === 0) {
-        container.innerHTML = `<div class="recent-empty"><i class="fas fa-clock"></i> No recent reads yet. Open a file to get started.</div>`;
+        container.innerHTML = `<div class="text-center py-5 text-dark-text2 text-[0.85rem] col-span-full"><i class="fas fa-clock"></i> No recent reads yet. Open a file to get started.</div>`;
         return;
       }
       container.innerHTML = items.map(item => {
         const icon = getFileIconByType(item.mimeType);
         const time = timeAgo(item.lastRead);
-        return `<div class="recent-card" onclick="HomeView.openRecentFile('${esc(item.path)}', '${esc(item.mimeType)}')">
-          <div class="recent-icon">${icon}</div>
-          <div class="recent-info">
-            <div class="recent-name">${esc(item.name)}</div>
-            <div class="recent-time">${time}</div>
+        return `<div class="flex items-center gap-2.5 p-[10px_12px] bg-dark-bg3 border border-dark-border rounded-lg cursor-pointer hover:border-qsis hover:bg-dark-bg3/80 hover:-translate-y-px transition-all" onclick="HomeView.openRecentFile('${esc(item.path)}', '${esc(item.mimeType)}')">
+          <div class="text-[1.4rem] flex-shrink-0">${icon}</div>
+          <div class="min-w-0 flex-1">
+            <div class="text-[0.8rem] font-semibold whitespace-nowrap overflow-hidden text-ellipsis">${esc(item.name)}</div>
+            <div class="text-[0.7rem] text-dark-text2">${time}</div>
           </div>
         </div>`;
       }).join('');
 
       const moreBtn = document.getElementById('recentMore');
-      if (moreBtn && items.length >= 7) moreBtn.style.display = '';
-      else if (moreBtn) moreBtn.style.display = 'none';
+      if (moreBtn && items.length >= 7) moreBtn.classList.remove('hidden');
+      else if (moreBtn) moreBtn.classList.add('hidden');
     } catch (err) {
-      container.innerHTML = `<div class="recent-empty"><i class="fas fa-clock"></i> No recent reads yet.</div>`;
+      container.innerHTML = `<div class="text-center py-5 text-dark-text2 text-[0.85rem]"><i class="fas fa-clock"></i> No recent reads yet.</div>`;
     }
   },
 
@@ -157,7 +157,7 @@ const HomeView = {
 
   async loadSemesters() {
     const grid = document.getElementById('semesterGrid');
-    grid.innerHTML = `<div class="loading-cell"><i class="fas fa-spinner fa-spin"></i> Loading semesters...</div>`;
+    grid.innerHTML = `<div class="text-center py-10 text-dark-text2 text-[0.9rem]"><i class="fas fa-spinner fa-spin"></i> Loading semesters...</div>`;
     try {
       const tree = await GITHUB.getUploadTree(true);
       this.allTreeItems = tree.tree.filter(item => {
@@ -201,7 +201,7 @@ const HomeView = {
           const m = i.path.match(/\/(\d{4})\//);
           if (m) years.add(m[1]);
         });
-        return { id: semId, label, icon: 'fa-book', fileCount, courseCount, yearCount: years.size };
+        return { id: semId, label, fileCount, courseCount, yearCount: years.size };
       });
       this.semesterLabels = {};
       semFolders.forEach(s => this.semesterLabels[s.id] = s.label);
@@ -213,10 +213,10 @@ const HomeView = {
       }
 
       grid.innerHTML = semFolders.map(s => `
-        <div class="semester-card" onclick="HomeView.openSemester('${s.id}')">
-          <div class="semester-icon"><i class="fas fa-book"></i></div>
-          <div class="semester-label">${s.label}</div>
-          <div class="semester-meta">${s.courseCount || 0} courses &middot; ${s.fileCount} files</div>
+        <div class="flex items-center gap-4 p-[18px_20px] bg-dark-bg2 border border-dark-border rounded-xl cursor-pointer hover:border-qsis hover:shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:translate-x-1 transition-all" onclick="HomeView.openSemester('${s.id}')">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-qsis to-accent flex items-center justify-center text-white text-[1.2rem] flex-shrink-0"><i class="fas fa-book"></i></div>
+          <div class="text-[1.05rem] font-bold">${s.label}</div>
+          <div class="text-[0.8rem] text-dark-text2 ml-auto">${s.courseCount || 0} courses &middot; ${s.fileCount} files</div>
         </div>
       `).join('');
 
@@ -226,10 +226,10 @@ const HomeView = {
       document.getElementById('statsYears').textContent = semFolders.reduce((sum, s) => sum + s.yearCount, 0);
     } catch (err) {
       console.error(err);
-      grid.innerHTML = `<div class="loading-cell" style="grid-column:1/-1">
-        <i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i>
+      grid.innerHTML = `<div class="text-center py-10 text-dark-text2 col-span-full">
+        <i class="fas fa-exclamation-triangle text-warning text-2xl mb-2 block"></i>
         <p>Could not load from GitHub. Check connection.</p>
-        <button class="btn btn-sm" onclick="HomeView.loadSemesters()" style="margin-top:12px"><i class="fas fa-sync"></i> Retry</button>
+        <button class="inline-flex items-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold mt-3" onclick="HomeView.loadSemesters()"><i class="fas fa-sync"></i> Retry</button>
       </div>`;
     }
   },
@@ -246,8 +246,8 @@ const HomeView = {
     this.breadcrumb = [{ label: 'Home', action: 'HomeView.goHome()' }, { label: this.semLabel(semId), action: `HomeView.openSemester('${semId}')` }];
     this.renderBreadcrumb();
     this.renderCategories(semId);
-    document.getElementById('fileSection').style.display = '';
-    document.getElementById('semesterSection').style.display = 'none';
+    document.getElementById('fileSection').classList.remove('hidden');
+    document.getElementById('semesterSection').classList.add('hidden');
     document.getElementById('sectionTitle2').innerHTML = `<i class="fas fa-book"></i> ${this.semLabel(semId)}`;
   },
 
@@ -306,8 +306,8 @@ const HomeView = {
     this.currentPath = '';
     this.breadcrumb = [];
     this.renderBreadcrumb();
-    document.getElementById('fileSection').style.display = 'none';
-    document.getElementById('semesterSection').style.display = '';
+    document.getElementById('fileSection').classList.add('hidden');
+    document.getElementById('semesterSection').classList.remove('hidden');
     document.getElementById('sectionTitle').innerHTML = `<i class="fas fa-book"></i> Select Semester`;
     this.loadRecentReads();
   },
@@ -316,8 +316,8 @@ const HomeView = {
     const el = document.getElementById('breadcrumb');
     if (!this.breadcrumb.length) { el.innerHTML = ''; return; }
     el.innerHTML = this.breadcrumb.map((b, i) => {
-      if (b.action) return `<span class="bc-item" onclick="${b.action}">${b.label}</span><span class="bc-sep"><i class="fas fa-chevron-right"></i></span>`;
-      return `<span class="bc-item bc-active">${b.label}</span>`;
+      if (b.action) return `<span class="text-qsis cursor-pointer hover:underline" onclick="${b.action}">${b.label}</span><span class="text-dark-text2 text-[0.6rem]"><i class="fas fa-chevron-right"></i></span>`;
+      return `<span class="text-dark-text cursor-default">${b.label}</span>`;
     }).join('');
   },
 
@@ -360,20 +360,20 @@ const HomeView = {
     });
 
     if (catEntries.length === 0) {
-      grid.innerHTML = `<div class="loading-cell" id="setupSemesterCell">
-        <i class="fas fa-folder-open" style="font-size:2rem;color:var(--text2);margin-bottom:8px"></i>
+      grid.innerHTML = `<div class="text-center py-10 text-dark-text2" id="setupSemesterCell">
+        <i class="fas fa-folder-open text-2xl text-dark-text2 mb-2 block"></i>
         <p>No files found in this semester.</p>
-        <p style="font-size:.78rem;color:var(--text2);margin-top:6px">Add folders like <code>sheet/</code>, <code>Notes/</code>, <code>Previous Questions/</code>, <code>Syllabus/</code> under <strong>${semId}/</strong> in the repo.</p>
+        <p class="text-[0.78rem] text-dark-text2 mt-1.5">Add folders like <code class="text-qsis font-semibold">sheet/</code>, <code class="text-qsis font-semibold">Notes/</code>, <code class="text-qsis font-semibold">Previous Questions/</code>, <code class="text-qsis font-semibold">Syllabus/</code> under <strong>${semId}/</strong> in the repo.</p>
       </div>`;
       return;
     }
 
     grid.innerHTML = catEntries.map(ce => {
       const cat = CONFIG.categories[ce.cat] || CONFIG.categories.other;
-      return `<div class="category-card" onclick="HomeView.openCategory('${semId}','${ce.cat}')">
-        <div class="cat-icon" style="color:${cat.color}"><i class="fas ${cat.icon}"></i></div>
-        <div class="cat-label">${cat.label}</div>
-        <div class="cat-count">${ce.count} files</div>
+      return `<div class="flex items-center gap-3.5 p-[14px_18px] bg-dark-bg2 border border-dark-border rounded-xl cursor-pointer hover:border-accent hover:shadow-[0_0_16px_rgba(16,185,129,.2)] hover:translate-x-1 transition-all" onclick="HomeView.openCategory('${semId}','${ce.cat}')">
+        <div class="text-[1.5rem]" style="color:${cat.color}"><i class="fas ${cat.icon}"></i></div>
+        <div class="text-[0.95rem] font-semibold">${cat.label}</div>
+        <div class="text-[0.75rem] text-dark-text2 ml-auto">${ce.count} files</div>
       </div>`;
     }).join('');
   },
@@ -408,7 +408,7 @@ const HomeView = {
     const courses = Object.entries(courseMap).sort((a, b) => a[0].localeCompare(b[0]));
 
     if (courses.length === 0 && directFiles.length === 0) {
-      grid.innerHTML = `<div class="loading-cell"><i class="fas fa-folder-open"></i> No files found.</div>`;
+      grid.innerHTML = `<div class="text-center py-10 text-dark-text2"><i class="fas fa-folder-open"></i> No files found.</div>`;
       return;
     }
 
@@ -423,21 +423,21 @@ const HomeView = {
         const imgCount = files.filter(f => /\.(jpg|jpeg|png|gif|webp)$/i.test(f.path)).length;
         const isEmpty = files.length === 0;
         const iconClass = isEmpty ? 'fa-folder' : 'fa-book-open';
-        const iconColor = isEmpty ? 'var(--text2)' : '';
-        return `<div class="course-card" onclick="HomeView.openCourse('${semId}','${catKey}','${prefix}${name}')">
-          <div class="course-icon"><i class="fas ${iconClass}" ${iconColor ? `style="color:${iconColor}"` : ''}></i></div>
-          <div class="course-info">
-            <div class="course-name">${esc(name)}</div>
-            <div class="course-meta">
-              ${pdfCount ? `<span><i class="fas fa-file-pdf" style="color:#ef4444"></i> ${pdfCount}</span>` : ''}
-              ${docCount ? `<span><i class="fas fa-file-word" style="color:#3b82f6"></i> ${docCount}</span>` : ''}
-              ${xlsCount ? `<span><i class="fas fa-file-excel" style="color:#22c55e"></i> ${xlsCount}</span>` : ''}
-              ${pptCount ? `<span><i class="fas fa-file-powerpoint" style="color:#f97316"></i> ${pptCount}</span>` : ''}
-              ${imgCount ? `<span><i class="fas fa-file-image" style="color:#34d399"></i> ${imgCount}</span>` : ''}
-              ${isEmpty ? '<span><i class="fas fa-inbox"></i> Empty</span>' : `<span><i class="fas fa-file"></i> ${files.length} total</span>`}
+        const iconStyle = isEmpty ? 'color:#94a3b8' : '';
+        return `<div class="flex items-center gap-3.5 p-[14px_18px] bg-dark-bg2 border border-dark-border rounded-xl cursor-pointer hover:border-qsis hover:shadow-[0_0_12px_rgba(34,197,94,0.3)] transition-all" onclick="HomeView.openCourse('${semId}','${catKey}','${prefix}${name}')">
+          <div class="text-[1.3rem] text-qsis flex-shrink-0"><i class="fas ${iconClass}" ${iconStyle ? `style="${iconStyle}"` : ''}></i></div>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-[0.9rem]">${esc(name)}</div>
+            <div class="flex gap-2.5 text-[0.72rem] text-dark-text2 mt-[3px]">
+              ${pdfCount ? `<span class="flex items-center gap-[3px]"><i class="fas fa-file-pdf" style="color:#ef4444"></i> ${pdfCount}</span>` : ''}
+              ${docCount ? `<span class="flex items-center gap-[3px]"><i class="fas fa-file-word" style="color:#3b82f6"></i> ${docCount}</span>` : ''}
+              ${xlsCount ? `<span class="flex items-center gap-[3px]"><i class="fas fa-file-excel" style="color:#22c55e"></i> ${xlsCount}</span>` : ''}
+              ${pptCount ? `<span class="flex items-center gap-[3px]"><i class="fas fa-file-powerpoint" style="color:#f97316"></i> ${pptCount}</span>` : ''}
+              ${imgCount ? `<span class="flex items-center gap-[3px]"><i class="fas fa-file-image" style="color:#34d399"></i> ${imgCount}</span>` : ''}
+              ${isEmpty ? '<span class="flex items-center gap-[3px]"><i class="fas fa-inbox"></i> Empty</span>' : `<span class="flex items-center gap-[3px]"><i class="fas fa-file"></i> ${files.length} total</span>`}
             </div>
           </div>
-          <i class="fas fa-chevron-right course-arrow"></i>
+          <i class="fas fa-chevron-right text-dark-text2 text-[0.7rem] flex-shrink-0"></i>
         </div>`;
       }).join('');
     }
@@ -448,18 +448,18 @@ const HomeView = {
         const ext = name.split('.').pop().toLowerCase();
         const mime = getMimeFromExt(ext);
         const id = DB.makeId(item.path);
-        return `<div class="file-card" id="file-${id}">
-          <div class="file-card-main" onclick="HomeView.clickFile('${esc(item.path)}','${mime}')">
-            <div class="file-icon">${getFileIconByType(mime)}</div>
-            <div class="file-info">
-              <div class="file-name">${esc(name)}</div>
-              <div class="file-path">${esc(item.path)}</div>
+        return `<div class="bg-dark-bg2 border border-dark-border rounded-xl p-[12px_14px] transition-all hover:border-qsis hover:shadow-[0_0_12px_rgba(34,197,94,0.3)]" id="file-${id}">
+          <div class="flex gap-2.5 items-center cursor-pointer" onclick="HomeView.clickFile('${esc(item.path)}','${mime}')">
+            <div class="text-[1.5rem] flex-shrink-0">${getFileIconByType(mime)}</div>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-[0.85rem] whitespace-nowrap overflow-hidden text-ellipsis">${esc(name)}</div>
+              <div class="text-[0.7rem] text-dark-text2 whitespace-nowrap overflow-hidden text-ellipsis">${esc(item.path)}</div>
             </div>
           </div>
-          <div class="file-actions">
-            <button class="btn-action btn-view" title="View" onclick="event.stopPropagation();HomeView.clickFile('${esc(item.path)}','${mime}')"><i class="fas fa-eye"></i></button>
-            <button class="btn-action btn-download" id="dl-${id}" title="Download" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')"><i class="fas fa-download"></i></button>
-            <button class="btn-action btn-saveas" id="sv-${id}" title="Save as" style="display:none" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')"><i class="fas fa-share-alt"></i></button>
+          <div class="flex gap-1 mt-2 pt-2 border-t border-dark-border justify-end">
+            <button class="bg-transparent border border-dark-border text-dark-text2 cursor-pointer w-[30px] h-[30px] rounded-md inline-flex items-center justify-center text-[0.8rem] hover:bg-dark-bg3 hover:text-qsis hover:border-qsis transition-all" title="View" onclick="event.stopPropagation();HomeView.clickFile('${esc(item.path)}','${mime}')"><i class="fas fa-eye"></i></button>
+            <button class="bg-transparent border border-qsis text-qsis cursor-pointer w-[30px] h-[30px] rounded-md inline-flex items-center justify-center text-[0.8rem] hover:bg-[rgba(34,197,94,.15)] transition-all" id="dl-${id}" title="Download" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')"><i class="fas fa-download"></i></button>
+            <button class="bg-transparent border border-accent text-accent cursor-pointer w-[30px] h-[30px] rounded-md inline-flex items-center justify-center text-[0.8rem] hover:bg-[rgba(16,185,129,.15)] transition-all hidden" id="sv-${id}" title="Save as" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')"><i class="fas fa-share-alt"></i></button>
           </div>
         </div>`;
       }).join('');
@@ -494,16 +494,16 @@ const HomeView = {
     let html = '';
     if (subFolders.size > 0) {
       html += [...subFolders].sort().map(f => {
-        return `<div class="course-card" onclick="HomeView.openCourse('${this.currentSemester}','${this.currentCategory}','${prefix}${f}')">
-          <div class="course-icon"><i class="fas fa-folder" style="color:var(--accent)"></i></div>
-          <div class="course-info"><div class="course-name">${esc(f)}</div></div>
-          <i class="fas fa-chevron-right course-arrow"></i>
+        return `<div class="flex items-center gap-3.5 p-[14px_18px] bg-dark-bg2 border border-dark-border rounded-xl cursor-pointer hover:border-qsis hover:shadow-[0_0_12px_rgba(34,197,94,0.3)] transition-all" onclick="HomeView.openCourse('${this.currentSemester}','${this.currentCategory}','${prefix}${f}')">
+          <div class="text-[1.3rem] text-accent flex-shrink-0"><i class="fas fa-folder"></i></div>
+          <div class="flex-1 min-w-0"><div class="font-semibold text-[0.9rem]">${esc(f)}</div></div>
+          <i class="fas fa-chevron-right text-dark-text2 text-[0.7rem] flex-shrink-0"></i>
         </div>`;
       }).join('');
     }
 
     if (items.length === 0 && !subFolders.size) {
-      grid.innerHTML = `<div class="loading-cell"><i class="fas fa-folder-open"></i> No files here yet.</div>`;
+      grid.innerHTML = `<div class="text-center py-10 text-dark-text2"><i class="fas fa-folder-open"></i> No files here yet.</div>`;
       return;
     }
 
@@ -513,24 +513,18 @@ const HomeView = {
       const mime = getMimeFromExt(ext);
       const icon = getFileIconByType(mime);
       const id = DB.makeId(item.path);
-      return `<div class="file-card" id="file-${id}">
-        <div class="file-card-main" onclick="HomeView.clickFile('${esc(item.path)}','${mime}')">
-          <div class="file-icon">${icon}</div>
-          <div class="file-info">
-            <div class="file-name">${esc(name)}</div>
-            <div class="file-path">${esc(item.path)}</div>
+      return `<div class="bg-dark-bg2 border border-dark-border rounded-xl p-[12px_14px] transition-all hover:border-qsis hover:shadow-[0_0_12px_rgba(34,197,94,0.3)]" id="file-${id}">
+        <div class="flex gap-2.5 items-center cursor-pointer" onclick="HomeView.clickFile('${esc(item.path)}','${mime}')">
+          <div class="text-[1.5rem] flex-shrink-0">${icon}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-[0.85rem] whitespace-nowrap overflow-hidden text-ellipsis">${esc(name)}</div>
+            <div class="text-[0.7rem] text-dark-text2 whitespace-nowrap overflow-hidden text-ellipsis">${esc(item.path)}</div>
           </div>
         </div>
-        <div class="file-actions">
-          <button class="btn-action btn-view" title="View" onclick="event.stopPropagation();HomeView.clickFile('${esc(item.path)}','${mime}')">
-            <i class="fas fa-eye"></i>
-          </button>
-          <button class="btn-action btn-download" id="dl-${id}" title="Download" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')">
-            <i class="fas fa-download"></i>
-          </button>
-          <button class="btn-action btn-saveas" id="sv-${id}" title="Save as" style="display:none" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')">
-            <i class="fas fa-share-alt"></i>
-          </button>
+        <div class="flex gap-1 mt-2 pt-2 border-t border-dark-border justify-end">
+          <button class="bg-transparent border border-dark-border text-dark-text2 cursor-pointer w-[30px] h-[30px] rounded-md inline-flex items-center justify-center text-[0.8rem] hover:bg-dark-bg3 hover:text-qsis hover:border-qsis transition-all" title="View" onclick="event.stopPropagation();HomeView.clickFile('${esc(item.path)}','${mime}')"><i class="fas fa-eye"></i></button>
+          <button class="bg-transparent border border-qsis text-qsis cursor-pointer w-[30px] h-[30px] rounded-md inline-flex items-center justify-center text-[0.8rem] hover:bg-[rgba(34,197,94,.15)] transition-all" id="dl-${id}" title="Download" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')"><i class="fas fa-download"></i></button>
+          <button class="bg-transparent border border-accent text-accent cursor-pointer w-[30px] h-[30px] rounded-md inline-flex items-center justify-center text-[0.8rem] hover:bg-[rgba(16,185,129,.15)] transition-all hidden" id="sv-${id}" title="Save as" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')"><i class="fas fa-share-alt"></i></button>
         </div>
       </div>`;
     }).join('');
@@ -548,8 +542,8 @@ const HomeView = {
     const hasFilter = query || semFilter || typeFilter || yearFilter;
     if (!hasFilter) {
       if (this.currentPath) return;
-      document.getElementById('fileSection').style.display = 'none';
-      document.getElementById('semesterSection').style.display = '';
+      document.getElementById('fileSection').classList.add('hidden');
+      document.getElementById('semesterSection').classList.remove('hidden');
       return;
     }
 
@@ -559,23 +553,19 @@ const HomeView = {
       const ext = name.split('.').pop().toLowerCase();
 
       if (query && !name.includes(query) && !i.path.toLowerCase().includes(query)) return false;
-
       if (semFilter && !i.path.startsWith(semFilter + '/')) return false;
-
       if (typeFilter === 'pdf' && ext !== 'pdf') return false;
       if (typeFilter === 'image' && !['jpg','jpeg','png','gif','webp'].includes(ext)) return false;
       if (typeFilter === 'doc' && !['doc','docx'].includes(ext)) return false;
       if (typeFilter === 'sheet' && !['xls','xlsx','csv'].includes(ext)) return false;
       if (typeFilter === 'ppt' && !['ppt','pptx'].includes(ext)) return false;
-
       if (yearFilter && !i.path.includes('/' + yearFilter + '/')) return false;
-
       return true;
     });
 
     if (!this.currentPath) {
-      document.getElementById('fileSection').style.display = '';
-      document.getElementById('semesterSection').style.display = 'none';
+      document.getElementById('fileSection').classList.remove('hidden');
+      document.getElementById('semesterSection').classList.add('hidden');
       const filterParts = [];
       if (query) filterParts.push(`"${query}"`);
       if (semFilter) filterParts.push(this.semLabel(semFilter));
@@ -589,7 +579,7 @@ const HomeView = {
 
     const grid = document.getElementById('fileGrid');
     if (results.length === 0) {
-      grid.innerHTML = `<div class="loading-cell"><i class="fas fa-search"></i> No results for "${esc(query)}"</div>`;
+      grid.innerHTML = `<div class="text-center py-10 text-dark-text2"><i class="fas fa-search"></i> No results for "${esc(query)}"</div>`;
       return;
     }
 
@@ -598,18 +588,18 @@ const HomeView = {
       const ext = name.split('.').pop().toLowerCase();
       const mime = getMimeFromExt(ext);
       const id = DB.makeId(item.path);
-      return `<div class="file-card" id="file-${id}">
-        <div class="file-card-main" onclick="HomeView.clickFile('${esc(item.path)}','${mime}')">
-          <div class="file-icon">${getFileIconByType(mime)}</div>
-          <div class="file-info">
-            <div class="file-name">${esc(name)}</div>
-            <div class="file-path">${esc(item.path)}</div>
+      return `<div class="bg-dark-bg2 border border-dark-border rounded-xl p-[12px_14px] transition-all hover:border-qsis hover:shadow-[0_0_12px_rgba(34,197,94,0.3)]" id="file-${id}">
+        <div class="flex gap-2.5 items-center cursor-pointer" onclick="HomeView.clickFile('${esc(item.path)}','${mime}')">
+          <div class="text-[1.5rem] flex-shrink-0">${getFileIconByType(mime)}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-[0.85rem] whitespace-nowrap overflow-hidden text-ellipsis">${esc(name)}</div>
+            <div class="text-[0.7rem] text-dark-text2 whitespace-nowrap overflow-hidden text-ellipsis">${esc(item.path)}</div>
           </div>
         </div>
-        <div class="file-actions">
-          <button class="btn-action btn-view" title="View" onclick="event.stopPropagation();HomeView.clickFile('${esc(item.path)}','${mime}')"><i class="fas fa-eye"></i></button>
-          <button class="btn-action btn-download" id="dl-${id}" title="Download" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')"><i class="fas fa-download"></i></button>
-          <button class="btn-action btn-saveas" id="sv-${id}" title="Save as" style="display:none" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')"><i class="fas fa-share-alt"></i></button>
+        <div class="flex gap-1 mt-2 pt-2 border-t border-dark-border justify-end">
+          <button class="bg-transparent border border-dark-border text-dark-text2 cursor-pointer w-[30px] h-[30px] rounded-md inline-flex items-center justify-center text-[0.8rem] hover:bg-dark-bg3 hover:text-qsis hover:border-qsis transition-all" title="View" onclick="event.stopPropagation();HomeView.clickFile('${esc(item.path)}','${mime}')"><i class="fas fa-eye"></i></button>
+          <button class="bg-transparent border border-qsis text-qsis cursor-pointer w-[30px] h-[30px] rounded-md inline-flex items-center justify-center text-[0.8rem] hover:bg-[rgba(34,197,94,.15)] transition-all" id="dl-${id}" title="Download" onclick="event.stopPropagation();downloadToCache('${esc(item.path)}','${esc(name)}','${mime}')"><i class="fas fa-download"></i></button>
+          <button class="bg-transparent border border-accent text-accent cursor-pointer w-[30px] h-[30px] rounded-md inline-flex items-center justify-center text-[0.8rem] hover:bg-[rgba(16,185,129,.15)] transition-all hidden" id="sv-${id}" title="Save as" onclick="event.stopPropagation();saveAsFile('${esc(item.path)}','${esc(name)}')"><i class="fas fa-share-alt"></i></button>
         </div>
       </div>`;
     }).join('');

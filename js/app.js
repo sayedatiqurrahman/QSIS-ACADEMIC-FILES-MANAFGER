@@ -26,7 +26,7 @@ function getFileIconByType(mime) {
   if (mime === 'doc') return '<i class="fas fa-file-word" style="color:#3b82f6"></i>';
   if (mime === 'sheet') return '<i class="fas fa-file-excel" style="color:#22c55e"></i>';
   if (mime === 'ppt') return '<i class="fas fa-file-powerpoint" style="color:#f59e0b"></i>';
-  return '<i class="fas fa-file" style="color:var(--text2)"></i>';
+  return '<i class="fas fa-file" style="color:#94a3b8"></i>';
 }
 
 function esc(text) {
@@ -63,13 +63,14 @@ function showToast(msg, type) {
   var t = document.getElementById('toast');
   if (!t) return;
   t.textContent = msg;
-  t.className = 'toast ' + (type || 'info') + ' show';
+  t.className = 'fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-[0.85rem] z-[2000] transition-all duration-300 ' + (type || 'info') + ' show';
   clearTimeout(t._timer);
   t._timer = setTimeout(function() { t.classList.remove('show'); }, 3500);
 }
 
 function toggleNav() {
-  document.getElementById('navActions').classList.toggle('nav-open');
+  var el = document.getElementById('navActionsMobile');
+  if (el) el.classList.toggle('hidden');
 }
 
 function showUploadModal() {
@@ -87,10 +88,10 @@ function closeModal(id) {
 }
 
 function showUploadTab(tab) {
-  document.querySelectorAll('.upload-tab').forEach(function(t) { t.style.display = 'none'; });
-  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('.upload-tab').forEach(function(t) { t.classList.add('hidden'); });
+  document.querySelectorAll('.upload-tab-btn').forEach(function(b) { b.classList.remove('active'); });
   var target = document.getElementById('uploadTab' + tab.charAt(0).toUpperCase() + tab.slice(1));
-  if (target) target.style.display = '';
+  if (target) target.classList.remove('hidden');
   if (event && event.currentTarget) event.currentTarget.classList.add('active');
 }
 
@@ -110,7 +111,7 @@ function updateAuthUI() {
 }
 
 async function checkCachedButtons() {
-  var cards = document.querySelectorAll('.file-card');
+  var cards = document.querySelectorAll('[id^="file-"]');
   for (var i = 0; i < cards.length; i++) {
     var card = cards[i];
     var id = card.id.replace('file-', '');
@@ -193,7 +194,7 @@ function openViewer(item) {
   else if (item.mimeType === 'image') openImageViewer(item.rawUrl, item.name, viewerBody);
   else if (item.mimeType === 'doc') openDocViewer(item.rawUrl, viewerBody);
   else {
-    viewerBody.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file" style="font-size:3rem;color:var(--text2);margin-bottom:16px"></i><p>Preview not available for this file type.</p><p style="font-size:0.85rem;color:var(--text2)">Use download button to save offline.</p></div>';
+    viewerBody.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file" style="font-size:3rem;color:#94a3b8;margin-bottom:16px"></i><p>Preview not available for this file type.</p><p style="font-size:0.85rem;color:#94a3b8">Use download button to save offline.</p></div>';
   }
 
   viewer.classList.add('active');
@@ -217,7 +218,7 @@ function openViewerFromBlob(item, blob) {
   if (item.mimeType === 'pdf') openPdfViewer(url, viewerBody, item.path);
   else if (item.mimeType === 'image') openImageViewer(url, item.name, viewerBody);
   else {
-    viewerBody.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file" style="font-size:3rem;color:var(--text2);margin-bottom:16px"></i><p>File cached. Use "Save as" to save to device.</p></div>';
+    viewerBody.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file" style="font-size:3rem;color:#94a3b8;margin-bottom:16px"></i><p>File cached. Use "Save as" to save to device.</p></div>';
   }
   viewer.classList.add('active');
   document.body.style.overflow = 'hidden';
@@ -253,33 +254,33 @@ function openPdfViewer(url, container, filePath) {
   pdfRotation = 0;
 
   var theme = localStorage.getItem('qsis-theme') || 'dark';
-  var bg = theme === 'dark' ? '#1a1a2e' : '#f5f5f5';
-  var toolbarBg = theme === 'dark' ? '#0f0f23' : '#e8e8e8';
-  var textColor = theme === 'dark' ? '#e0e0e0' : '#222';
-  var border = theme === 'dark' ? '#2a2a4a' : '#ccc';
+  var bg = theme === 'dark' ? '#0a0f1e' : '#f5f5f5';
+  var toolbarBg = theme === 'dark' ? '#1a2236' : '#e8e8e8';
+  var textColor = theme === 'dark' ? '#e8edf5' : '#222';
+  var border = theme === 'dark' ? '#2a3a5c' : '#ccc';
 
-  container.innerHTML = '<div class="pdf-viewer-root" style="display:flex;flex-direction:column;height:100%;background:' + bg + ';color:' + textColor + '">' +
-    '<div class="pdf-toolbar" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:' + toolbarBg + ';border-bottom:1px solid ' + border + ';flex-shrink:0;gap:6px;flex-wrap:wrap">' +
-      '<div style="display:flex;align-items:center;gap:6px">' +
+  container.innerHTML = '<div class="flex flex-col h-full" style="background:' + bg + ';color:' + textColor + '">' +
+    '<div class="flex items-center justify-between py-1.5 px-3 border-b flex-shrink-0 gap-1.5 flex-wrap" style="background:' + toolbarBg + ';border-color:' + border + '">' +
+      '<div class="flex items-center gap-1.5">' +
         '<button class="pdf-btn" onclick="pdfPrevPage()" title="Previous"><i class="fas fa-chevron-left"></i></button>' +
-        '<span id="pdfPageInfo" style="font-size:.78rem;font-weight:600;white-space:nowrap">1 / 1</span>' +
+        '<span id="pdfPageInfo" class="text-[0.78rem] font-semibold whitespace-nowrap">1 / 1</span>' +
         '<button class="pdf-btn" onclick="pdfNextPage()" title="Next"><i class="fas fa-chevron-right"></i></button>' +
       '</div>' +
-      '<div style="display:flex;align-items:center;gap:6px">' +
+      '<div class="flex items-center gap-1.5">' +
         '<button class="pdf-btn" onclick="pdfZoomOut()" title="Zoom Out"><i class="fas fa-minus"></i></button>' +
-        '<span id="pdfZoomInfo" style="font-size:.75rem;font-weight:600;min-width:40px;text-align:center">100%</span>' +
+        '<span id="pdfZoomInfo" class="text-[0.75rem] font-semibold min-w-[40px] text-center">100%</span>' +
         '<button class="pdf-btn" onclick="pdfZoomIn()" title="Zoom In"><i class="fas fa-plus"></i></button>' +
         '<button class="pdf-btn" onclick="pdfFitPage()" title="Fit Page"><i class="fas fa-expand"></i></button>' +
         '<button class="pdf-btn" onclick="pdfRotate()" title="Rotate"><i class="fas fa-redo"></i></button>' +
       '</div>' +
-      '<div style="display:flex;align-items:center;gap:4px">' +
+      '<div class="flex items-center gap-1">' +
         '<button class="pdf-btn" id="pdfDownloadBtn" title="Download"><i class="fas fa-download"></i></button>' +
         '<button class="pdf-btn" id="pdfSaveAsBtn" title="Save as" style="display:none"><i class="fas fa-share-alt"></i></button>' +
         '<button class="pdf-btn" onclick="pdfFullscreen()" title="Fullscreen"><i class="fas fa-expand-arrows-alt"></i></button>' +
       '</div>' +
     '</div>' +
-    '<div id="pdfViewerArea" style="flex:1;overflow:auto;display:flex;justify-content:center;background:' + bg + ';position:relative">' +
-      '<canvas id="pdfCanvas" style="margin:12px auto;box-shadow:0 2px 12px rgba(0,0,0,0.3);display:block"></canvas>' +
+    '<div id="pdfViewerArea" class="flex-1 overflow-auto flex justify-center relative" style="background:' + bg + '">' +
+      '<canvas id="pdfCanvas" class="my-3 mx-auto shadow-[0_2px_12px_rgba(0,0,0,0.3)] block"></canvas>' +
     '</div>' +
   '</div>';
 
@@ -308,7 +309,7 @@ function openPdfViewer(url, container, filePath) {
     pdfRenderPage(1);
   }).catch(function(err) {
     console.error('PDF.js error:', err);
-    container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-exclamation-triangle" style="font-size:2rem;color:var(--warning);margin-bottom:12px"></i><p>Could not load PDF.</p><a href="' + url + '" target="_blank" class="btn btn-sm" style="margin-top:12px"><i class="fas fa-external-link-alt"></i> Open in new tab</a></div>';
+    container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-exclamation-triangle" style="font-size:2rem;color:#f59e0b;margin-bottom:12px"></i><p>Could not load PDF.</p><a href="' + url + '" target="_blank" class="inline-flex items-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold no-underline mt-3"><i class="fas fa-external-link-alt"></i> Open in new tab</a></div>';
   });
 }
 
@@ -363,11 +364,11 @@ function openImageViewer(url, name, container) {
   imgZoom = 100; imgRotation = 0;
   container.innerHTML = '<div class="image-viewer-container">' +
     '<div class="image-toolbar">' +
-      '<button class="btn btn-sm" onclick="imgZoomOut()"><i class="fas fa-minus"></i></button>' +
-      '<span id="imgZoomInfo">100%</span>' +
-      '<button class="btn btn-sm" onclick="imgZoomIn()"><i class="fas fa-plus"></i></button>' +
-      '<button class="btn btn-sm" onclick="imgFit()"><i class="fas fa-expand"></i> Fit</button>' +
-      '<button class="btn btn-sm" onclick="imgRotate()"><i class="fas fa-redo"></i></button>' +
+      '<button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold" onclick="imgZoomOut()"><i class="fas fa-minus"></i></button>' +
+      '<span id="imgZoomInfo" class="text-[0.8rem] font-semibold min-w-[40px] text-center">100%</span>' +
+      '<button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold" onclick="imgZoomIn()"><i class="fas fa-plus"></i></button>' +
+      '<button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold" onclick="imgFit()"><i class="fas fa-expand"></i> Fit</button>' +
+      '<button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold" onclick="imgRotate()"><i class="fas fa-redo"></i></button>' +
     '</div>' +
     '<div class="image-scroll-area" id="imageScrollArea">' +
       '<img id="viewerImage" src="' + url + '" alt="' + esc(name) + '" />' +
@@ -389,7 +390,7 @@ function openDocViewer(url, container) {
   container.innerHTML = '<div class="doc-viewer-container">' +
     '<div class="doc-toolbar">' +
       '<span><i class="fas fa-file-word" style="color:#3b82f6"></i> Word Document</span>' +
-      '<a href="https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url) + '" target="_blank" class="btn btn-sm btn-outline"><i class="fas fa-external-link-alt"></i> Open in Office Online</a>' +
+      '<a href="https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url) + '" target="_blank" class="inline-flex items-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-transparent text-dark-text cursor-pointer text-[0.75rem] font-semibold no-underline"><i class="fas fa-external-link-alt"></i> Open in Office Online</a>' +
     '</div>' +
     '<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url) + '" style="width:100%;height:calc(100vh - 140px);border:none;border-radius:0 0 8px 8px"></iframe>' +
   '</div>';
@@ -437,7 +438,7 @@ async function handleUpload() {
     filesData.push({ name: file.name, path: relPath, data: buffer });
   }
 
-  if (progress) progress.style.display = '';
+  if (progress) progress.classList.remove('hidden');
   if (statusText) statusText.textContent = 'Uploading ' + files.length + ' files...';
 
   try {

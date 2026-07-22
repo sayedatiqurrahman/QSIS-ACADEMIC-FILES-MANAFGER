@@ -63,7 +63,7 @@ export default {
             'Accept': 'application/json'
           },
           body: JSON.stringify({
-            client_id: env.GITHUB_CLIENT_ID,
+            client_id: env.GITHUBCLIENTID,
             client_secret: env.GITHUBCLIENTSECRET,
             code: code
           })

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,13 +10,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <!-- SEO Meta Tags -->
   <meta name="description" content="QSIS-ARMS: Free academic resource management system for Qur'anic Sciences & Islamic Studies, IIUC. Access notes, sheets, previous questions, syllabus & more." />
   <meta name="keywords" content="QSIS ARMS, QSIS Academic Resource Management System, IIUC academic files, Islamic studies notes, Quranic sciences, university resources, free study materials, QSIS notes, IIUC sheets, previous questions" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://qsis-arms.eu.cc/" />
 
-  <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="QSIS-ARMS | QSIS Academic Resource Management System" />
   <meta property="og:description" content="Free academic resource hub for Qur'anic Sciences & Islamic Studies students at IIUC. Access notes, sheets, previous questions & more." />
@@ -24,13 +22,11 @@
   <meta property="og:url" content="https://qsis-arms.eu.cc/" />
   <meta property="og:site_name" content="QSIS-ARMS" />
 
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="QSIS-ARMS | QSIS Academic Resource System" />
   <meta name="twitter:description" content="Free academic resource hub for IIUC QSIS students. Notes, sheets, questions & more." />
   <meta name="twitter:image" content="https://qsis-arms.eu.cc/assets/arms-logo.png" />
 
-  <!-- Structured Data -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -52,87 +48,125 @@
 
   <meta name="msvalidate.01" content="DD448DBC883F1B6109FDB70D65A3BB56" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-dark-bg: #0a0f1e;
+      --color-dark-bg2: #111827;
+      --color-dark-bg3: #1a2236;
+      --color-dark-border: #2a3a5c;
+      --color-dark-text: #e8edf5;
+      --color-dark-text2: #94a3b8;
+      --color-qsis: #22c55e;
+      --color-qsis-dark: #16a34a;
+      --color-accent: #10b981;
+      --color-danger: #ef4444;
+      --color-warning: #f59e0b;
+      --color-gold: #facc15;
+      --color-blue: #3b82f6;
+      --color-purple: #8b5cf6;
+      --color-orange: #f97316;
+    }
+  </style>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
-  <div id="app">
-    <nav class="navbar">
-      <div class="nav-container">
-        <div class="nav-brand">
-          <a href="#/" style="text-decoration:none;display:flex;align-items:center;gap:12px">
-            <img src="assets/arms-logo.png" alt="QSIS-ARMS" class="nav-logo" />
-            <div class="nav-title">
-              <h1>QSIS-ARMS</h1>
-              <span class="nav-subtitle">Academic Resource System</span>
+<body class="font-[system-ui,-apple-system,sans-serif] min-h-screen transition-colors duration-300">
+  <div id="app" class="dark bg-dark-bg text-dark-text">
+    <!-- NAVBAR -->
+    <nav class="sticky top-0 z-[100] bg-dark-bg2 border-b border-dark-border backdrop-blur-3xl">
+      <div class="max-w-[1200px] mx-auto px-5 py-2.5 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <a href="#/" class="no-underline flex items-center gap-3">
+            <img src="assets/arms-logo.png" alt="QSIS-ARMS" class="w-10 h-10 object-contain rounded-full bg-white p-[3px] shadow-md" />
+            <div>
+              <h1 class="text-[1.1rem] font-bold bg-gradient-to-br from-qsis to-accent bg-clip-text text-transparent">QSIS-ARMS</h1>
+              <span class="text-[0.7rem] text-dark-text2 hidden md:block">Academic Resource System</span>
             </div>
           </a>
         </div>
-        <button class="nav-hamburger" onclick="toggleNav()" aria-label="Menu">
+        <button class="md:hidden bg-transparent border-none text-dark-text2 text-[1.4rem] cursor-pointer p-1" onclick="toggleNav()" aria-label="Menu">
           <i class="fas fa-bars"></i>
         </button>
-        <div class="nav-actions" id="navActions">
-          <a href="#/contributors" class="nav-link" data-route="/contributors"><i class="fas fa-users"></i> Contributors</a>
-          <a href="#/routine" class="nav-link" data-route="/routine"><i class="fas fa-calendar-alt"></i> Routine</a>
-          <div class="nav-mobile-row">
-            <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" title="Star us on GitHub">
-              <i class="fas fa-star"></i> <span id="navStars">-</span>
+        <div class="flex items-center gap-2 max-md:hidden" id="navActions">
+          <a href="#/contributors" class="inline-flex items-center gap-[5px] px-3 py-[6px] rounded-lg text-dark-text2 no-underline text-[0.78rem] font-semibold hover:bg-dark-bg3 hover:text-qsis transition-all" data-route="/contributors"><i class="fas fa-users text-[0.8rem]"></i> Contributors</a>
+          <a href="#/routine" class="inline-flex items-center gap-[5px] px-3 py-[6px] rounded-lg text-dark-text2 no-underline text-[0.78rem] font-semibold hover:bg-dark-bg3 hover:text-qsis transition-all" data-route="/routine"><i class="fas fa-calendar-alt text-[0.8rem]"></i> Routine</a>
+          <div class="flex items-center gap-1">
+            <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" title="Star us on GitHub" class="bg-transparent border-none text-dark-text2 cursor-pointer min-w-[34px] h-[34px] rounded-full flex items-center justify-center text-base hover:bg-dark-bg3 hover:text-dark-text transition-all no-underline">
+              <i class="fas fa-star"></i> <span id="navStars" class="text-[0.75rem] font-bold">-</span>
             </a>
-            <button class="theme-toggle" onclick="toggleTheme()" title="Theme">
+            <button class="bg-transparent border-none text-dark-text2 cursor-pointer min-w-[34px] h-[34px] rounded-full flex items-center justify-center text-base hover:bg-dark-bg3 hover:text-dark-text transition-all theme-toggle" onclick="toggleTheme()" title="Theme">
               <i class="fas fa-moon"></i>
             </button>
-            <a href="#/downloads" title="Downloads"><i class="fas fa-download"></i></a>
-            <a href="#/history" title="History"><i class="fas fa-clock"></i></a>
+            <a href="#/downloads" title="Downloads" class="bg-transparent border-none text-dark-text2 cursor-pointer min-w-[34px] h-[34px] rounded-full flex items-center justify-center text-base hover:bg-dark-bg3 hover:text-dark-text transition-all no-underline"><i class="fas fa-download"></i></a>
+            <a href="#/history" title="History" class="bg-transparent border-none text-dark-text2 cursor-pointer min-w-[34px] h-[34px] rounded-full flex items-center justify-center text-base hover:bg-dark-bg3 hover:text-dark-text transition-all no-underline"><i class="fas fa-clock"></i></a>
           </div>
-          <button class="btn btn-glow btn-sm" id="uploadBtn" onclick="showUploadModal()">
+          <button class="inline-flex items-center gap-[6px] px-4 py-2 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none shadow-[0_0_16px_rgba(34,197,94,0.3)] cursor-pointer text-[0.8rem] font-semibold hover:shadow-[0_0_24px_rgba(34,197,94,0.3)] hover:-translate-y-px transition-all" id="uploadBtn" onclick="showUploadModal()">
             <i class="fas fa-upload"></i> Upload
           </button>
-          <button class="btn btn-sm" id="authBtn" onclick="AUTH.showAuthModal()">
+          <button class="inline-flex items-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold hover:bg-dark-bg3/80 transition-all" id="authBtn" onclick="AUTH.showAuthModal()">
             <i class="fas fa-user"></i> Login
           </button>
         </div>
       </div>
     </nav>
 
-    <main id="app-main" class="main-content">
-      <div class="empty-state" style="padding:80px 20px"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>
+    <!-- MOBILE NAV DROPDOWN -->
+    <div class="hidden max-md:flex max-md:flex-col max-md:items-center max-md:gap-2.5 max-md:absolute max-md:top-full max-md:left-0 max-md:right-0 max-md:bg-dark-bg2 max-md:border-b max-md:border-dark-border max-md:p-5 max-md:z-[200] max-md:nav-open" id="navActionsMobile">
+      <a href="#/contributors" class="w-full text-center py-2.5 px-4 rounded-lg border border-dark-border bg-dark-bg3 text-dark-text2 no-underline text-[0.75rem] font-semibold hover:bg-dark-bg3/80 hover:text-qsis hover:border-qsis transition-all"><i class="fas fa-users"></i> Contributors</a>
+      <a href="#/routine" class="w-full text-center py-2.5 px-4 rounded-lg border border-dark-border bg-dark-bg3 text-dark-text2 no-underline text-[0.75rem] font-semibold hover:bg-dark-bg3/80 hover:text-qsis hover:border-qsis transition-all"><i class="fas fa-calendar-alt"></i> Routine</a>
+      <div class="flex gap-2 w-full">
+        <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="flex-1 text-center py-2.5 px-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text2 no-underline text-[0.75rem] font-semibold hover:bg-dark-bg3/80 hover:text-qsis hover:border-qsis transition-all flex items-center justify-center gap-2"><i class="fas fa-star text-[0.85rem]"></i> Stars</a>
+        <button class="flex-1 text-center py-2.5 px-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text2 text-[0.75rem] font-semibold hover:bg-dark-bg3/80 hover:text-qsis hover:border-qsis transition-all flex items-center justify-center gap-2 theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon text-[0.85rem]"></i> Theme</button>
+        <a href="#/downloads" class="flex-1 text-center py-2.5 px-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text2 no-underline text-[0.75rem] font-semibold hover:bg-dark-bg3/80 hover:text-qsis hover:border-qsis transition-all flex items-center justify-center gap-2"><i class="fas fa-download text-[0.85rem]"></i> Cache</a>
+        <a href="#/history" class="flex-1 text-center py-2.5 px-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text2 no-underline text-[0.75rem] font-semibold hover:bg-dark-bg3/80 hover:text-qsis hover:border-qsis transition-all flex items-center justify-center gap-2"><i class="fas fa-clock text-[0.85rem]"></i> History</a>
+      </div>
+      <button class="w-full mt-1 inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none shadow-[0_0_16px_rgba(34,197,94,0.3)] cursor-pointer text-[0.8rem] font-semibold" onclick="showUploadModal()"><i class="fas fa-upload"></i> Upload</button>
+      <button class="w-full inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.8rem] font-semibold" onclick="AUTH.showAuthModal()"><i class="fas fa-user"></i> Login</button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main id="app-main" class="min-h-[60vh]">
+      <div class="text-center py-20 px-5 text-dark-text2"><i class="fas fa-spinner fa-spin text-2xl mb-3 block"></i><p>Loading...</p></div>
     </main>
 
+    <!-- FILE VIEWER OVERLAY -->
     <div id="fileViewer" class="viewer-overlay">
       <div class="viewer-container">
-        <div class="viewer-header">
-          <div class="viewer-header-left"><i class="fas fa-file"></i><span id="viewerTitle">File Viewer</span></div>
-          <div class="viewer-header-right">
-            <button class="btn btn-sm" id="viewerDownloadBtn" title="Download to cache"><i class="fas fa-download"></i> Download</button>
-            <button class="btn btn-sm btn-accent" id="viewerSaveAsBtn" title="Save to device" style="display:none"><i class="fas fa-share-alt"></i> Save as</button>
-            <button class="btn-icon-close" onclick="closeViewer()" title="Close"><i class="fas fa-times"></i></button>
+        <div class="flex items-center justify-between px-4 py-2.5 border-b border-dark-border bg-dark-bg3 min-h-[48px]">
+          <div class="flex items-center gap-2 font-semibold text-[0.9rem] min-w-0 flex-1"><i class="fas fa-file"></i><span id="viewerTitle" class="whitespace-nowrap overflow-hidden text-ellipsis">File Viewer</span></div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl border border-dark-border bg-dark-bg3 text-dark-text cursor-pointer text-[0.75rem] font-semibold" id="viewerDownloadBtn" title="Download to cache"><i class="fas fa-download"></i> Download</button>
+            <button class="inline-flex items-center gap-[6px] px-3 py-[5px] rounded-xl bg-accent text-white border-none cursor-pointer text-[0.75rem] font-semibold" id="viewerSaveAsBtn" title="Save to device" style="display:none"><i class="fas fa-share-alt"></i> Save as</button>
+            <button class="bg-transparent border-none text-dark-text2 cursor-pointer w-[30px] h-[30px] rounded-full flex items-center justify-center text-[0.9rem] hover:bg-danger hover:text-white transition-all" onclick="closeViewer()" title="Close"><i class="fas fa-times"></i></button>
           </div>
         </div>
-        <div class="viewer-body" id="viewerBody"></div>
+        <div class="flex-1 overflow-hidden flex flex-col min-h-0" id="viewerBody"></div>
       </div>
     </div>
 
+    <!-- UPLOAD MODAL -->
     <div id="uploadModal" class="modal">
-      <div class="modal-content modal-lg">
-        <div class="modal-header">
-          <h2><i class="fas fa-upload"></i> Contribute Files</h2>
-          <button class="btn-icon" onclick="closeModal('uploadModal')"><i class="fas fa-times"></i></button>
+      <div class="modal-content max-w-[700px]">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-dark-border">
+          <h2 class="text-base font-semibold flex items-center gap-2"><i class="fas fa-upload"></i> Contribute Files</h2>
+          <button class="bg-transparent border-none text-dark-text2 cursor-pointer w-[34px] h-[34px] rounded-full flex items-center justify-center text-base hover:bg-dark-bg3 hover:text-dark-text transition-all" onclick="closeModal('uploadModal')"><i class="fas fa-times"></i></button>
         </div>
-        <div class="modal-body">
-          <div class="upload-method-tabs">
-            <button class="tab-btn active" onclick="showUploadTab('upload')"><i class="fas fa-bolt"></i> Upload Files</button>
-            <button class="tab-btn" onclick="showUploadTab('guide')"><i class="fas fa-book"></i> Step-by-Step Guide</button>
+        <div class="p-5">
+          <div class="flex gap-1 mb-4 bg-dark-bg3 rounded-lg p-1">
+            <button class="flex-1 py-2 px-3 border-none bg-qsis text-white cursor-pointer rounded-md text-[0.8rem] font-semibold flex items-center justify-center gap-2 transition-all upload-tab-btn active" onclick="showUploadTab('upload')"><i class="fas fa-bolt"></i> Upload Files</button>
+            <button class="flex-1 py-2 px-3 border-none bg-transparent text-dark-text2 cursor-pointer rounded-md text-[0.8rem] font-semibold flex items-center justify-center gap-2 transition-all upload-tab-btn" onclick="showUploadTab('guide')"><i class="fas fa-book"></i> Step-by-Step Guide</button>
           </div>
 
           <div id="uploadTabUpload" class="upload-tab">
-            <div class="form-group">
-              <label>Semester</label>
-              <select id="uploadSemester">
+            <div class="mb-2.5">
+              <label class="block text-[0.8rem] font-semibold mb-1 text-dark-text2">Semester</label>
+              <select id="uploadSemester" class="w-full px-3 py-2 rounded-lg border border-dark-border bg-dark-bg text-dark-text text-[0.85rem] outline-none focus:border-qsis">
                 <option value="">Select Semester</option>
               </select>
             </div>
-            <div class="form-group">
-              <label>Category</label>
-              <select id="uploadCategory">
+            <div class="mb-2.5">
+              <label class="block text-[0.8rem] font-semibold mb-1 text-dark-text2">Category</label>
+              <select id="uploadCategory" class="w-full px-3 py-2 rounded-lg border border-dark-border bg-dark-bg text-dark-text text-[0.85rem] outline-none focus:border-qsis">
                 <option value="sheet">Sheets</option>
                 <option value="question">Previous Questions</option>
                 <option value="note">Notes</option>
@@ -140,60 +174,48 @@
                 <option value="other">Other</option>
               </select>
             </div>
-            <div class="form-group">
-              <label>Select Files (max 10, max 50MB total)</label>
-              <input type="file" id="uploadFiles" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar" />
+            <div class="mb-2.5">
+              <label class="block text-[0.8rem] font-semibold mb-1 text-dark-text2">Select Files (max 10, max 50MB total)</label>
+              <input type="file" id="uploadFiles" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.csv,.txt,.zip,.rar" class="w-full p-4 border-2 border-dashed border-dark-border rounded-lg bg-dark-bg cursor-pointer text-[0.85rem] text-dark-text2 hover:border-qsis" />
             </div>
-            <div class="form-group">
-              <label>Your Full Name</label>
-              <input type="text" id="uploadName" placeholder="e.g. Ahmed Hassan" />
+            <div class="mb-2.5">
+              <label class="block text-[0.8rem] font-semibold mb-1 text-dark-text2">Your Full Name</label>
+              <input type="text" id="uploadName" placeholder="e.g. Ahmed Hassan" class="w-full px-3 py-2 rounded-lg border border-dark-border bg-dark-bg text-dark-text text-[0.85rem] outline-none focus:border-qsis" />
             </div>
-            <div class="form-group">
-              <label>QSIS ID Number</label>
-              <input type="text" id="uploadQsId" placeholder="e.g. QSIS-2024-001" />
+            <div class="mb-2.5">
+              <label class="block text-[0.8rem] font-semibold mb-1 text-dark-text2">QSIS ID Number</label>
+              <input type="text" id="uploadQsId" placeholder="e.g. QSIS-2024-001" class="w-full px-3 py-2 rounded-lg border border-dark-border bg-dark-bg text-dark-text text-[0.85rem] outline-none focus:border-qsis" />
             </div>
-            <div class="form-group">
-              <label>WhatsApp Number</label>
-              <input type="text" id="uploadWhatsapp" placeholder="e.g. +8801XXXXXXXXX" />
+            <div class="mb-2.5">
+              <label class="block text-[0.8rem] font-semibold mb-1 text-dark-text2">WhatsApp Number</label>
+              <input type="text" id="uploadWhatsapp" placeholder="e.g. +8801XXXXXXXXX" class="w-full px-3 py-2 rounded-lg border border-dark-border bg-dark-bg text-dark-text text-[0.85rem] outline-none focus:border-qsis" />
             </div>
-            <div id="uploadProgress" style="display:none">
-              <div class="progress-bar"><div class="progress-fill" id="uploadProgressFill"></div></div>
-              <p id="uploadStatus" style="font-size:.8rem;color:var(--text2);margin-top:4px"></p>
+            <div id="uploadProgress" class="hidden">
+              <div class="h-[6px] bg-dark-bg3 rounded-[3px] overflow-hidden my-3"><div class="h-full bg-gradient-to-r from-qsis to-accent w-0 transition-all duration-300" id="uploadProgressFill"></div></div>
+              <p id="uploadStatus" class="text-[0.8rem] text-dark-text2 mt-1"></p>
             </div>
-            <button class="btn btn-glow btn-full" onclick="handleUpload()" style="margin-top:12px">
+            <button class="w-full mt-3 inline-flex items-center justify-center gap-[6px] px-4 py-2 rounded-xl bg-gradient-to-br from-qsis to-qsis-dark text-white border-none shadow-[0_0_16px_rgba(34,197,94,0.3)] cursor-pointer text-[0.8rem] font-semibold hover:shadow-[0_0_24px_rgba(34,197,94,0.3)] transition-all" onclick="handleUpload()">
               <i class="fas fa-paper-plane"></i> Submit Files
             </button>
           </div>
 
-          <div id="uploadTabGuide" class="upload-tab" style="display:none">
-            <div class="tutorial-steps">
-              <div class="tutorial-step">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                  <h4>Login with GitHub</h4>
-                  <p>Click the Login button and connect your GitHub account. Verify with your IIUC email (q{number}@ugrad.iiuc.ac.bd).</p>
-                </div>
+          <div id="uploadTabGuide" class="upload-tab hidden">
+            <div class="flex flex-col gap-3.5">
+              <div class="flex gap-3.5 items-start">
+                <div class="w-[30px] h-[30px] min-w-[30px] rounded-full bg-gradient-to-br from-qsis to-accent text-white flex items-center justify-center font-bold text-[0.85rem]">1</div>
+                <div><h4 class="text-[0.9rem] mb-0.5">Login with GitHub</h4><p class="text-[0.8rem] text-dark-text2">Click the Login button and connect your GitHub account. Verify with your IIUC email (q{number}@ugrad.iiuc.ac.bd).</p></div>
               </div>
-              <div class="tutorial-step">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                  <h4>Select Files</h4>
-                  <p>Choose your academic files (PDF, DOC, XLS, PPT, images). Max 10 files, 50MB total.</p>
-                </div>
+              <div class="flex gap-3.5 items-start">
+                <div class="w-[30px] h-[30px] min-w-[30px] rounded-full bg-gradient-to-br from-qsis to-accent text-white flex items-center justify-center font-bold text-[0.85rem]">2</div>
+                <div><h4 class="text-[0.9rem] mb-0.5">Select Files</h4><p class="text-[0.8rem] text-dark-text2">Choose your academic files (PDF, DOC, XLS, PPT, images). Max 10 files, 50MB total.</p></div>
               </div>
-              <div class="tutorial-step">
-                <div class="step-number">3</div>
-                <div class="step-content">
-                  <h4>Fill in Details</h4>
-                  <p>Select semester & category, enter your Name, QSIS ID, and WhatsApp number.</p>
-                </div>
+              <div class="flex gap-3.5 items-start">
+                <div class="w-[30px] h-[30px] min-w-[30px] rounded-full bg-gradient-to-br from-qsis to-accent text-white flex items-center justify-center font-bold text-[0.85rem]">3</div>
+                <div><h4 class="text-[0.9rem] mb-0.5">Fill in Details</h4><p class="text-[0.8rem] text-dark-text2">Select semester & category, enter your Name, QSIS ID, and WhatsApp number.</p></div>
               </div>
-              <div class="tutorial-step">
-                <div class="step-number">4</div>
-                <div class="step-content">
-                  <h4>Submit!</h4>
-                  <p>We automatically fork the repo, commit your files, and create a Pull Request. You'll see the PR link when done.</p>
-                </div>
+              <div class="flex gap-3.5 items-start">
+                <div class="w-[30px] h-[30px] min-w-[30px] rounded-full bg-gradient-to-br from-qsis to-accent text-white flex items-center justify-center font-bold text-[0.85rem]">4</div>
+                <div><h4 class="text-[0.9rem] mb-0.5">Submit!</h4><p class="text-[0.8rem] text-dark-text2">We automatically fork the repo, commit your files, and create a Pull Request. You'll see the PR link when done.</p></div>
               </div>
             </div>
           </div>
@@ -201,29 +223,31 @@
       </div>
     </div>
 
+    <!-- AUTH MODAL -->
     <div id="authModal" class="modal">
       <div class="modal-content">
-        <div class="modal-header">
-          <h2><i class="fas fa-user-shield"></i> Authentication</h2>
-          <button class="btn-icon" onclick="AUTH.closeAuthModal()"><i class="fas fa-times"></i></button>
+        <div class="flex items-center justify-between px-5 py-4 border-b border-dark-border">
+          <h2 class="text-base font-semibold flex items-center gap-2"><i class="fas fa-user-shield"></i> Authentication</h2>
+          <button class="bg-transparent border-none text-dark-text2 cursor-pointer w-[34px] h-[34px] rounded-full flex items-center justify-center text-base hover:bg-dark-bg3 hover:text-dark-text transition-all" onclick="AUTH.closeAuthModal()"><i class="fas fa-times"></i></button>
         </div>
-        <div class="modal-body" id="authModalBody">
-        </div>
+        <div class="p-5" id="authModalBody"></div>
       </div>
     </div>
 
-    <div id="toast" class="toast"></div>
+    <!-- TOAST -->
+    <div id="toast" class="fixed bottom-5 right-5 px-5 py-3 rounded-xl text-white font-semibold text-[0.85rem] z-[2000] translate-y-[100px] opacity-0 transition-all duration-300"></div>
 
-    <footer class="footer">
-      <div class="footer-content">
-        <div class="footer-logos">
-          <a href="https://programming-light.eu.cc" target="_blank" rel="noopener"><img src="assets/pl-logo.png" alt="Programming Light" class="footer-logo footer-logo-pl" /></a>
-          <span class="footer-logo-plus"><i class="fas fa-plus"></i></span>
-          <img src="assets/qsis-logo.jpg" alt="QSIS" class="footer-logo" />
+    <!-- FOOTER -->
+    <footer class="bg-dark-bg2 border-t border-dark-border py-5 text-center">
+      <div class="max-w-[1200px] mx-auto px-5">
+        <div class="flex items-center justify-center gap-3 mb-2.5">
+          <a href="https://programming-light.eu.cc" target="_blank" rel="noopener"><img src="assets/pl-logo.png" alt="Programming Light" class="w-10 h-10 rounded-[10px] object-cover border-[1.5px] border-dark-border bg-white p-[3px]" /></a>
+          <span class="text-dark-text2 text-[0.8rem]"><i class="fas fa-plus"></i></span>
+          <img src="assets/qsis-logo.jpg" alt="QSIS" class="w-10 h-10 rounded-[10px] object-cover border-[1.5px] border-dark-border bg-white p-[3px]" />
         </div>
-        <p>Presented by <a href="https://programming-light.eu.cc" target="_blank">Programming Light</a> to the <strong>Qur'anic Sciences Club</strong></p>
-        <p>QSIS - IIUC &middot; Faculty of Shariah & Islamic Studies</p>
-        <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="footer-star">
+        <p class="text-[0.8rem] text-dark-text2 mb-0.5">Presented by <a href="https://programming-light.eu.cc" target="_blank" class="text-qsis no-underline">Programming Light</a> to the <strong>Qur'anic Sciences Club</strong></p>
+        <p class="text-[0.8rem] text-dark-text2 mb-0.5">QSIS - IIUC &middot; Faculty of Shariah & Islamic Studies</p>
+        <a href="https://github.com/sayedatiqurrahman/QSIS-ACADEMIC-FILES-MANAFGER" target="_blank" class="inline-flex items-center gap-2 mt-2 px-3.5 py-1.5 rounded-[20px] bg-[rgba(250,204,21,.1)] border border-[rgba(250,204,21,.2)] text-gold text-[0.75rem] font-bold no-underline hover:bg-[rgba(250,204,21,.2)] hover:border-gold transition-all">
           <i class="fas fa-star"></i> <span id="footerStars">-</span> Stars on GitHub
         </a>
       </div>
