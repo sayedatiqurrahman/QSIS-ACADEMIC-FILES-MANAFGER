@@ -283,19 +283,28 @@ function openPdfViewer(url, container, filePath) {
   if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
     if (viewerHeader) viewerHeader.classList.add('hidden');
     openAdobePdf(url, container, filePath, fileName);
-  } else if (typeof pdfjsLib !== 'undefined') {
-    if (viewerHeader) viewerHeader.classList.remove('hidden');
-    openPdfJs(url, container, filePath, fileName);
-  } else {
-    if (viewerHeader) viewerHeader.classList.remove('hidden');
-    container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file-pdf" style="font-size:3rem;color:#ef4444;margin-bottom:16px"></i><p>Loading PDF viewer...</p><p style="font-size:0.8rem;color:#94a3b8;margin-top:8px">If it doesn\'t load, <a href="' + url + '" target="_blank" style="color:#22c55e">open in new tab</a></p></div>';
-    var s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-    s.onload = function() {
-      if (typeof pdfjsLib !== 'undefined') openPdfJs(url, container, filePath, fileName);
-    };
-    document.head.appendChild(s);
+    return;
   }
+
+  if (viewerHeader) viewerHeader.classList.add('hidden');
+  container.innerHTML = '<div class="flex flex-col items-center justify-center h-full gap-3" style="color:#94a3b8"><i class="fas fa-spinner fa-spin text-2xl"></i><p style="font-size:0.85rem">Loading Adobe PDF viewer...</p></div>';
+
+  var attempts = 0;
+  var checkAdobe = setInterval(function() {
+    attempts++;
+    if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+      clearInterval(checkAdobe);
+      openAdobePdf(url, container, filePath, fileName);
+    } else if (attempts >= 20) {
+      clearInterval(checkAdobe);
+      if (viewerHeader) viewerHeader.classList.remove('hidden');
+      if (typeof pdfjsLib !== 'undefined') {
+        openPdfJs(url, container, filePath, fileName);
+      } else {
+        container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file-pdf" style="font-size:3rem;color:#ef4444;margin-bottom:16px"></i><p>PDF viewer unavailable.</p><a href="' + url + '" target="_blank" class="auth-btn-primary" style="display:inline-flex;width:auto;margin-top:12px;text-decoration:none"><i class="fas fa-external-link-alt"></i> Open in new tab</a></div>';
+      }
+    }
+  }, 500);
 }
 
 function openAdobePdf(url, container, filePath, fileName) {
