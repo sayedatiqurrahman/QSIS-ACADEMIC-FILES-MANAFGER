@@ -322,7 +322,10 @@ function openPdfViewer(url, container, filePath) {
 
 function openAdobePdf(url, container, filePath, fileName) {
   var divId = 'adobe-pdf-' + Date.now();
-  container.innerHTML = '<div id="' + divId + '" style="width:100%;height:100%"></div>';
+  container.innerHTML =
+    '<div id="' + divId + '" style="width:100%;height:100%;position:relative">' +
+      '<button id="adobeCloseBtn" onclick="closeViewer()" title="Close PDF" style="position:absolute;top:8px;left:8px;z-index:9999;width:32px;height:32px;border-radius:8px;background:#ef4444;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:all .15s" onmouseover="this.style.background=\'#dc2626\';this.style.transform=\'scale(1.1)\'" onmouseout="this.style.background=\'#ef4444\';this.style.transform=\'scale(1)\'"><i class="fas fa-times"></i></button>' +
+    '</div>';
 
   try {
     var adobeDCView = new AdobeDC.View({ clientId: CONFIG.adobeClientId, divId: divId });
