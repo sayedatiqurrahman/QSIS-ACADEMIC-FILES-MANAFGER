@@ -324,7 +324,7 @@ function openAdobePdf(url, container, filePath, fileName) {
   var divId = 'adobe-pdf-' + Date.now();
   container.innerHTML =
     '<div id="' + divId + '" style="width:100%;height:100%;position:relative"></div>' +
-    '<button onclick="closeViewer()" title="Close PDF" style="position:fixed;top:12px;left:12px;z-index:2147483647;width:36px;height:36px;border-radius:50%;background:#ef4444;color:#fff;border:2px solid #fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 4px 16px rgba(0,0,0,0.5);transition:all .15s" onmouseover="this.style.background=\'#dc2626\';this.style.transform=\'scale(1.15)\'" onmouseout="this.style.background=\'#ef4444\';this.style.transform=\'scale(1)\'"><i class="fas fa-times"></i></button>';
+    '<button onclick="closeViewer()" title="Close PDF" style="position:fixed;top:9px;left:19px;z-index:2147483647;width:27px;height:27px;border-radius:7px;background:#eb0e00;color:rgb(255,256,255);border:2px solid rgb(255,255,255);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.85rem;box-shadow:rgba(0,0,0,0.5) 0px 4px 16px;transition:0.15s;transform:scale(1)" onmouseover="this.style.background=\'#dc2626\';this.style.transform=\'scale(1.15)\'" onmouseout="this.style.background=\'#ef4444\';this.style.transform=\'scale(1)\'"><i class="fas fa-times" style="font-size:0.75rem"></i></button>';
 
   try {
     var adobeDCView = new AdobeDC.View({ clientId: CONFIG.adobeClientId, divId: divId });
