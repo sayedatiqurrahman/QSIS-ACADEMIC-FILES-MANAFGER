@@ -5,7 +5,7 @@ const CONFIG = {
   repo: 'QSIS-ACADEMIC-FILES-MANAFGER',
   uploadPath: 'upload_academic_files',
   branch: 'main',
-  oauthProxy: '',
+  oauthProxy: 'https://qsis-oauth-proxy.s-atiqurrahman2003.workers.dev',
   clientId: 'Iv23li6TQdbFhb4yXe5O',
   adobeClientId: 'd57fdbe801014db1a20bfb74914b5033',
   maxFilesPerUpload: 10,
