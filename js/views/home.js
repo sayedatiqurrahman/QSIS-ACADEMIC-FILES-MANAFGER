@@ -23,7 +23,7 @@ const HomeView = {
           <h2 class="text-[1.7rem] font-extrabold bg-gradient-to-br from-qsis to-accent bg-clip-text text-transparent mb-1.5">QSIS-ARMS</h2>
           <p class="text-dark-text2 text-[0.95rem]">QSIS Academic Resource Management System</p>
           <div class="flex items-center justify-center gap-2 mt-2.5 flex-wrap">
-            <span class="text-[0.78rem] text-dark-text2">Developed by <strong class="text-qsis">Sayed Atiqur Rahman</strong> &mdash; CSE, IIUC</span>
+            <span class="text-[0.78rem] text-dark-text2">Developed by <strong class="text-qsis">Sayed Atiqur Rahman</strong> &mdash; QSIS, IIUC</span>
           </div>
         </section>
 
