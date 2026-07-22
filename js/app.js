@@ -258,7 +258,7 @@ function openPdfViewer(url, container, filePath) {
   pdfFilePath = filePath || '';
   var fileName = filePath ? filePath.split('/').pop() : 'document.pdf';
 
-  if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+  if (!window._adobeFailed && typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
     openAdobePdf(url, container, filePath, fileName);
   } else if (typeof pdfjsLib !== 'undefined') {
     openPdfJs(url, container, filePath, fileName);

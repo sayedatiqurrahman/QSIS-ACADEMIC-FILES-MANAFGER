@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qsis-v13';
+const CACHE_NAME = 'qsis-v14';
 const SHELL = [
   './',
   './index.html',
@@ -22,10 +22,7 @@ const SHELL = [
   './assets/pl-logo.png',
   './assets/iiuc-logo.png',
   './assets/app-icon.jpg',
-  './manifest.json',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+  './manifest.json'
 ];
 
 self.addEventListener('install', function(e) {
@@ -43,20 +40,7 @@ self.addEventListener('activate', function(e) {
 self.addEventListener('fetch', function(e) {
   var url = new URL(e.request.url);
 
-  if (url.hostname.includes('workers.dev') || url.hostname === 'cloudflareinsights.com') {
-    return;
-  }
-
-  if (url.hostname === 'api.github.com' || url.hostname === 'raw.githubusercontent.com') {
-    e.respondWith(
-      fetch(e.request).then(function(res) {
-        if (res.ok) {
-          var clone = res.clone();
-          caches.open(CACHE_NAME).then(function(c) { return c.put(e.request, clone); });
-        }
-        return res;
-      }).catch(function() { return caches.match(e.request); })
-    );
+  if (url.origin !== self.location.origin) {
     return;
   }
 
