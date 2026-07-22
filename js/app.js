@@ -289,20 +289,33 @@ function openPdfViewer(url, container, filePath) {
   if (viewerHeader) viewerHeader.classList.add('hidden');
   container.innerHTML = '<div class="flex flex-col items-center justify-center h-full gap-3" style="color:#94a3b8"><i class="fas fa-spinner fa-spin text-2xl"></i><p style="font-size:0.85rem">Loading Adobe PDF viewer...</p></div>';
 
+  function onAdobeReady() {
+    if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+      openAdobePdf(url, container, filePath, fileName);
+    } else {
+      fallbackToPdfJs(url, container, filePath, fileName);
+    }
+  }
+
+  if (typeof AdobeDC !== 'undefined') {
+    onAdobeReady();
+    return;
+  }
+
+  document.addEventListener('adobe_dc_view_sdk.ready', function handler() {
+    document.removeEventListener('adobe_dc_view_sdk.ready', handler);
+    onAdobeReady();
+  });
+
   var attempts = 0;
   var checkAdobe = setInterval(function() {
     attempts++;
-    if (typeof AdobeDC !== 'undefined' && CONFIG.adobeClientId) {
+    if (typeof AdobeDC !== 'undefined') {
       clearInterval(checkAdobe);
-      openAdobePdf(url, container, filePath, fileName);
-    } else if (attempts >= 20) {
+      onAdobeReady();
+    } else if (attempts >= 40) {
       clearInterval(checkAdobe);
-      if (viewerHeader) viewerHeader.classList.remove('hidden');
-      if (typeof pdfjsLib !== 'undefined') {
-        openPdfJs(url, container, filePath, fileName);
-      } else {
-        container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file-pdf" style="font-size:3rem;color:#ef4444;margin-bottom:16px"></i><p>PDF viewer unavailable.</p><a href="' + url + '" target="_blank" class="auth-btn-primary" style="display:inline-flex;width:auto;margin-top:12px;text-decoration:none"><i class="fas fa-external-link-alt"></i> Open in new tab</a></div>';
-      }
+      fallbackToPdfJs(url, container, filePath, fileName);
     }
   }, 500);
 }
@@ -312,42 +325,32 @@ function openAdobePdf(url, container, filePath, fileName) {
   container.innerHTML = '<div id="' + divId + '" style="width:100%;height:100%"></div>';
 
   try {
-    var adobeDCView = new AdobeDC.Viewer({ clientId: CONFIG.adobeClientId, divId: divId });
+    var adobeDCView = new AdobeDC.View({ clientId: CONFIG.adobeClientId, divId: divId });
     adobeDCView.previewFile({
-      content: { promise: fetch(url).then(function(r) {
-        if (!r.ok) throw new Error('Failed to load file');
-        return r.arrayBuffer();
-      }) },
+      content: { location: { url: url } },
       metaData: { fileName: fileName }
-    }, {
-      embedMode: 'SIZED_CONTAINER',
-      defaultViewMode: 'FIT_PAGE',
-      showAnnotationTools: true,
-      showDownloadPDF: true,
-      showPrintPDF: true,
-      showFormFill: true,
-      enableAnnotationEditing: true
+    }, {}).then(function(adobeViewer) {
+      if (filePath) {
+        var item = { path: filePath, name: fileName, mimeType: 'pdf', rawUrl: url };
+        DB.historyAdd(item);
+      }
+    }).catch(function(err) {
+      console.warn('Adobe preview failed:', err);
+      fallbackToPdfJs(url, container, filePath, fileName);
     });
-
-    adobeDCView.registerCallback(
-      AdobeDC.Viewer.Enum.CallbackType.EVENT_LISTENER,
-      function(event) {
-        if (event.type === 'PDF_VIEWER_LOADED') {
-          if (filePath) {
-            var item = { path: filePath, name: fileName, mimeType: 'pdf', rawUrl: url };
-            DB.historyAdd(item);
-          }
-        }
-      },
-      { listenOn: ['PDF_VIEWER_LOADED'] }
-    );
   } catch (err) {
-    console.warn('Adobe viewer failed, falling back to pdf.js:', err);
-    if (typeof pdfjsLib !== 'undefined') {
-      openPdfJs(url, container, filePath, fileName);
-    } else {
-      container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file-pdf" style="font-size:3rem;color:#ef4444;margin-bottom:16px"></i><p>PDF viewer unavailable.</p><a href="' + url + '" target="_blank" class="auth-btn-primary" style="display:inline-flex;width:auto;margin-top:12px;text-decoration:none"><i class="fas fa-external-link-alt"></i> Open in new tab</a></div>';
-    }
+    console.warn('Adobe viewer init failed:', err);
+    fallbackToPdfJs(url, container, filePath, fileName);
+  }
+}
+
+function fallbackToPdfJs(url, container, filePath, fileName) {
+  var viewerHeader = document.querySelector('#fileViewer .flex.items-center.justify-between');
+  if (viewerHeader) viewerHeader.classList.remove('hidden');
+  if (typeof pdfjsLib !== 'undefined') {
+    openPdfJs(url, container, filePath, fileName);
+  } else {
+    container.innerHTML = '<div class="viewer-fallback"><i class="fas fa-file-pdf" style="font-size:3rem;color:#ef4444;margin-bottom:16px"></i><p>PDF viewer unavailable.</p><a href="' + url + '" target="_blank" class="auth-btn-primary" style="display:inline-flex;width:auto;margin-top:12px;text-decoration:none"><i class="fas fa-external-link-alt"></i> Open in new tab</a></div>';
   }
 }
 
