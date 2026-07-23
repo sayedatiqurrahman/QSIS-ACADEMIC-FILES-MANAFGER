@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'upload_academic_files/*-semister/.gitkeep'
+      - 'upload_academic_files/related-kitabs/.gitkeep'
 
 jobs:
   setup:
@@ -51,4 +52,31 @@ jobs:
             git push
           else
             echo "All folders already exist. Nothing to do."
+          fi
+
+      - name: Setup Related Kitabs sub-folders
+        run: |
+          CHANGED=false
+
+          RELATED_DIR="upload_academic_files/related-kitabs"
+          SUBFOLDERS=("quran-tafsir" "hadith" "fiqh" "aqeedah" "seerah" "general")
+
+          if [ -d "$RELATED_DIR" ]; then
+            for folder in "${SUBFOLDERS[@]}"; do
+              target="$RELATED_DIR/$folder/.gitkeep"
+              if [ ! -d "$RELATED_DIR/$folder" ]; then
+                mkdir -p "$RELATED_DIR/$folder"
+                touch "$target"
+                git add "$target"
+                CHANGED=true
+                echo "Created: $target"
+              fi
+            done
+          fi
+
+          if [ "$CHANGED" = true ]; then
+            git commit -m "Auto-setup: create related-kitabs sub-folders [skip ci]"
+            git push
+          else
+            echo "Related Kitabs folders already exist. Nothing to do."
           fi

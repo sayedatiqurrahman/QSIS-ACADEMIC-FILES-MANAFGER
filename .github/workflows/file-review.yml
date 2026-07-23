@@ -132,6 +132,16 @@ jobs:
           echo "- **Previous Questions** → \`<semester>/Previous Question/<year>/\`" >> report.md
           echo "- **Notes** → \`<semester>/NOTES/\`" >> report.md
           echo "- **Syllabus** → \`<semester>/Syllabus/\`" >> report.md
+          echo "" >> report.md
+          echo "### 📚 Related Kitabs Categories:" >> report.md
+          echo "- **Quran & Tafsir** → \`related-kitabs/quran-tafsir/\`" >> report.md
+          echo "- **Hadith** → \`related-kitabs/hadith/\`" >> report.md
+          echo "- **Fiqh** → \`related-kitabs/fiqh/\`" >> report.md
+          echo "- **Aqeedah** → \`related-kitabs/aqeedah/\`" >> report.md
+          echo "- **Seerah** → \`related-kitabs/seerah/\`" >> report.md
+          echo "- **General** → \`related-kitabs/general/\`" >> report.md
+          echo "" >> report.md
+          echo "> ⚠️ **Note:** Files uploaded to \`related-kitabs/\` require manual review and will not be auto-merged." >> report.md
 
           cat report.md >> $GITHUB_STEP_SUMMARY
 
@@ -164,10 +174,24 @@ jobs:
               });
             }
 
-      - name: Auto-Merge (if all checks pass)
+      - name: Auto-Merge (if all checks pass and not related-kitabs)
         if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "✅ All checks passed. Merging PR..."
-          gh pr merge ${{ github.event.pull_request.number }} --merge --subject "Auto-merged: ${{ github.event.pull_request.title }}"
+          FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
+          IS_RELATED_KITABS=false
+
+          for file in $FILES; do
+            if echo "$file" | grep -q '^upload_academic_files/related-kitabs/'; then
+              IS_RELATED_KITABS=true
+              break
+            fi
+          done
+
+          if [ "$IS_RELATED_KITABS" = true ]; then
+            echo "⚠️ Related Kitabs files detected — skipping auto-merge. Manual review required."
+          else
+            echo "✅ All checks passed. Merging PR..."
+            gh pr merge ${{ github.event.pull_request.number }} --merge --subject "Auto-merged: ${{ github.event.pull_request.title }}"
+          fi
