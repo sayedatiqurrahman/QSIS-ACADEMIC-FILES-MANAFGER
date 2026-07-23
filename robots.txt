@@ -1,7 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /api/
-Disallow: /.github/
-Disallow: /worker/
-
-Sitemap: https://qsis-arms.eu.cc/sitemap.xml
