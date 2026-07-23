@@ -16,7 +16,6 @@ upload_academic_files/
 ├── 6th-semister/
 ├── 7th-semister/
 ├── 8th-semister/
-├── kitab/
 └── related-kitabs/    ← Cross-semester & Shariah resources
 ```
 
@@ -25,7 +24,6 @@ Each semester contains:
 - `question/` — Previous year questions
 - `note/` — Course notes
 - `syllabus/` — Course syllabi
-- `hadith/` — Hadith collections
 
 ## How to Contribute
 
